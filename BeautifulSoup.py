@@ -985,7 +985,7 @@ def buildSet(args):
 
 def buildTagMap(default, *args):
     """Turns a list of maps, lists, or scalars into a single map.
-    Used to build the NESTABLE_TAGS and NESTING_RESET_TAGS maps out of
+    Used to build the nestable_tags and reset_nesting_tags maps out of
     lists and partial maps."""
     built = {}
     for portion in args:
@@ -1251,8 +1251,8 @@ class BeautifulStoneSoup(Tag):
     or when BeautifulSoup makes an assumption counter to what you were
     expecting."""
 
-    NESTABLE_TAGS = {}
-    RESET_NESTING_TAGS = {}
+    nestable_tags = {}
+    reset_nesting_tags = {}
 
     ROOT_TAG_NAME = u'[document]'
 
@@ -1408,9 +1408,9 @@ class BeautifulStoneSoup(Tag):
          <td><tr><td> *<td>* should pop to 'tr', not the first 'td'
         """
 
-        nestingResetTriggers = self.NESTABLE_TAGS.get(name)
+        nestingResetTriggers = self.nestable_tags.get(name)
         isNestable = nestingResetTriggers != None
-        isResetNesting = self.RESET_NESTING_TAGS.has_key(name)
+        isResetNesting = self.reset_nesting_tags.has_key(name)
         popTo = None
         inclusive = True
         for i in range(len(self.tagStack)-1, 0, -1):
@@ -1423,7 +1423,7 @@ class BeautifulStoneSoup(Tag):
             if (nestingResetTriggers != None
                 and p.name in nestingResetTriggers) \
                 or (nestingResetTriggers == None and isResetNesting
-                    and self.RESET_NESTING_TAGS.has_key(p.name)):
+                    and self.reset_nesting_tags.has_key(p.name)):
 
                 #If we encounter one of the nesting reset triggers
                 #peculiar to this tag, or we encounter another tag
@@ -1546,16 +1546,16 @@ class BeautifulSoup(BeautifulStoneSoup):
     #According to the HTML standard, each of these inline tags can
     #contain another tag of the same type. Furthermore, it's common
     #to actually use these tags this way.
-    NESTABLE_INLINE_TAGS = ['span', 'font', 'q', 'object', 'bdo', 'sub', 'sup',
+    nestable_inline_tags = ['span', 'font', 'q', 'object', 'bdo', 'sub', 'sup',
                             'center']
 
     #According to the HTML standard, these block tags can contain
     #another tag of the same type. Furthermore, it's common
     #to actually use these tags this way.
-    NESTABLE_BLOCK_TAGS = ['blockquote', 'div', 'fieldset', 'ins', 'del']
+    nestable_block_tags = ['blockquote', 'div', 'fieldset', 'ins', 'del']
 
     #Lists can contain other lists, but there are restrictions.
-    NESTABLE_LIST_TAGS = { 'ol' : [],
+    nestable_list_tags = { 'ol' : [],
                            'ul' : [],
                            'li' : ['ul', 'ol'],
                            'dl' : [],
@@ -1563,7 +1563,7 @@ class BeautifulSoup(BeautifulStoneSoup):
                            'dt' : ['dl'] }
 
     #Tables can contain other tables, but there are restrictions.
-    NESTABLE_TABLE_TAGS = {'table' : [],
+    nestable_table_tags = {'table' : [],
                            'tr' : ['table', 'tbody', 'tfoot', 'thead'],
                            'td' : ['tr'],
                            'th' : ['tr'],
@@ -1572,17 +1572,17 @@ class BeautifulSoup(BeautifulStoneSoup):
                            'tfoot' : ['table'],
                            }
 
-    NON_NESTABLE_BLOCK_TAGS = ['address', 'form', 'p', 'pre']
+    non_nestable_block_tags = ['address', 'form', 'p', 'pre']
 
     #If one of these tags is encountered, all tags up to the next tag of
     #this type are popped.
-    RESET_NESTING_TAGS = buildTagMap(None, NESTABLE_BLOCK_TAGS, 'noscript',
-                                     NON_NESTABLE_BLOCK_TAGS,
-                                     NESTABLE_LIST_TAGS,
-                                     NESTABLE_TABLE_TAGS)
+    reset_nesting_tags = buildTagMap(None, nestable_block_tags, 'noscript',
+                                     non_nestable_block_tags,
+                                     nestable_list_tags,
+                                     nestable_table_tags)
 
-    NESTABLE_TAGS = buildTagMap([], NESTABLE_INLINE_TAGS, NESTABLE_BLOCK_TAGS,
-                                NESTABLE_LIST_TAGS, NESTABLE_TABLE_TAGS)
+    nestable_tags = buildTagMap([], nestable_inline_tags, nestable_block_tags,
+                                nestable_list_tags, nestable_table_tags)
 
     # Used to detect the charset in a META tag; see start_meta
     CHARSET_RE = re.compile("((^|;)\s*charset=)([^;]*)", re.M)
