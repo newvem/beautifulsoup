@@ -1010,6 +1010,7 @@ class TreeBuilder(Entities):
     PRESERVE_WHITESPACE_TAGS = set()
     QUOTE_TAGS = set()
     self_closing_tags = set()
+    assume_html = False
 
     def isSelfClosingTag(self, name):
         return name in self.self_closing_tags
@@ -1218,6 +1219,7 @@ class XMLParserBuilder(HTMLParser, TreeBuilder):
 
 class HTMLParserBuilder(XMLParserBuilder):
 
+    assume_html = True
     PRESERVE_WHITESPACE_TAGS = set(['pre', 'textarea'])
     QUOTE_TAGS = set(['script', 'textarea'])
     self_closing_tags = set(['br' , 'hr', 'input', 'img', 'meta',
@@ -1308,7 +1310,7 @@ class BeautifulStoneSoup(Tag):
         return XMLParserBuilder()
 
     def __init__(self, markup="", builder=None, parseOnlyThese=None,
-                 fromEncoding=None, isHTML=False):
+                 fromEncoding=None):
         """The Soup object is initialized as the 'root tag', and the
         provided markup (which can be a string or a file-like object)
         is fed into the underlying parser."""
@@ -1327,7 +1329,7 @@ class BeautifulStoneSoup(Tag):
             markup = markup.read()
         self.markup = markup
         try:
-            self._feed(isHTML=isHTML)
+            self._feed(isHTML=self.builder.assume_html)
         except StopParsing:
             pass
         self.markup = None                 # The markup can now be GCed.
@@ -1580,10 +1582,6 @@ class BeautifulSoup(BeautifulStoneSoup):
 
     def _defaultBuilder(self):
         return HTMLParserBuilder()
-
-    def __init__(self, *args, **kwargs):
-        kwargs['isHTML'] = True
-        BeautifulStoneSoup.__init__(self, *args, **kwargs)
 
     # Used to detect the charset in a META tag; see start_meta
     CHARSET_RE = re.compile("((^|;)\s*charset=)([^;]*)", re.M)
