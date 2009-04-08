@@ -1007,8 +1007,8 @@ def buildTagMap(default, *args):
 class TreeBuilder(Entities):
 
     smartQuotesTo = Entities.XML_ENTITIES
-    PRESERVE_WHITESPACE_TAGS = set()
-    QUOTE_TAGS = set()
+    preserve_whitespace_tags = set()
+    quote_tags = set()
     self_closing_tags = set()
     assume_html = False
 
@@ -1265,8 +1265,8 @@ class HTMLParserBuilder(XMLParserBuilder):
     builder."""
 
     assume_html = True
-    PRESERVE_WHITESPACE_TAGS = set(['pre', 'textarea'])
-    QUOTE_TAGS = set(['script', 'textarea'])
+    preserve_whitespace_tags = set(['pre', 'textarea'])
+    quote_tags = set(['script', 'textarea'])
     self_closing_tags = set(['br' , 'hr', 'input', 'img', 'meta',
                              'spacer', 'link', 'frame', 'base'])
 
@@ -1439,7 +1439,7 @@ class BeautifulStoneSoup(Tag):
             currentData = u''.join(self.currentData)
             if (currentData.translate(self.STRIP_ASCII_SPACES) == '' and
                 not set([tag.name for tag in self.tagStack]).intersection(
-                    self.builder.PRESERVE_WHITESPACE_TAGS)):
+                    self.builder.preserve_whitespace_tags)):
                 if '\n' in currentData:
                     currentData = '\n'
                 else:
@@ -1551,7 +1551,7 @@ class BeautifulStoneSoup(Tag):
         self.pushTag(tag)
         if selfClosing or self.builder.isSelfClosingTag(name):
             self.popTag()
-        if name in self.builder.QUOTE_TAGS:
+        if name in self.builder.quote_tags:
             #print "Beginning quote (%s)" % name
             self.quoteStack.append(name)
             self.literal = 1
