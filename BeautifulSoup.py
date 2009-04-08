@@ -1046,6 +1046,9 @@ class XMLParserBuilder(HTMLParser, TreeBuilder):
         want.
         """
 
+    reset_nesting_tags = {}
+    nestable_tags = {}
+
     MARKUP_MASSAGE = [(re.compile('(<[^<>]*)/>'),
                        lambda x: x.group(1) + ' />'),
                       (re.compile('<!\s+([^<>]*)>'),
@@ -1220,6 +1223,48 @@ class HTMLParserBuilder(XMLParserBuilder):
     self_closing_tags = set(['br' , 'hr', 'input', 'img', 'meta',
                              'spacer', 'link', 'frame', 'base'])
 
+    #According to the HTML standard, each of these inline tags can
+    #contain another tag of the same type. Furthermore, it's common
+    #to actually use these tags this way.
+    nestable_inline_tags = ['span', 'font', 'q', 'object', 'bdo', 'sub', 'sup',
+                            'center']
+
+    #According to the HTML standard, these block tags can contain
+    #another tag of the same type. Furthermore, it's common
+    #to actually use these tags this way.
+    nestable_block_tags = ['blockquote', 'div', 'fieldset', 'ins', 'del']
+
+    #Lists can contain other lists, but there are restrictions.
+    nestable_list_tags = { 'ol' : [],
+                           'ul' : [],
+                           'li' : ['ul', 'ol'],
+                           'dl' : [],
+                           'dd' : ['dl'],
+                           'dt' : ['dl'] }
+
+    #Tables can contain other tables, but there are restrictions.
+    nestable_table_tags = {'table' : [],
+                           'tr' : ['table', 'tbody', 'tfoot', 'thead'],
+                           'td' : ['tr'],
+                           'th' : ['tr'],
+                           'thead' : ['table'],
+                           'tbody' : ['table'],
+                           'tfoot' : ['table'],
+                           }
+
+    non_nestable_block_tags = ['address', 'form', 'p', 'pre']
+
+    #If one of these tags is encountered, all tags up to the next tag of
+    #this type are popped.
+    reset_nesting_tags = buildTagMap(None, nestable_block_tags, 'noscript',
+                                     non_nestable_block_tags,
+                                     nestable_list_tags,
+                                     nestable_table_tags)
+
+    nestable_tags = buildTagMap([], nestable_inline_tags, nestable_block_tags,
+                                nestable_list_tags, nestable_table_tags)
+
+
     def __init__(self, *args, **kwargs):
         if not kwargs.has_key('smartQuotesTo'):
             kwargs['smartQuotesTo'] = self.HTML_ENTITIES
@@ -1250,9 +1295,6 @@ class BeautifulStoneSoup(Tag):
     This class is useful for parsing XML or made-up markup languages,
     or when BeautifulSoup makes an assumption counter to what you were
     expecting."""
-
-    nestable_tags = {}
-    reset_nesting_tags = {}
 
     ROOT_TAG_NAME = u'[document]'
 
@@ -1408,9 +1450,9 @@ class BeautifulStoneSoup(Tag):
          <td><tr><td> *<td>* should pop to 'tr', not the first 'td'
         """
 
-        nestingResetTriggers = self.nestable_tags.get(name)
+        nestingResetTriggers = self.builder.nestable_tags.get(name)
         isNestable = nestingResetTriggers != None
-        isResetNesting = self.reset_nesting_tags.has_key(name)
+        isResetNesting = self.builder.reset_nesting_tags.has_key(name)
         popTo = None
         inclusive = True
         for i in range(len(self.tagStack)-1, 0, -1):
@@ -1423,7 +1465,7 @@ class BeautifulStoneSoup(Tag):
             if (nestingResetTriggers != None
                 and p.name in nestingResetTriggers) \
                 or (nestingResetTriggers == None and isResetNesting
-                    and self.reset_nesting_tags.has_key(p.name)):
+                    and self.builder.reset_nesting_tags.has_key(p.name)):
 
                 #If we encounter one of the nesting reset triggers
                 #peculiar to this tag, or we encounter another tag
@@ -1542,47 +1584,6 @@ class BeautifulSoup(BeautifulStoneSoup):
     def __init__(self, *args, **kwargs):
         kwargs['isHTML'] = True
         BeautifulStoneSoup.__init__(self, *args, **kwargs)
-
-    #According to the HTML standard, each of these inline tags can
-    #contain another tag of the same type. Furthermore, it's common
-    #to actually use these tags this way.
-    nestable_inline_tags = ['span', 'font', 'q', 'object', 'bdo', 'sub', 'sup',
-                            'center']
-
-    #According to the HTML standard, these block tags can contain
-    #another tag of the same type. Furthermore, it's common
-    #to actually use these tags this way.
-    nestable_block_tags = ['blockquote', 'div', 'fieldset', 'ins', 'del']
-
-    #Lists can contain other lists, but there are restrictions.
-    nestable_list_tags = { 'ol' : [],
-                           'ul' : [],
-                           'li' : ['ul', 'ol'],
-                           'dl' : [],
-                           'dd' : ['dl'],
-                           'dt' : ['dl'] }
-
-    #Tables can contain other tables, but there are restrictions.
-    nestable_table_tags = {'table' : [],
-                           'tr' : ['table', 'tbody', 'tfoot', 'thead'],
-                           'td' : ['tr'],
-                           'th' : ['tr'],
-                           'thead' : ['table'],
-                           'tbody' : ['table'],
-                           'tfoot' : ['table'],
-                           }
-
-    non_nestable_block_tags = ['address', 'form', 'p', 'pre']
-
-    #If one of these tags is encountered, all tags up to the next tag of
-    #this type are popped.
-    reset_nesting_tags = buildTagMap(None, nestable_block_tags, 'noscript',
-                                     non_nestable_block_tags,
-                                     nestable_list_tags,
-                                     nestable_table_tags)
-
-    nestable_tags = buildTagMap([], nestable_inline_tags, nestable_block_tags,
-                                nestable_list_tags, nestable_table_tags)
 
     # Used to detect the charset in a META tag; see start_meta
     CHARSET_RE = re.compile("((^|;)\s*charset=)([^;]*)", re.M)
