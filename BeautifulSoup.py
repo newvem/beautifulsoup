@@ -104,7 +104,7 @@ DEFAULT_OUTPUT_ENCODING = "utf-8"
 
 # First, the classes that represent markup elements.
 
-class KnowsEntitiesMixin:
+class Entities:
     """Knows about XML entities."""
 
     HTML_ENTITIES = "html"
@@ -469,7 +469,7 @@ class Declaration(NavigableString):
     def decodeGivenEventualEncoding(self, eventualEncoding):
         return u'<!' + self + u'>'
 
-class Tag(PageElement, KnowsEntitiesMixin):
+class Tag(PageElement, Entities):
 
     """Represents a found HTML tag with its attributes and contents."""
 
@@ -1004,9 +1004,9 @@ def buildTagMap(default, *args):
 
 # Now, the parser classes.
 
-class TreeBuilder(KnowsEntitiesMixin):
+class TreeBuilder(Entities):
 
-    smartQuotesTo = KnowsEntitiesMixin.XML_ENTITIES
+    smartQuotesTo = Entities.XML_ENTITIES
     PRESERVE_WHITESPACE_TAGS = set()
     QUOTE_TAGS = set()
     self_closing_tags = set()
@@ -1021,7 +1021,7 @@ class TreeBuilder(KnowsEntitiesMixin):
         pass
 
 
-class XMLParserBuilder(TreeBuilder, HTMLParser):
+class XMLParserBuilder(HTMLParser, TreeBuilder):
 
     """
         HTMLParser will process most bad HTML, and the BeautifulSoup
@@ -1054,7 +1054,7 @@ class XMLParserBuilder(TreeBuilder, HTMLParser):
 
     def __init__(self, convertEntities=None, markupMassage=True,
                  selfClosingTags=None,
-                 smartQuotesTo=KnowsEntitiesMixin.XML_ENTITIES):
+                 smartQuotesTo=Entities.XML_ENTITIES):
         HTMLParser.__init__(self)
         self.soup = None
         self.convertEntities = convertEntities
