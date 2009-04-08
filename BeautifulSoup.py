@@ -104,7 +104,7 @@ DEFAULT_OUTPUT_ENCODING = "utf-8"
 
 # First, the classes that represent markup elements.
 
-class Entities:
+class KnowsEntitiesMixin:
     """Knows about XML entities."""
 
     HTML_ENTITIES = "html"
@@ -469,7 +469,7 @@ class Declaration(NavigableString):
     def decodeGivenEventualEncoding(self, eventualEncoding):
         return u'<!' + self + u'>'
 
-class Tag(PageElement, Entities):
+class Tag(PageElement, KnowsEntitiesMixin):
 
     """Represents a found HTML tag with its attributes and contents."""
 
@@ -1004,7 +1004,24 @@ def buildTagMap(default, *args):
 
 # Now, the parser classes.
 
-class XMLParserBuilder(HTMLParser, Entities):
+class TreeBuilder(KnowsEntitiesMixin):
+
+    smartQuotesTo = KnowsEntitiesMixin.XML_ENTITIES
+    PRESERVE_WHITESPACE_TAGS = set()
+    QUOTE_TAGS = set()
+    self_closing_tags = set()
+
+    def isSelfClosingTag(self, name):
+        return name in self.self_closing_tags
+
+    def reset(self):
+        pass
+
+    def close(self):
+        pass
+
+
+class XMLParserBuilder(TreeBuilder, HTMLParser):
 
     """
         HTMLParser will process most bad HTML, and the BeautifulSoup
@@ -1035,13 +1052,9 @@ class XMLParserBuilder(HTMLParser, Entities):
                        lambda x: '<!' + x.group(1) + '>')
                       ]
 
-    PRESERVE_WHITESPACE_TAGS = set()
-    QUOTE_TAGS = set()
-    SELF_CLOSING_TAGS = set()
-
     def __init__(self, convertEntities=None, markupMassage=True,
                  selfClosingTags=None,
-                 smartQuotesTo=Entities.XML_ENTITIES):
+                 smartQuotesTo=KnowsEntitiesMixin.XML_ENTITIES):
         HTMLParser.__init__(self)
         self.soup = None
         self.convertEntities = convertEntities
@@ -1093,7 +1106,7 @@ class XMLParserBuilder(HTMLParser, Entities):
     def isSelfClosingTag(self, name):
         """Returns true iff the given string is the name of a
         self-closing tag according to this parser."""
-        return (name in self.SELF_CLOSING_TAGS
+        return (name in self.self_closing_tags
                 or name in self.instanceSelfClosingTags)
 
     def handle_starttag(self, name, attrs):
@@ -1104,13 +1117,6 @@ class XMLParserBuilder(HTMLParser, Entities):
 
     def handle_data(self, content):
         self.soup.handle_data(content)
-
-    def _toStringSubclass(self, text, subclass):
-        """Adds a certain piece of text to the tree as a NavigableString
-        subclass."""
-        self.soup.endData()
-        self.handle_data(text)
-        self.soup.endData(subclass)
 
     def handle_pi(self, text):
         """Handle a processing instruction as a ProcessingInstruction
@@ -1179,6 +1185,13 @@ class XMLParserBuilder(HTMLParser, Entities):
         "Handle DOCTYPEs and the like as Declaration objects."
         self._toStringSubclass(data, Declaration)
 
+    def _toStringSubclass(self, text, subclass):
+        """Adds a certain piece of text to the tree as a NavigableString
+        subclass."""
+        self.soup.endData()
+        self.handle_data(text)
+        self.soup.endData(subclass)
+
     def parse_declaration(self, i):
         """Treat a bogus SGML declaration as raw data. Treat a CDATA
         declaration as a CData object."""
@@ -1204,7 +1217,7 @@ class HTMLParserBuilder(XMLParserBuilder):
 
     PRESERVE_WHITESPACE_TAGS = set(['pre', 'textarea'])
     QUOTE_TAGS = set(['script', 'textarea'])
-    SELF_CLOSING_TAGS = set(['br' , 'hr', 'input', 'img', 'meta',
+    self_closing_tags = set(['br' , 'hr', 'input', 'img', 'meta',
                              'spacer', 'link', 'frame', 'base'])
 
     def __init__(self, *args, **kwargs):
@@ -1231,7 +1244,7 @@ class BeautifulStoneSoup(Tag):
       "<foo><bar></bar></foo>".
 
     [Another possible explanation is "<foo><bar /></foo>", but since
-    this class defines no SELF_CLOSING_TAGS, it will never use that
+    this class defines no self_closing_tags, it will never use that
     explanation.]
 
     This class is useful for parsing XML or made-up markup languages,
@@ -1276,6 +1289,7 @@ class BeautifulStoneSoup(Tag):
         except StopParsing:
             pass
         self.markup = None                 # The markup can now be GCed.
+        self.builder.close()
         self.builder.soup = None
         self.builder = None                # So can the builder.
 
