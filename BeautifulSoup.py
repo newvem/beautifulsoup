@@ -1136,11 +1136,22 @@ class XMLParserBuilder(HTMLParser, TreeBuilder):
             attrs = ''.join(map(lambda(x, y): ' %s="%s"' % (x, y), attrs))
             self.handle_data('<%s%s>' % (name, attrs))
             return
-        self.soup.handle_starttag(name, attrs)
+        if not self.isSelfClosingTag(name):
+            self.soup.endData()
+            self._smartPop(name)
+        tag = self.soup.handle_starttag(name, attrs)
+        if tag is None:
+            # The tag was filtered out by the SoupStrainer
+            return
         if name in self.quote_tags:
-            #print "Beginning quote (%s)" % name
+                #print "Beginning quote (%s)" % name
             self.quoteStack.append(name)
             self.literal = 1
+        if self.isSelfClosingTag(name):
+            self.soup.popTag()
+
+    def handle_startendtag(self, name, attrs):
+        self.handle_starttag(name, attrs)
 
     def handle_endtag(self, name):
         if self.quoteStack and self.quoteStack[-1] != name:
@@ -1154,6 +1165,7 @@ class XMLParserBuilder(HTMLParser, TreeBuilder):
             self.literal = (len(self.quoteStack) > 0)
 
     def handle_data(self, content):
+        #print "Handling data " + content
         self.soup.handle_data(content)
 
     def handle_pi(self, text):
@@ -1229,6 +1241,52 @@ class XMLParserBuilder(HTMLParser, TreeBuilder):
         self.soup.endData()
         self.handle_data(text)
         self.soup.endData(subclass)
+
+    def _smartPop(self, name):
+
+        """We need to pop up to the previous tag of this type, unless
+        one of this tag's nesting reset triggers comes between this
+        tag and the previous tag of this type, OR unless this tag is a
+        generic nesting trigger and another generic nesting trigger
+        comes between this tag and the previous tag of this type.
+
+        Examples:
+         <p>Foo<b>Bar *<p>* should pop to 'p', not 'b'.
+         <p>Foo<table>Bar *<p>* should pop to 'table', not 'p'.
+         <p>Foo<table><tr>Bar *<p>* should pop to 'tr', not 'p'.
+
+         <li><ul><li> *<li>* should pop to 'ul', not the first 'li'.
+         <tr><table><tr> *<tr>* should pop to 'table', not the first 'tr'
+         <td><tr><td> *<td>* should pop to 'tr', not the first 'td'
+        """
+
+        nestingResetTriggers = self.nestable_tags.get(name)
+        isNestable = nestingResetTriggers != None
+        isResetNesting = self.reset_nesting_tags.has_key(name)
+        popTo = None
+        inclusive = True
+        for i in range(len(self.soup.tagStack)-1, 0, -1):
+            p = self.soup.tagStack[i]
+            if (not p or p.name == name) and not isNestable:
+                #Non-nestable tags get popped to the top or to their
+                #last occurance.
+                popTo = name
+                break
+            if (nestingResetTriggers != None
+                and p.name in nestingResetTriggers) \
+                or (nestingResetTriggers == None and isResetNesting
+                    and self.reset_nesting_tags.has_key(p.name)):
+
+                #If we encounter one of the nesting reset triggers
+                #peculiar to this tag, or we encounter another tag
+                #that causes nesting to reset, pop up to but not
+                #including that tag.
+                popTo = p.name
+                inclusive = False
+                break
+            p = p.parent
+        if popTo:
+            self.soup._popToTag(popTo, inclusive)
 
     def parse_declaration(self, i):
         """Treat a bogus SGML declaration as raw data. Treat a CDATA
@@ -1361,7 +1419,7 @@ class BeautifulStoneSoup(Tag):
       feed(markup)
 
     The tree builder may call these methods from its feed() implementation:
-      handle_starttag(name, attrs, selfClosing=False)
+      handle_starttag(name, attrs) # See note about return value
       handle_endtag(name)
       handle_data(data) # Appends to the current data node
       endData(containerClass=NavigableString) # Ends the current data node
@@ -1508,67 +1566,26 @@ class BeautifulStoneSoup(Tag):
             mostRecentTag = self.popTag()
         return mostRecentTag
 
-    def _smartPop(self, name):
+    def handle_starttag(self, name, attrs):
+        """Push a start tag on to the stack.
 
-        """We need to pop up to the previous tag of this type, unless
-        one of this tag's nesting reset triggers comes between this
-        tag and the previous tag of this type, OR unless this tag is a
-        generic nesting trigger and another generic nesting trigger
-        comes between this tag and the previous tag of this type.
-
-        Examples:
-         <p>Foo<b>Bar *<p>* should pop to 'p', not 'b'.
-         <p>Foo<table>Bar *<p>* should pop to 'table', not 'p'.
-         <p>Foo<table><tr>Bar *<p>* should pop to 'tr', not 'p'.
-
-         <li><ul><li> *<li>* should pop to 'ul', not the first 'li'.
-         <tr><table><tr> *<tr>* should pop to 'table', not the first 'tr'
-         <td><tr><td> *<td>* should pop to 'tr', not the first 'td'
+        If this method returns None, the tag was rejected by the
+        SoupStrainer. You should proceed as if the tag had not occured
+        in the document. For instance, if this was a self-closing tag,
+        don't call handle_endtag.
         """
 
-        nestingResetTriggers = self.builder.nestable_tags.get(name)
-        isNestable = nestingResetTriggers != None
-        isResetNesting = self.builder.reset_nesting_tags.has_key(name)
-        popTo = None
-        inclusive = True
-        for i in range(len(self.tagStack)-1, 0, -1):
-            p = self.tagStack[i]
-            if (not p or p.name == name) and not isNestable:
-                #Non-nestable tags get popped to the top or to their
-                #last occurance.
-                popTo = name
-                break
-            if (nestingResetTriggers != None
-                and p.name in nestingResetTriggers) \
-                or (nestingResetTriggers == None and isResetNesting
-                    and self.builder.reset_nesting_tags.has_key(p.name)):
-
-                #If we encounter one of the nesting reset triggers
-                #peculiar to this tag, or we encounter another tag
-                #that causes nesting to reset, pop up to but not
-                #including that tag.
-                popTo = p.name
-                inclusive = False
-                break
-            p = p.parent
-        if popTo:
-            self._popToTag(popTo, inclusive)
-
-    def handle_starttag(self, name, attrs, selfClosing=False):
         #print "Start tag %s: %s" % (name, attrs)
         self.endData()
+
+        if (self.parseOnlyThese and len(self.tagStack) <= 1
+            and (self.parseOnlyThese.text
+                 or not self.parseOnlyThese.searchTag(name, attrs))):
+            return None
 
         containsSubstitutions = False
         if name == 'meta' and self.builder.assume_html:
             containsSubstitutions = self.handleSpecialMetaTag(attrs)
-
-        if not self.builder.isSelfClosingTag(name) and not selfClosing:
-            self._smartPop(name)
-
-        if self.parseOnlyThese and len(self.tagStack) <= 1 \
-               and (self.parseOnlyThese.text
-                    or not self.parseOnlyThese.searchTag(name, attrs)):
-            return
 
         tag = Tag(self, self.builder, name, attrs, self.currentTag,
                   self.previous)
@@ -1577,12 +1594,10 @@ class BeautifulStoneSoup(Tag):
             self.previous.next = tag
         self.previous = tag
         self.pushTag(tag)
-        if selfClosing or self.builder.isSelfClosingTag(name):
-            self.popTag()
         return tag
 
     def handle_endtag(self, name):
-        #print "End tag %s" % name
+        #print "End tag: " + name
         self.endData()
         self._popToTag(name)
 
