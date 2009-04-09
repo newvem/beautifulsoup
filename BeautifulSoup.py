@@ -1144,14 +1144,11 @@ class XMLParserBuilder(HTMLParser, TreeBuilder):
             # The tag was filtered out by the SoupStrainer
             return
         if name in self.quote_tags:
-                #print "Beginning quote (%s)" % name
+            #print "Beginning quote (%s)" % name
             self.quoteStack.append(name)
             self.literal = 1
         if self.isSelfClosingTag(name):
             self.soup.popTag()
-
-    def handle_startendtag(self, name, attrs):
-        self.handle_starttag(name, attrs)
 
     def handle_endtag(self, name):
         if self.quoteStack and self.quoteStack[-1] != name:
