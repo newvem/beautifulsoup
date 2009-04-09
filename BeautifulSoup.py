@@ -1012,13 +1012,16 @@ class TreeBuilder(Entities):
     self_closing_tags = set()
     assume_html = False
 
+    def __init__(self):
+        self.soup = None
+
     def isSelfClosingTag(self, name):
         return name in self.self_closing_tags
 
     def reset(self):
         pass
 
-    def close(self):
+    def feed(self):
         pass
 
 
@@ -1469,7 +1472,6 @@ class BeautifulStoneSoup(Tag):
         except StopParsing:
             pass
         self.markup = None                 # The markup can now be GCed.
-        self.builder.close()
         self.builder.soup = None
         self.builder = None                # So can the builder.
 
@@ -1654,7 +1656,7 @@ class BeautifulStoneSoup(Tag):
 
 
 class BeautifulSoup(BeautifulStoneSoup):
-
+    """A convenience class for parsing HTML without creating a builder."""
     def _defaultBuilder(self):
         return HTMLParserBuilder()
 
@@ -1670,7 +1672,7 @@ class StopParsing(Exception):
 # or Unicode).  It is heavily based on code from Mark Pilgrim's
 # Universal Feed Parser. It does not rewrite the XML or HTML to
 # reflect a new encoding: that happens in BeautifulStoneSoup.handle_pi
-# (XML) and BeautifulSoup.start_meta (HTML).
+# (XML) and BeautifulSoup.handleSpecialMetaTag (HTML).
 
 # Autodetects character encodings.
 # Download from http://chardet.feedparser.org/
