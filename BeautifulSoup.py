@@ -1148,7 +1148,7 @@ class XMLParserBuilder(HTMLParser, TreeBuilder):
             self.quoteStack.append(name)
             self.literal = 1
         if self.isSelfClosingTag(name):
-            self.soup.popTag()
+            self.soup.handle_endtag(name)
 
     def handle_endtag(self, name):
         if self.quoteStack and self.quoteStack[-1] != name:
@@ -1422,8 +1422,14 @@ class BeautifulStoneSoup(Tag):
       endData(containerClass=NavigableString) # Ends the current data node
 
     No matter how complicated the underlying parser is, you should be
-    able to build a tree out of 'start tag' events, 'end tag' events,
-    and 'data' events.
+    able to build a tree using 'start tag' events, 'end tag' events,
+    'data' events, and "done with data" events.
+
+    If you encounter a self-closing tag, call handle_starttag and then
+    handle_endtag, but note that the tag will not be displayed as a
+    self-closing tag unless you also have your builder's
+    isSelfClosingTag() implementation return True when passed the tag
+    name.
     """
     ROOT_TAG_NAME = u'[document]'
 
