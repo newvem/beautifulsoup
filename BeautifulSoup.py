@@ -509,6 +509,8 @@ class Tag(PageElement, Entities):
         self.isSelfClosing = builder.isSelfClosingTag(name)
         if attrs == None:
             attrs = []
+        if isinstance(attrs, types.DictType):
+            self.attrMap = attrs
         self.attrs = attrs
         self.contents = []
         self.setup(parent, previous)
@@ -523,8 +525,10 @@ class Tag(PageElement, Entities):
             if val is None:
                 return kval
             return (k, re.sub("&(#\d+|#x[0-9a-fA-F]+|\w+);", convert_one, val))
-
-        self.attrs = map(convert, self.attrs)
+        if isinstance(attrs, types.DictType):
+            self.attrs = [convert(kv) for kv in attrs.items()]
+        else:
+            self.attrs = map(convert, attrs)
 
     def get(self, key, default=None):
         """Returns the value of the 'key' attribute for the tag, or
@@ -1660,6 +1664,8 @@ class BeautifulSoup(BeautifulStoneSoup):
     def _defaultBuilder(self):
         return HTMLParserBuilder()
 
+class ICantBelieveItsBeautifulSoup(BeautifulStoneSoup):
+    pass
 
 class StopParsing(Exception):
     pass

@@ -3,7 +3,7 @@ from BeautifulSoup import TreeBuilder, Comment
 
 class LXMLBuilder(TreeBuilder):
 
-    def __init__(self, parser_class=etree.XMLParser, self_closing_tags=[]):
+    def __init__(self, parser_class=etree.HTMLParser, self_closing_tags=[]):
         self.parser = parser_class(target=self)
         self.self_closing_tags = self_closing_tags
         self.soup = None
