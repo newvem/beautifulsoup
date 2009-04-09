@@ -1025,28 +1025,43 @@ class TreeBuilder(Entities):
 class XMLParserBuilder(HTMLParser, TreeBuilder):
 
     """
-        HTMLParser will process most bad HTML, and the BeautifulSoup
-        class has some tricks for dealing with some HTML that kills
-        HTMLParser, but Beautiful Soup can nonetheless choke or lose data
-        if your data uses self-closing tags or declarations
-        incorrectly.
+    This class defines a basic tree builder based on Python's built-in
+    HTMLParser. The tree builder knows nothing about tag
+    behavior except for the following:
 
-        By default, Beautiful Soup uses regexes to sanitize input,
-        avoiding the vast majority of these problems. If the problems
-        don't apply to you, pass in False for markupMassage, and
-        you'll get better performance.
+      You can't close a tag without closing all the tags it encloses.
+      That is, "<foo><bar></foo>" actually means
+      "<foo><bar></bar></foo>".
 
-        The default parser massage techniques fix the two most common
-        instances of invalid HTML that choke HTMLParser:
+    [Another possible explanation is "<foo><bar /></foo>", but unless
+    you specify 'bar' in self_closing_tags, this class will never use
+    that explanation.]
 
-         <br/> (No space between name of closing tag and tag close)
-         <! --Comment--> (Extraneous whitespace in declaration)
+    This class is useful for parsing XML or made-up markup languages,
+    or when BeautifulSoup makes an assumption counter to what you were
+    expecting.
 
-        You can pass in a custom list of (RE object, replace method)
-        tuples to get Beautiful Soup to scrub your input the way you
-        want.
-        """
 
+    HTMLParser will process most bad HTML, and the BeautifulSoup class
+    has some tricks for dealing with some HTML that kills HTMLParser,
+    but Beautiful Soup can nonetheless choke or lose data if your data
+    uses self-closing tags or declarations incorrectly.
+
+    This class uses regexes to sanitize input, avoiding the vast
+    majority of these problems. If the problems don't apply to you,
+    pass in False for markupMassage, and you'll get better
+    performance.
+
+    The default parser massage techniques fix the two most common
+    instances of invalid HTML that choke HTMLParser:
+
+        <br/> (No space between name of closing tag and tag close)
+        <! --Comment--> (Extraneous whitespace in declaration)
+
+    You can pass in a custom list of (RE object, replace method)
+    tuples to get XMLParserBuilder to scrub your input the way you
+    want.
+    """
     reset_nesting_tags = {}
     nestable_tags = {}
 
@@ -1318,32 +1333,31 @@ class HTMLParserBuilder(XMLParserBuilder):
         XMLParserBuilder.__init__(self, *args, **kwargs)
 
     def handle_starttag(self, name, attrs):
-        if name == 'meta':
-            self.soup.handle_metatag(attrs)
-        else:
-            self.soup.handle_starttag(name, attrs)
-
+        self.soup.handle_starttag(name, attrs)
 
 
 class BeautifulStoneSoup(Tag):
+    """
+    This class defines the basic interface called by the tree builders.
 
-    """This class contains the basic parser and search code. It defines
-    a parser that knows nothing about tag behavior except for the
-    following:
+    These methods will be called by the parser:
+      reset()
+      feed(markup)
 
-      You can't close a tag without closing all the tags it encloses.
-      That is, "<foo><bar></foo>" actually means
-      "<foo><bar></bar></foo>".
+    The tree builder may call these methods from its feed() implementation:
+      handle_starttag(name, attrs, selfClosing=False)
+      handle_endtag(name)
+      handle_data(data) # Appends to the current data node
+      endData(containerClass=NavigableString) # Ends the current data node
 
-    [Another possible explanation is "<foo><bar /></foo>", but since
-    this class defines no self_closing_tags, it will never use that
-    explanation.]
-
-    This class is useful for parsing XML or made-up markup languages,
-    or when BeautifulSoup makes an assumption counter to what you were
-    expecting."""
-
+    No matter how complicated the underlying parser is, you should be
+    able to build a tree out of 'start tag' events, 'end tag' events,
+    and 'data' events.
+    """
     ROOT_TAG_NAME = u'[document]'
+
+    # Used to detect the charset in a META tag; see handleSpecialMetaTag
+    CHARSET_RE = re.compile("((^|;)\s*charset=)([^;]*)", re.M)
 
     # Used when determining whether a text node is all whitespace and
     # can be replaced with a single space. A text node that contains
@@ -1525,7 +1539,7 @@ class BeautifulStoneSoup(Tag):
         if popTo:
             self._popToTag(popTo, inclusive)
 
-    def handle_starttag(self, name, attrs, selfClosing=0):
+    def handle_starttag(self, name, attrs, selfClosing=False):
         #print "Start tag %s: %s" % (name, attrs)
         if self.quoteStack:
             #This is not a real tag.
@@ -1534,6 +1548,10 @@ class BeautifulStoneSoup(Tag):
             self.handle_data('<%s%s>' % (name, attrs))
             return
         self.endData()
+
+        containsSubstitutions = False
+        if name == 'meta' and self.builder.assume_html:
+            containsSubstitutions = self.handleSpecialMetaTag(attrs)
 
         if not self.builder.isSelfClosingTag(name) and not selfClosing:
             self._smartPop(name)
@@ -1545,6 +1563,7 @@ class BeautifulStoneSoup(Tag):
 
         tag = Tag(self, self.builder, name, attrs, self.currentTag,
                   self.previous)
+        tag.containsSubstitutions = containsSubstitutions
         if self.previous:
             self.previous.next = tag
         self.previous = tag
@@ -1573,19 +1592,7 @@ class BeautifulStoneSoup(Tag):
     def handle_data(self, data):
         self.currentData.append(data)
 
-    def handle_metatag(self, attrs):
-        self.handle_starttag('meta', attrs)
-
-
-class BeautifulSoup(BeautifulStoneSoup):
-
-    def _defaultBuilder(self):
-        return HTMLParserBuilder()
-
-    # Used to detect the charset in a META tag; see start_meta
-    CHARSET_RE = re.compile("((^|;)\s*charset=)([^;]*)", re.M)
-
-    def handle_metatag(self, attrs):
+    def handleSpecialMetaTag(self, attrs):
         """Beautiful Soup can detect a charset included in a META tag,
         try to convert the document to that charset, and re-parse the
         document from the beginning."""
@@ -1628,9 +1635,13 @@ class BeautifulSoup(BeautifulStoneSoup):
                         self._feed(self.declaredHTMLEncoding)
                         raise StopParsing
                     pass
-        tag = self.handle_starttag("meta", attrs)
-        if tag and tagNeedsEncodingSubstitution:
-            tag.containsSubstitutions = True
+        return tagNeedsEncodingSubstitution
+
+
+class BeautifulSoup(BeautifulStoneSoup):
+
+    def _defaultBuilder(self):
+        return HTMLParserBuilder()
 
 
 class StopParsing(Exception):
