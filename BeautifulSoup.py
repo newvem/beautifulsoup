@@ -1080,6 +1080,7 @@ class XMLParserBuilder(HTMLParser, TreeBuilder):
         self.instanceSelfClosingTags = buildSet(selfClosingTags or [])
         self.markupMassage = markupMassage
         self.smartQuotesTo = smartQuotesTo
+        self.quoteStack = []
 
         # Set the rules for how we'll deal with the entities we
         # encounter
@@ -1129,10 +1130,28 @@ class XMLParserBuilder(HTMLParser, TreeBuilder):
                 or name in self.instanceSelfClosingTags)
 
     def handle_starttag(self, name, attrs):
+        if len(self.quoteStack) > 0:
+            #This is not a real tag.
+            #print "<%s> is not real!" % name
+            attrs = ''.join(map(lambda(x, y): ' %s="%s"' % (x, y), attrs))
+            self.handle_data('<%s%s>' % (name, attrs))
+            return
         self.soup.handle_starttag(name, attrs)
+        if name in self.quote_tags:
+            #print "Beginning quote (%s)" % name
+            self.quoteStack.append(name)
+            self.literal = 1
 
     def handle_endtag(self, name):
+        if self.quoteStack and self.quoteStack[-1] != name:
+            #This is not a real end tag.
+            #print "</%s> is not real!" % name
+            self.handle_data('</%s>' % name)
+            return
         self.soup.handle_endtag(name)
+        if self.quoteStack and self.quoteStack[-1] == name:
+            self.quoteStack.pop()
+            self.literal = (len(self.quoteStack) > 0)
 
     def handle_data(self, content):
         self.soup.handle_data(content)
@@ -1332,9 +1351,6 @@ class HTMLParserBuilder(XMLParserBuilder):
             kwargs['smartQuotesTo'] = self.HTML_ENTITIES
         XMLParserBuilder.__init__(self, *args, **kwargs)
 
-    def handle_starttag(self, name, attrs):
-        self.soup.handle_starttag(name, attrs)
-
 
 class BeautifulStoneSoup(Tag):
     """
@@ -1424,7 +1440,6 @@ class BeautifulStoneSoup(Tag):
         self.currentData = []
         self.currentTag = None
         self.tagStack = []
-        self.quoteStack = []
         self.pushTag(self)
 
     def popTag(self):
@@ -1541,12 +1556,6 @@ class BeautifulStoneSoup(Tag):
 
     def handle_starttag(self, name, attrs, selfClosing=False):
         #print "Start tag %s: %s" % (name, attrs)
-        if self.quoteStack:
-            #This is not a real tag.
-            #print "<%s> is not real!" % name
-            attrs = ''.join(map(lambda(x, y): ' %s="%s"' % (x, y), attrs))
-            self.handle_data('<%s%s>' % (name, attrs))
-            return
         self.endData()
 
         containsSubstitutions = False
@@ -1570,24 +1579,12 @@ class BeautifulStoneSoup(Tag):
         self.pushTag(tag)
         if selfClosing or self.builder.isSelfClosingTag(name):
             self.popTag()
-        if name in self.builder.quote_tags:
-            #print "Beginning quote (%s)" % name
-            self.quoteStack.append(name)
-            self.literal = 1
         return tag
 
     def handle_endtag(self, name):
         #print "End tag %s" % name
-        if self.quoteStack and self.quoteStack[-1] != name:
-            #This is not a real end tag.
-            #print "</%s> is not real!" % name
-            self.handle_data('</%s>' % name)
-            return
         self.endData()
         self._popToTag(name)
-        if self.quoteStack and self.quoteStack[-1] == name:
-            self.quoteStack.pop()
-            self.literal = (len(self.quoteStack) > 0)
 
     def handle_data(self, data):
         self.currentData.append(data)
