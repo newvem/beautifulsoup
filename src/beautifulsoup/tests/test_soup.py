@@ -7,7 +7,7 @@ case like this that fails."""
 
 import re
 import unittest
-from BeautifulSoup import *
+from beautifulsoup import *
 from element import CData, Comment, Declaration, SoupStrainer, Tag
 from builder import ICantBelieveItsValidHTMLTreeBuilder
 from dammit import UnicodeDammit
