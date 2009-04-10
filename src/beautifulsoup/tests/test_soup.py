@@ -8,9 +8,14 @@ case like this that fails."""
 import re
 import unittest
 from beautifulsoup import *
-from element import CData, Comment, Declaration, SoupStrainer, Tag
-from builder import ICantBelieveItsValidHTMLTreeBuilder
-from dammit import UnicodeDammit
+from beautifulsoup.element import CData, Comment, Declaration, SoupStrainer, Tag
+from beautifulsoup.builder import ICantBelieveItsValidHTMLTreeBuilder
+from beautifulsoup.dammit import UnicodeDammit
+
+
+def additional_tests():
+    return unittest.TestLoader().loadTestsFromName(__name__)
+
 
 class SoupTest(unittest.TestCase):
 
@@ -848,7 +853,6 @@ class AlternateBuilders(SoupTest):
 
         soup = BeautifulSoup(markup, builder=builder)
         self.assertEquals(soup.decode(), markup)
-
 
 if __name__ == '__main__':
     unittest.main()

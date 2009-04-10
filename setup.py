@@ -18,7 +18,7 @@ setup(
     zip_safe=False,
     maintainer='Leonard Richardson',
     maintainer_email='leonardr@segfault.org',
-    long_description="""Beautiful Soup parses arbitrarily invalid XML/HTML and provides a variety of methods and Pythonic idioms for iterating and searching the parse tree."""
+    long_description="""Beautiful Soup parses arbitrarily invalid XML/HTML and provides a variety of methods and Pythonic idioms for iterating and searching the parse tree.""",
     license='New-style BSD',
     install_requires=[
         'setuptools',
