@@ -1,6 +1,6 @@
 #!/bin/sh
 mkdir python3
-for i in BeautifulSoup*.py
+for i in BeautifulSoup*.py dammit.py
 do
     cp $i python3/
     2to3-3.0 -x next $i | patch -p0 python3/$i
