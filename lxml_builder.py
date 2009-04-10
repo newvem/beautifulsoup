@@ -1,7 +1,7 @@
 from lxml import etree
 from BeautifulSoup import TreeBuilder, Comment
 
-class LXMLBuilder(TreeBuilder):
+class LXMLTreeBuilder(TreeBuilder):
 
     def __init__(self, parser_class=etree.HTMLParser, self_closing_tags=[]):
         self.parser = parser_class(target=self)

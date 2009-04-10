@@ -280,7 +280,7 @@ class WriteOnlyCode(SoupTest):
     def testNewTagCreation(self):
         "Makes sure tags don't step on each others' toes."
         soup = BeautifulSoup()
-        builder = HTMLParserBuilder()
+        builder = HTMLParserTreeBuilder()
         a = Tag(soup, builder, 'a')
         ol = Tag(soup, builder, 'ol')
         a['href'] = 'http://foo.com/'
@@ -325,7 +325,7 @@ class WriteOnlyCode(SoupTest):
 
         # Even more complex
         soup = BeautifulSoup("<a><b>Find</b><c>lady!</c><d></d></a>")
-        builder = HTMLParserBuilder()
+        builder = HTMLParserTreeBuilder()
         tag = Tag(soup, builder, 'magictag')
         tag.insert(0, "the")
         soup.a.insert(1, tag)
@@ -527,7 +527,7 @@ class CleanupOnAisleFour(SoupTest):
         self.assertEqual(soup.decode(),
                          '<p>test1<selfclosing>test2</selfclosing></p>')
 
-        builder = XMLParserBuilder(selfClosingTags='selfclosing')
+        builder = HTMLParserXMLTreeBuilder(selfClosingTags='selfclosing')
         soup = BeautifulSoup(text, builder)
         self.assertEqual(soup.decode(),
                          '<p>test1<selfclosing />test2</p>')
@@ -583,9 +583,9 @@ class CleanupOnAisleFour(SoupTest):
         htmlEnt = Entities.HTML_ENTITIES
         xhtmlEnt = Entities.XHTML_ENTITIES
 
-        xmlBuilder = XMLParserBuilder(convertEntities=xmlEnt)
-        htmlBuilder = XMLParserBuilder(convertEntities=htmlEnt)
-        xhtmlBuilder = XMLParserBuilder(convertEntities=xhtmlEnt)
+        xmlBuilder = HTMLParserXMLTreeBuilder(convertEntities=xmlEnt)
+        htmlBuilder = HTMLParserXMLTreeBuilder(convertEntities=htmlEnt)
+        xhtmlBuilder = HTMLParserXMLTreeBuilder(convertEntities=xhtmlEnt)
 
         soup = BeautifulStoneSoup(text, xmlBuilder)
         self.assertEquals(soup.decode(), "<<sacr&eacute; bleu!>>")
@@ -608,7 +608,7 @@ class CleanupOnAisleFour(SoupTest):
         self.assertEquals(soup.decode(), u"<\u2122'")
 
     def testNonBreakingSpaces(self):
-        builder = HTMLParserBuilder(
+        builder = HTMLParserTreeBuilder(
             convertEntities=BeautifulStoneSoup.HTML_ENTITIES)
         soup = BeautifulSoup("<a>&nbsp;&nbsp;</a>", builder)
         self.assertEquals(soup.decode(), u"<a>\xa0\xa0</a>")
@@ -631,7 +631,7 @@ class CleanupOnAisleFour(SoupTest):
         self.assertSoupEquals('<x t="x&#xf1;">', '<x t="x\xc3\xb1"></x>',
                               encoding='utf-8')
 
-        builder = HTMLParserBuilder(convertEntities=Entities.HTML_ENTITIES)
+        builder = HTMLParserTreeBuilder(convertEntities=Entities.HTML_ENTITIES)
         soup = BeautifulSoup('<x t="&gt;&trade;">', builder)
         self.assertEquals(soup.decode(), u'<x t="&gt;\u2122"></x>')
 
@@ -649,7 +649,7 @@ class CleanupOnAisleFour(SoupTest):
                           uri.replace("&eacute;", u"\xe9"))
 
     def testNakedAmpersands(self):
-        builder = XMLParserBuilder(convertEntities=Entities.HTML_ENTITIES)
+        builder = HTMLParserXMLTreeBuilder(convertEntities=Entities.HTML_ENTITIES)
         soup = BeautifulStoneSoup("AT&T ", builder)
         self.assertEquals(soup.decode(), 'AT&amp;T ')
 
@@ -811,7 +811,7 @@ class EncodeRed(SoupTest):
         soup = BeautifulSoup(smartQuotes)
         self.assertEquals(soup.decode(),
                           'Il a dit, &lsaquo;Sacr&eacute; bl&#101;u!&rsaquo;')
-        builder = HTMLParserBuilder(convertEntities="html")
+        builder = HTMLParserTreeBuilder(convertEntities="html")
         soup = BeautifulSoup(smartQuotes, builder)
         self.assertEquals(soup.encode('utf-8'),
                           'Il a dit, \xe2\x80\xb9Sacr\xc3\xa9 bleu!\xe2\x80\xba')
@@ -830,6 +830,20 @@ class Whitewash(SoupTest):
 
     def testCollapsedWhitespace(self):
         self.assertSoupEquals("<p>   </p>", "<p> </p>")
+
+
+class AlternateBuilders(SoupTest):
+    """Test alternate builders."""
+
+    def testICantBelieveItsValidHTML(self):
+        builder = ICantBelieveItsValidHTMLBuilder()
+        markup = "<b>Foo<b>Bar</b></b>"
+
+        soup = BeautifulSoup(markup)
+        self.assertEquals(soup.decode(), "<b>Foo</b><b>Bar</b>")
+
+        soup = BeautifulSoup(markup, builder=builder)
+        self.assertEquals(soup.decode(), markup)
 
 
 if __name__ == '__main__':

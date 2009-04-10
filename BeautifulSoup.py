@@ -1029,7 +1029,7 @@ class TreeBuilder(Entities):
         pass
 
 
-class XMLParserBuilder(HTMLParser, TreeBuilder):
+class HTMLParserXMLTreeBuilder(HTMLParser, TreeBuilder):
 
     """
     This class defines a basic tree builder based on Python's built-in
@@ -1066,7 +1066,7 @@ class XMLParserBuilder(HTMLParser, TreeBuilder):
         <! --Comment--> (Extraneous whitespace in declaration)
 
     You can pass in a custom list of (RE object, replace method)
-    tuples to get XMLParserBuilder to scrub your input the way you
+    tuples to get HTMLParserXMLTreeBuilder to scrub your input the way you
     want.
     """
     reset_nesting_tags = {}
@@ -1313,7 +1313,7 @@ class XMLParserBuilder(HTMLParser, TreeBuilder):
         return j
 
 
-class HTMLParserBuilder(XMLParserBuilder):
+class HTMLParserTreeBuilder(HTMLParserXMLTreeBuilder):
     """This builder knows the following facts about HTML:
 
     * Some tags have no closing tag and should be interpreted as being
@@ -1411,7 +1411,7 @@ class HTMLParserBuilder(XMLParserBuilder):
     def __init__(self, *args, **kwargs):
         if not kwargs.has_key('smartQuotesTo'):
             kwargs['smartQuotesTo'] = self.HTML_ENTITIES
-        XMLParserBuilder.__init__(self, *args, **kwargs)
+        HTMLParserXMLTreeBuilder.__init__(self, *args, **kwargs)
 
 
 class BeautifulStoneSoup(Tag):
@@ -1450,7 +1450,7 @@ class BeautifulStoneSoup(Tag):
     STRIP_ASCII_SPACES = { 9: None, 10: None, 12: None, 13: None, 32: None, }
 
     def _defaultBuilder(self):
-        return XMLParserBuilder()
+        return HTMLParserXMLTreeBuilder()
 
     def __init__(self, markup="", builder=None, parseOnlyThese=None,
                  fromEncoding=None):
@@ -1662,13 +1662,52 @@ class BeautifulStoneSoup(Tag):
 class BeautifulSoup(BeautifulStoneSoup):
     """A convenience class for parsing HTML without creating a builder."""
     def _defaultBuilder(self):
-        return HTMLParserBuilder()
+        return HTMLParserTreeBuilder()
 
-class ICantBelieveItsBeautifulSoup(BeautifulStoneSoup):
-    pass
 
 class StopParsing(Exception):
     pass
+
+
+class ICantBelieveItsValidHTMLBuilder(HTMLParserTreeBuilder):
+    i_cant_believe_theyre_nestable_inline_tags = \
+     ['em', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'strong',
+      'cite', 'code', 'dfn', 'kbd', 'samp', 'strong', 'var', 'b',
+      'big']
+
+    i_cant_believe_theyre_nestable_block_tags = ['noscript']
+
+    nestable_tags = buildTagMap([], HTMLParserTreeBuilder.nestable_tags,
+                                i_cant_believe_theyre_nestable_block_tags,
+                                i_cant_believe_theyre_nestable_inline_tags)
+
+
+class ICantBelieveItsBeautifulSoup(BeautifulStoneSoup):
+    """The BeautifulSoup class is oriented towards skipping over
+    common HTML errors like unclosed tags. However, sometimes it makes
+    errors of its own. For instance, consider this fragment:
+
+     <b>Foo<b>Bar</b></b>
+
+    This is perfectly valid (if bizarre) HTML. However, the
+    BeautifulSoup class will implicitly close the first b tag when it
+    encounters the second 'b'. It will think the author wrote
+    "<b>Foo<b>Bar", and didn't close the first 'b' tag, because
+    there's no real-world reason to bold something that's already
+    bold. When it encounters '</b></b>' it will close two more 'b'
+    tags, for a grand total of three tags closed instead of two. This
+    can throw off the rest of your document structure. The same is
+    true of a number of other tags, listed below.
+
+    It's much more common for someone to forget to close a 'b' tag
+    than to actually use nested 'b' tags, and the BeautifulSoup class
+    handles the common case. This class handles the not-co-common
+    case: where you can't believe someone wrote what they did, but
+    it's valid HTML and BeautifulSoup screwed up by assuming it
+    wouldn't be."""
+    def _defaultBuilder(self):
+        return ICantBelieveItsValidHTMLBuilder()
+
 
 ######################################################
 #
