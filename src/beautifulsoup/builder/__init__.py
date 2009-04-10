@@ -1,12 +1,12 @@
 import markupbase
 import re
-from util import buildSet, isList, isString
+from HTMLParser import HTMLParser, HTMLParseError
 # element has taken care of import weirdness, so import name2codepoint
 # from there to avoid duplicating the weirdness.
-from element import name2codepoint
-from element import (
+from beautifulsoup.element import name2codepoint
+from beautifulsoup.element import (
     CData, Comment, Declaration, Entities, ProcessingInstruction)
-from HTMLParser import HTMLParser, HTMLParseError
+from beautifulsoup.util import buildSet, isList, isString
 
 __all__ = ['TreeBuilder',
            'HTMLParserXMLTreeBuilder',
