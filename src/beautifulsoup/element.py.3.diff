@@ -1,8 +1,0 @@
-92c92
-<     from htmlentitydefs import name2codepoint
----
->     from html.entities import name2codepoint
-337c337
-<                 i = g.next()
----
->                 i = g.__next__()

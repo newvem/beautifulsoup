@@ -1,4 +1,0 @@
-90c90
-< from HTMLParser import HTMLParser, HTMLParseError
----
-> from html.parser import HTMLParser, HTMLParseError
