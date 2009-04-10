@@ -1,7 +1,3 @@
-90c90
-< from HTMLParser import HTMLParser, HTMLParseError
----
-> from html.parser import HTMLParser, HTMLParseError
 92c92
 <     from htmlentitydefs import name2codepoint
 ---

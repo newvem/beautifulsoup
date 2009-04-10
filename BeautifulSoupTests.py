@@ -5,8 +5,12 @@ These tests make sure the Beautiful Soup works as it should. If you
 find a bug in Beautiful Soup, the best way to express it is as a test
 case like this that fails."""
 
+import re
 import unittest
 from BeautifulSoup import *
+from element import CData, Comment, Declaration, SoupStrainer, Tag
+from builder import ICantBelieveItsValidHTMLTreeBuilder
+from dammit import UnicodeDammit
 
 class SoupTest(unittest.TestCase):
 
@@ -836,7 +840,7 @@ class AlternateBuilders(SoupTest):
     """Test alternate builders."""
 
     def testICantBelieveItsValidHTML(self):
-        builder = ICantBelieveItsValidHTMLBuilder()
+        builder = ICantBelieveItsValidHTMLTreeBuilder()
         markup = "<b>Foo<b>Bar</b></b>"
 
         soup = BeautifulSoup(markup)
