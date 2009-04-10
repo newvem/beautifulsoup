@@ -1,5 +1,6 @@
 from lxml import etree
-from BeautifulSoup import TreeBuilder, Comment
+from beautifulsoup.element import Comment
+from beautifulsoup.builder import TreeBuilder
 
 class LXMLTreeBuilder(TreeBuilder):
 
