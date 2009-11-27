@@ -65,8 +65,13 @@ class FollowThatTag(SoupTest):
         self.assertEqual(len(self.soup.findAll(href=True)), 1)
 
     def testFindallByClass(self):
-        soup = BeautifulSoup('<a>Foo</a><a class="1">Bar</a>')
+        soup = BeautifulSoup('<b class="foo">Foo</b><a class="1 23 4">Bar</a>')
+        self.assertEqual(soup.find(attrs='foo').string, "Foo")
         self.assertEqual(soup.find('a', '1').string, "Bar")
+        self.assertEqual(soup.find('a', '23').string, "Bar")
+        self.assertEqual(soup.find('a', '4').string, "Bar")
+
+        self.assertEqual(soup.find('a', '2'), None)
 
     def testFindAllByList(self):
         matching = self.soup(['a', 'ac'])

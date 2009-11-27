@@ -42,7 +42,7 @@ http://www.crummy.com/software/BeautifulSoup/documentation.html
 
 Here, have some legalese:
 
-Copyright (c) 2004-2008, Leonard Richardson
+Copyright (c) 2004-2009, Leonard Richardson
 
 All rights reserved.
 
@@ -79,8 +79,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE, DAMMIT.
 from __future__ import generators
 
 __author__ = "Leonard Richardson (leonardr@segfault.org)"
-__version__ = "3.0.7a"
-__copyright__ = "Copyright (c) 2004-2008 Leonard Richardson"
+__version__ = "3.0.8"
+__copyright__ = "Copyright (c) 2004-2009 Leonard Richardson"
 __license__ = "New-style BSD"
 
 from sgmllib import SGMLParser, SGMLParseError
@@ -103,6 +103,10 @@ sgmllib.tagfind = re.compile('[a-zA-Z][-_.:a-zA-Z0-9]*')
 markupbase._declname_match = re.compile(r'[a-zA-Z][-_.:a-zA-Z0-9]*\s*').match
 
 DEFAULT_OUTPUT_ENCODING = "utf-8"
+
+def _match_css_class(str):
+    """Build a RE to match the given CSS class."""
+    return re.compile(r"(^|.*\s)%s($|\s)" % str)
 
 # First, the classes that represent markup elements.
 
@@ -875,6 +879,7 @@ class Tag(PageElement):
             yield current
             current = current.next
 
+
 # Next, a couple classes to represent queries and their results.
 class SoupStrainer:
     """Encapsulates a number of ways of matching a markup element (tag or
@@ -883,8 +888,7 @@ class SoupStrainer:
     def __init__(self, name=None, attrs={}, text=None, **kwargs):
         self.name = name
         if isinstance(attrs, basestring):
-            kwargs['class'] = re.compile(
-                r"(.*[\s]+|[\s]*)%s(.*[\s]+|[\s]*)" % attrs)
+            kwargs['class'] = _match_css_class(attrs)
             attrs = None
         if kwargs:
             if attrs:
