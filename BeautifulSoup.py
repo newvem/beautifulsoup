@@ -93,10 +93,10 @@ try:
   from htmlentitydefs import name2codepoint
 except ImportError:
   name2codepoint = {}
-try:
-    set
-except NameError:
-    from sets import Set as set
+#try:
+#    set
+#except NameError:
+#    from sets import Set as set
 
 #These hacks make Beautiful Soup able to parse XML with namespaces
 sgmllib.tagfind = re.compile('[a-zA-Z][-_.:a-zA-Z0-9]*')
@@ -1010,12 +1010,6 @@ class ResultSet(list):
 
 # Now, some helper functions.
 
-def isList(l):
-    """Convenience method that works with all 2.x versions of Python
-    to determine whether or not something is listlike."""
-    return hasattr(l, '__iter__') \
-           or (type(l) in (types.ListType, types.TupleType))
-
 def isString(s):
     """Convenience method that works with all 2.x versions of Python
     to determine whether or not something is stringlike."""
@@ -1528,23 +1522,23 @@ class BeautifulSoup(BeautifulStoneSoup):
         BeautifulStoneSoup.__init__(self, *args, **kwargs)
 
     SELF_CLOSING_TAGS = buildTagMap(None,
-                                    ['br' , 'hr', 'input', 'img', 'meta',
-                                    'spacer', 'link', 'frame', 'base', 'col'])
+                                    ('br' , 'hr', 'input', 'img', 'meta',
+                                    'spacer', 'link', 'frame', 'base', 'col'))
 
-    PRESERVE_WHITESPACE_TAGS = set(['pre', 'textarea'])
+    PRESERVE_WHITESPACE_TAGS = buildTagMap(None, ('pre', 'textarea'))
 
     QUOTE_TAGS = {'script' : None, 'textarea' : None}
 
     #According to the HTML standard, each of these inline tags can
     #contain another tag of the same type. Furthermore, it's common
     #to actually use these tags this way.
-    NESTABLE_INLINE_TAGS = ['span', 'font', 'q', 'object', 'bdo', 'sub', 'sup',
-                            'center']
+    NESTABLE_INLINE_TAGS = ('span', 'font', 'q', 'object', 'bdo', 'sub', 'sup',
+                            'center')
 
     #According to the HTML standard, these block tags can contain
     #another tag of the same type. Furthermore, it's common
     #to actually use these tags this way.
-    NESTABLE_BLOCK_TAGS = ['blockquote', 'div', 'fieldset', 'ins', 'del']
+    NESTABLE_BLOCK_TAGS = ('blockquote', 'div', 'fieldset', 'ins', 'del')
 
     #Lists can contain other lists, but there are restrictions.
     NESTABLE_LIST_TAGS = { 'ol' : [],
@@ -1564,7 +1558,7 @@ class BeautifulSoup(BeautifulStoneSoup):
                            'tfoot' : ['table'],
                            }
 
-    NON_NESTABLE_BLOCK_TAGS = ['address', 'form', 'p', 'pre']
+    NON_NESTABLE_BLOCK_TAGS = ('address', 'form', 'p', 'pre')
 
     #If one of these tags is encountered, all tags up to the next tag of
     #this type are popped.
@@ -1655,11 +1649,11 @@ class ICantBelieveItsBeautifulSoup(BeautifulSoup):
     wouldn't be."""
 
     I_CANT_BELIEVE_THEYRE_NESTABLE_INLINE_TAGS = \
-     ['em', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'strong',
+     ('em', 'big', 'i', 'small', 'tt', 'abbr', 'acronym', 'strong',
       'cite', 'code', 'dfn', 'kbd', 'samp', 'strong', 'var', 'b',
-      'big']
+      'big')
 
-    I_CANT_BELIEVE_THEYRE_NESTABLE_BLOCK_TAGS = ['noscript']
+    I_CANT_BELIEVE_THEYRE_NESTABLE_BLOCK_TAGS = ('noscript')
 
     NESTABLE_TAGS = buildTagMap([], BeautifulSoup.NESTABLE_TAGS,
                                 I_CANT_BELIEVE_THEYRE_NESTABLE_BLOCK_TAGS,
