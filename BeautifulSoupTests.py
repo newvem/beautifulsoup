@@ -17,6 +17,9 @@ class SoupTest(unittest.TestCase):
             rep = toParse
         self.assertEqual(str(c(toParse)), rep)
 
+    def assertSame(self, node1, node2):
+        self.assertTrue(node1 is node2)
+
 class FollowThatTag(SoupTest):
 
     "Tests the various ways of fetching tags from a soup."
@@ -175,6 +178,21 @@ class StringEmUp(SoupTest):
     def testLackOfString(self):
         s = BeautifulSoup("<b>f<i>e</i>o</b>")
         self.assert_(not s.b.string)
+
+    def testStringAssign(self):
+        s = BeautifulSoup("<b></b>")
+        b = s.b
+        b.string = "foo"
+        string = b.string
+        self.assertEquals(string, "foo")
+        self.assert_(isinstance(string, NavigableString))
+
+class AllText(SoupTest):
+    "Tests the use of 'text' to get all of string content from the tag."
+
+    def testText(self):
+        soup = BeautifulSoup("<ul><li>spam</li><li>eggs</li><li>cheese</li>")
+        self.assertEquals(soup.ul.text, "spameggscheese")
 
 class ThatsMyLimit(SoupTest):
     "Tests the limit argument."
@@ -350,6 +368,14 @@ class WriteOnlyCode(SoupTest):
         self.assertEqual(f.previousSibling, weText)
         self.assertEqual(f.nextSibling, None)
         self.assertEqual(weText.nextSibling, f)
+    
+    def testReplaceWithChildren(self):
+        soup = BeautifulStoneSoup(
+            "<top><replace><child1/><child2/></replace></top>",
+            selfClosingTags=["child1", "child2"])
+        soup.replaceTag.replaceWithChildren()
+        self.assertEqual(soup.top.contents[0].name, "child1")
+        self.assertEqual(soup.top.contents[1].name, "child2")
 
     def testAppend(self):
        doc = "<p>Don't leave me <b>here</b>.</p> <p>Don't leave me.</p>"
@@ -411,6 +437,11 @@ class WriteOnlyCode(SoupTest):
         self.assertEqual(three.previous, one)
         self.assertEqual(one.parent.nextSibling, three)
         self.assertEqual(three.previousSibling, soup.a)
+        
+    def testClear(self):
+        soup = BeautifulSoup("<ul><li></li><li></li></ul>")
+        soup.ul.clear()
+        self.assertEqual(len(soup.ul.contents), 0)
 
 class TheManWithoutAttributes(SoupTest):
     "Test attribute access"
