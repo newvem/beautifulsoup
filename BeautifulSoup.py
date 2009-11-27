@@ -1010,11 +1010,6 @@ class ResultSet(list):
 
 # Now, some helper functions.
 
-def isString(s):
-    """Convenience method that works with all 2.x versions of Python
-    to determine whether or not something is stringlike."""
-    return isinstance(s, basestring)
-
 def buildTagMap(default, *args):
     """Turns a list of maps, lists, or scalars into a single map.
     Used to build the SELF_CLOSING_TAGS, NESTABLE_TAGS, and
