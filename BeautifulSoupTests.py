@@ -94,6 +94,20 @@ class FollowThatTag(SoupTest):
         self.assertEqual(len(matching), 2)
         self.assertEqual(matching[0].name, 'a')
 
+    def testFindByIndex(self):
+        """For when you have the tag and you want to know where it is."""
+        tag = self.soup.find('a', id="a")
+        self.assertEqual(self.soup.index(tag), 3)
+
+        # It works for NavigableStrings as well.
+        s = tag.string
+        self.assertEqual(tag.index(s), 0)
+
+        # If the tag isn't present, a ValueError is raised.
+        soup2 = BeautifulSoup("<b></b>")
+        tag2 = soup2.find('b')
+        self.assertRaises(ValueError, self.soup.index, tag2)
+
     def testParents(self):
         soup = BeautifulSoup('<ul id="foo"></ul><ul id="foo"><ul><ul id="foo" a="b"><b>Blah')
         b = soup.b
