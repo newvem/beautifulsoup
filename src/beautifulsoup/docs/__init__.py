@@ -1,1 +1,0 @@
-"""Executable documentation about beautifulsoup."""

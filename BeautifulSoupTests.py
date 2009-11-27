@@ -5,33 +5,17 @@ These tests make sure the Beautiful Soup works as it should. If you
 find a bug in Beautiful Soup, the best way to express it is as a test
 case like this that fails."""
 
-import re
 import unittest
-from beautifulsoup import *
-from beautifulsoup.element import CData, Comment, Declaration, SoupStrainer, Tag
-from beautifulsoup.builder import ICantBelieveItsValidHTMLTreeBuilder
-from beautifulsoup.dammit import UnicodeDammit
-
-
-def additional_tests():
-    return unittest.TestLoader().loadTestsFromName(__name__)
-
+from BeautifulSoup import *
 
 class SoupTest(unittest.TestCase):
 
-    def assertSoupEquals(self, toParse, rep=None, c=BeautifulSoup,
-                         encoding=None):
+    def assertSoupEquals(self, toParse, rep=None, c=BeautifulSoup):
         """Parse the given text and make sure its string rep is the other
         given text."""
         if rep == None:
             rep = toParse
-        obj = c(toParse)
-        if encoding is None:
-            rep2 = obj.decode()
-        else:
-            rep2 = obj.encode(encoding)
-        self.assertEqual(rep2, rep)
-
+        self.assertEqual(str(c(toParse)), rep)
 
 class FollowThatTag(SoupTest):
 
@@ -257,13 +241,12 @@ class PickleMeThis(SoupTest):
         dumped = pickle.dumps(self.soup, 2)
         loaded = pickle.loads(dumped)
         self.assertEqual(loaded.__class__, BeautifulSoup)
-        self.assertEqual(loaded.decode(), self.soup.decode())
+        self.assertEqual(str(loaded), str(self.soup))
 
     def testDeepcopy(self):
         from copy import deepcopy
-        deepcopy(BeautifulSoup("<a></a>"))
         copied = deepcopy(self.soup)
-        self.assertEqual(copied.decode(), self.soup.decode())
+        self.assertEqual(str(copied), str(self.soup))
 
     def testUnicodePickle(self):
         import cPickle as pickle
@@ -271,7 +254,7 @@ class PickleMeThis(SoupTest):
         soup = BeautifulSoup(html)
         dumped = pickle.dumps(soup, pickle.HIGHEST_PROTOCOL)
         loaded = pickle.loads(dumped)
-        self.assertEqual(loaded.decode(), soup.decode())
+        self.assertEqual(str(loaded), str(soup))
 
 
 class WriteOnlyCode(SoupTest):
@@ -280,18 +263,17 @@ class WriteOnlyCode(SoupTest):
     def testModifyAttributes(self):
         soup = BeautifulSoup('<a id="1"></a>')
         soup.a['id'] = 2
-        self.assertEqual(soup.decode(), '<a id="2"></a>')
+        self.assertEqual(soup.renderContents(), '<a id="2"></a>')
         del(soup.a['id'])
-        self.assertEqual(soup.decode(), '<a></a>')
+        self.assertEqual(soup.renderContents(), '<a></a>')
         soup.a['id2'] = 'foo'
-        self.assertEqual(soup.decode(), '<a id2="foo"></a>')
+        self.assertEqual(soup.renderContents(), '<a id2="foo"></a>')
 
     def testNewTagCreation(self):
         "Makes sure tags don't step on each others' toes."
         soup = BeautifulSoup()
-        builder = HTMLParserTreeBuilder()
-        a = Tag(soup, builder, 'a')
-        ol = Tag(soup, builder, 'ol')
+        a = Tag(soup, 'a')
+        ol = Tag(soup, 'ol')
         a['href'] = 'http://foo.com/'
         self.assertRaises(KeyError, lambda : ol['href'])
 
@@ -301,7 +283,7 @@ class WriteOnlyCode(SoupTest):
         soup = BeautifulSoup(text)
         c = soup.c
         soup.c.replaceWith(c)
-        self.assertEquals(soup.decode(), text)
+        self.assertEquals(str(soup), text)
 
         # A very simple case
         soup = BeautifulSoup("<b>Argh!</b>")
@@ -330,12 +312,11 @@ class WriteOnlyCode(SoupTest):
         soup = BeautifulSoup(text)
         no, show = soup.findAll('b')
         show.replaceWith(no)
-        self.assertEquals(soup.decode(), "<html>There's  business like <b>no</b> business</html>")
+        self.assertEquals(str(soup), "<html>There's  business like <b>no</b> business</html>")
 
         # Even more complex
         soup = BeautifulSoup("<a><b>Find</b><c>lady!</c><d></d></a>")
-        builder = HTMLParserTreeBuilder()
-        tag = Tag(soup, builder, 'magictag')
+        tag = Tag(soup, 'magictag')
         tag.insert(0, "the")
         soup.a.insert(1, tag)
 
@@ -362,7 +343,7 @@ class WriteOnlyCode(SoupTest):
         e = soup.e
         weText = a.find(text="We")
         soup.b.replaceWith(soup.f)
-        self.assertEqual(soup.decode(), "<a>We<f>refuse</f></a><e>to<g>service</g></e>")
+        self.assertEqual(str(soup), "<a>We<f>refuse</f></a><e>to<g>service</g></e>")
 
         self.assertEqual(f.previous, weText)
         self.assertEqual(weText.next, f)
@@ -377,7 +358,7 @@ class WriteOnlyCode(SoupTest):
        bold = soup.find('b')
        soup('p')[1].append(soup.find('b'))
        self.assertEqual(bold.parent, second_para)
-       self.assertEqual(soup.decode(),
+       self.assertEqual(str(soup),
                         "<p>Don't leave me .</p> "
                         "<p>Don't leave me.<b>here</b></p>")
 
@@ -386,8 +367,8 @@ class WriteOnlyCode(SoupTest):
         text = '<html><div id="nav">Nav crap</div>Real content here.</html>'
         soup = BeautifulSoup(text)
         extracted = soup.find("div", id="nav").extract()
-        self.assertEqual(soup.decode(), "<html>Real content here.</html>")
-        self.assertEqual(extracted.decode(), '<div id="nav">Nav crap</div>')
+        self.assertEqual(str(soup), "<html>Real content here.</html>")
+        self.assertEqual(str(extracted), '<div id="nav">Nav crap</div>')
 
         # A simple case, a more complex test.
         text = "<doc><a>1<b>2</b></a><a>i<b>ii</b></a><a>A<b>B</b></a></doc>"
@@ -436,7 +417,7 @@ class TheManWithoutAttributes(SoupTest):
 
     def testHasKey(self):
         text = "<foo attr='bar'>"
-        self.assertTrue(BeautifulSoup(text).foo.has_key('attr'))
+        self.assertEquals(BeautifulSoup(text).foo.has_key('attr'), True)
 
 class QuoteMeOnThat(SoupTest):
     "Test quoting"
@@ -446,14 +427,26 @@ class QuoteMeOnThat(SoupTest):
 
         text = """<foo attr='bar "brawls" happen'>a</foo>"""
         soup = BeautifulSoup(text)
-        self.assertEquals(soup.decode(), text)
+        self.assertEquals(soup.renderContents(), text)
 
         soup.foo['attr'] = 'Brawls happen at "Bob\'s Bar"'
         newText = """<foo attr='Brawls happen at "Bob&squot;s Bar"'>a</foo>"""
-        self.assertSoupEquals(soup.decode(), newText)
+        self.assertSoupEquals(soup.renderContents(), newText)
 
         self.assertSoupEquals('<this is="really messed up & stuff">',
                               '<this is="really messed up &amp; stuff"></this>')
+
+        # This is not what the original author had in mind, but it's
+        # a legitimate interpretation of what they wrote.
+        self.assertSoupEquals("""<a href="foo</a>, </a><a href="bar">baz</a>""",
+        '<a href="foo&lt;/a&gt;, &lt;/a&gt;&lt;a href="></a>, <a href="bar">baz</a>')
+
+        # SGMLParser generates bogus parse events when attribute values
+        # contain embedded brackets, but at least Beautiful Soup fixes
+        # it up a little.
+        self.assertSoupEquals('<a b="<a>">', '<a b="&lt;a&gt;"></a><a>"></a>')
+        self.assertSoupEquals('<a href="http://foo.com/<a> and blah and blah',
+                              """<a href='"http://foo.com/'></a><a> and blah and blah</a>""")
 
 
 
@@ -521,11 +514,11 @@ class NestableEgg(SoupTest):
         self.assertEquals(soup.table.tr.table.tr['id'], 'nested')
 
 class CleanupOnAisleFour(SoupTest):
-    """Here we test cleanup of text that breaks HTMLParser or is just
+    """Here we test cleanup of text that breaks SGMLParser or is just
     obnoxious."""
 
     def testSelfClosingtag(self):
-        self.assertEqual(BeautifulSoup("Foo<br/>Bar").find('br').decode(),
+        self.assertEqual(str(BeautifulSoup("Foo<br/>Bar").find('br')),
                          '<br />')
 
         self.assertSoupEquals('<p>test1<br/>test2</p>',
@@ -533,23 +526,18 @@ class CleanupOnAisleFour(SoupTest):
 
         text = '<p>test1<selfclosing>test2'
         soup = BeautifulStoneSoup(text)
-        self.assertEqual(soup.decode(),
+        self.assertEqual(str(soup),
                          '<p>test1<selfclosing>test2</selfclosing></p>')
 
-        builder = HTMLParserXMLTreeBuilder(selfClosingTags='selfclosing')
-        soup = BeautifulSoup(text, builder)
-        self.assertEqual(soup.decode(),
+        soup = BeautifulStoneSoup(text, selfClosingTags='selfclosing')
+        self.assertEqual(str(soup),
                          '<p>test1<selfclosing />test2</p>')
 
     def testSelfClosingTagOrNot(self):
         text = "<item><link>http://foo.com/</link></item>"
-        self.assertEqual(BeautifulStoneSoup(text).decode(), text)
-        self.assertEqual(BeautifulSoup(text).decode(),
+        self.assertEqual(BeautifulStoneSoup(text).renderContents(), text)
+        self.assertEqual(BeautifulSoup(text).renderContents(),
                          '<item><link />http://foo.com/</item>')
-
-    def testBooleanAttributes(self):
-        text = "<td nowrap>foo</td>"
-        self.assertSoupEquals(text, text)
 
     def testCData(self):
         xml = "<root>foo<![CDATA[foobar]]>bar</root>"
@@ -588,39 +576,40 @@ class CleanupOnAisleFour(SoupTest):
         soup = BeautifulStoneSoup(text)
         self.assertSoupEquals(text)
 
-        xmlEnt = Entities.XML_ENTITIES
-        htmlEnt = Entities.HTML_ENTITIES
-        xhtmlEnt = Entities.XHTML_ENTITIES
+        xmlEnt = BeautifulStoneSoup.XML_ENTITIES
+        htmlEnt = BeautifulStoneSoup.HTML_ENTITIES
+        xhtmlEnt = BeautifulStoneSoup.XHTML_ENTITIES
 
-        xmlBuilder = HTMLParserXMLTreeBuilder(convertEntities=xmlEnt)
-        htmlBuilder = HTMLParserXMLTreeBuilder(convertEntities=htmlEnt)
-        xhtmlBuilder = HTMLParserXMLTreeBuilder(convertEntities=xhtmlEnt)
+        soup = BeautifulStoneSoup(text, convertEntities=xmlEnt)
+        self.assertEquals(str(soup), "<<sacr&eacute; bleu!>>")
 
-        soup = BeautifulStoneSoup(text, xmlBuilder)
-        self.assertEquals(soup.decode(), "<<sacr&eacute; bleu!>>")
+        soup = BeautifulStoneSoup(text, convertEntities=xmlEnt)
+        self.assertEquals(str(soup), "<<sacr&eacute; bleu!>>")
 
-        soup = BeautifulStoneSoup(text, xmlBuilder)
-        self.assertEquals(soup.decode(), "<<sacr&eacute; bleu!>>")
-
-        soup = BeautifulStoneSoup(text, htmlBuilder)
-        self.assertEquals(soup.decode(), u"<<sacr\xe9 bleu!>>")
+        soup = BeautifulStoneSoup(text, convertEntities=htmlEnt)
+        self.assertEquals(unicode(soup), u"<<sacr\xe9 bleu!>>")
 
         # Make sure the "XML", "HTML", and "XHTML" settings work.
         text = "&lt;&trade;&apos;"
-        soup = BeautifulStoneSoup(text, xmlBuilder)
-        self.assertEquals(soup.decode(), u"<&trade;'")
+        soup = BeautifulStoneSoup(text, convertEntities=xmlEnt)
+        self.assertEquals(unicode(soup), u"<&trade;'")
 
-        soup = BeautifulStoneSoup(text, htmlBuilder)
-        self.assertEquals(soup.decode(), u"<\u2122&apos;")
+        soup = BeautifulStoneSoup(text, convertEntities=htmlEnt)
+        self.assertEquals(unicode(soup), u"<\u2122&apos;")
 
-        soup = BeautifulStoneSoup(text, xhtmlBuilder)
-        self.assertEquals(soup.decode(), u"<\u2122'")
+        soup = BeautifulStoneSoup(text, convertEntities=xhtmlEnt)
+        self.assertEquals(unicode(soup), u"<\u2122'")
+
+        invalidEntity = "foo&#bar;baz"
+        soup = BeautifulStoneSoup\
+               (invalidEntity,
+                convertEntities=htmlEnt)
+        self.assertEquals(str(soup), invalidEntity)
 
     def testNonBreakingSpaces(self):
-        builder = HTMLParserTreeBuilder(
-            convertEntities=BeautifulStoneSoup.HTML_ENTITIES)
-        soup = BeautifulSoup("<a>&nbsp;&nbsp;</a>", builder)
-        self.assertEquals(soup.decode(), u"<a>\xa0\xa0</a>")
+        soup = BeautifulSoup("<a>&nbsp;&nbsp;</a>",
+                             convertEntities=BeautifulStoneSoup.HTML_ENTITIES)
+        self.assertEquals(unicode(soup), u"<a>\xa0\xa0</a>")
 
     def testWhitespaceInDeclaration(self):
         self.assertSoupEquals('<! DOCTYPE>', '<!DOCTYPE>')
@@ -635,45 +624,46 @@ class CleanupOnAisleFour(SoupTest):
         self.assertSoupEquals('<b>hello&nbsp;there</b>')
 
     def testEntitiesInAttributeValues(self):
-        self.assertSoupEquals('<x t="x&#241;">', '<x t="x\xc3\xb1"></x>',
-                              encoding='utf-8')
-        self.assertSoupEquals('<x t="x&#xf1;">', '<x t="x\xc3\xb1"></x>',
-                              encoding='utf-8')
+        self.assertSoupEquals('<x t="x&#241;">', '<x t="x\xc3\xb1"></x>')
+        self.assertSoupEquals('<x t="x&#xf1;">', '<x t="x\xc3\xb1"></x>')
 
-        builder = HTMLParserTreeBuilder(convertEntities=Entities.HTML_ENTITIES)
-        soup = BeautifulSoup('<x t="&gt;&trade;">', builder)
-        self.assertEquals(soup.decode(), u'<x t="&gt;\u2122"></x>')
+        soup = BeautifulSoup('<x t="&gt;&trade;">',
+                             convertEntities=BeautifulStoneSoup.HTML_ENTITIES)
+        self.assertEquals(unicode(soup), u'<x t="&gt;\u2122"></x>')
 
         uri = "http://crummy.com?sacr&eacute;&amp;bleu"
         link = '<a href="%s"></a>' % uri
+        soup = BeautifulSoup(link)
+        self.assertEquals(unicode(soup), link)
+        #self.assertEquals(unicode(soup.a['href']), uri)
 
-        soup = BeautifulSoup(link, builder)
-        self.assertEquals(soup.decode(),
+        soup = BeautifulSoup(link, convertEntities=BeautifulSoup.HTML_ENTITIES)
+        self.assertEquals(unicode(soup),
                           link.replace("&eacute;", u"\xe9"))
 
         uri = "http://crummy.com?sacr&eacute;&bleu"
         link = '<a href="%s"></a>' % uri
-        soup = BeautifulSoup(link, builder)
-        self.assertEquals(soup.a['href'],
+        soup = BeautifulSoup(link, convertEntities=BeautifulSoup.HTML_ENTITIES)
+        self.assertEquals(unicode(soup.a['href']),
                           uri.replace("&eacute;", u"\xe9"))
 
     def testNakedAmpersands(self):
-        builder = HTMLParserXMLTreeBuilder(convertEntities=Entities.HTML_ENTITIES)
-        soup = BeautifulStoneSoup("AT&T ", builder)
-        self.assertEquals(soup.decode(), 'AT&amp;T ')
+        html = {'convertEntities':BeautifulStoneSoup.HTML_ENTITIES}
+        soup = BeautifulStoneSoup("AT&T ", **html)
+        self.assertEquals(str(soup), 'AT&amp;T ')
 
         nakedAmpersandInASentence = "AT&T was Ma Bell"
-        soup = BeautifulStoneSoup(nakedAmpersandInASentence, builder)
-        self.assertEquals(soup.decode(), \
+        soup = BeautifulStoneSoup(nakedAmpersandInASentence,**html)
+        self.assertEquals(str(soup), \
                nakedAmpersandInASentence.replace('&','&amp;'))
 
         invalidURL = '<a href="http://example.org?a=1&b=2;3">foo</a>'
         validURL = invalidURL.replace('&','&amp;')
         soup = BeautifulStoneSoup(invalidURL)
-        self.assertEquals(soup.decode(), validURL)
+        self.assertEquals(str(soup), validURL)
 
         soup = BeautifulStoneSoup(validURL)
-        self.assertEquals(soup.decode(), validURL)
+        self.assertEquals(str(soup), validURL)
 
 
 class EncodeRed(SoupTest):
@@ -693,29 +683,28 @@ class EncodeRed(SoupTest):
     def testGarbageInGarbageOut(self):
         ascii = "<foo>a</foo>"
         asciiSoup = BeautifulStoneSoup(ascii)
-        self.assertEquals(ascii, asciiSoup.decode())
+        self.assertEquals(ascii, str(asciiSoup))
 
         unicodeData = u"<foo>\u00FC</foo>"
         utf8 = unicodeData.encode("utf-8")
         self.assertEquals(utf8, '<foo>\xc3\xbc</foo>')
 
         unicodeSoup = BeautifulStoneSoup(unicodeData)
-        self.assertEquals(unicodeData, unicodeSoup.decode())
-        self.assertEquals(unicodeSoup.foo.string, u'\u00FC')
+        self.assertEquals(unicodeData, unicode(unicodeSoup))
+        self.assertEquals(unicode(unicodeSoup.foo.string), u'\u00FC')
 
         utf8Soup = BeautifulStoneSoup(utf8, fromEncoding='utf-8')
-        self.assertEquals(utf8, utf8Soup.encode('utf-8'))
+        self.assertEquals(utf8, str(utf8Soup))
         self.assertEquals(utf8Soup.originalEncoding, "utf-8")
 
         utf8Soup = BeautifulStoneSoup(unicodeData)
-        self.assertEquals(utf8, utf8Soup.encode('utf-8'))
+        self.assertEquals(utf8, str(utf8Soup))
         self.assertEquals(utf8Soup.originalEncoding, None)
 
 
     def testHandleInvalidCodec(self):
         for bad_encoding in ['.utf8', '...', 'utF---16.!']:
-            soup = BeautifulSoup(u"Räksmörgås".encode("utf-8"),
-                                 fromEncoding=bad_encoding)
+            soup = BeautifulSoup("Räksmörgås", fromEncoding=bad_encoding)
             self.assertEquals(soup.originalEncoding, 'utf-8')
 
     def testUnicodeSearch(self):
@@ -734,7 +723,7 @@ class EncodeRed(SoupTest):
                             "Otherwise, ignore it.")
 
         self.assertEquals(soup.originalEncoding, "euc-jp")
-        self.assertEquals(soup.renderContents('utf-8'), utf8)
+        self.assertEquals(str(soup), utf8)
 
         old_text = "<?xml encoding='windows-1252'><foo>\x92</foo>"
         new_text = "<?xml version='1.0' encoding='utf-8'?><foo>&rsquo;</foo>"
@@ -777,12 +766,12 @@ class EncodeRed(SoupTest):
         index = content_type.find('charset=')
         self.assertEqual(content_type[index:index+len('charset=utf8')+1],
                          'charset=utf-8')
-        content_type = soup.meta.encode('shift-jis')
+        content_type = soup.meta.__str__('shift-jis')
         index = content_type.find('charset=')
         self.assertEqual(content_type[index:index+len('charset=shift-jis')],
-                         'charset=shift-jis'.encode())
+                         'charset=shift-jis')
 
-        self.assertEquals(soup.encode('utf-8'), (
+        self.assertEquals(str(soup), (
                 '<html><head>\n'
                 '<meta content="text/html; charset=utf-8" '
                 'http-equiv="Content-type" />\n'
@@ -794,22 +783,19 @@ class EncodeRed(SoupTest):
                 '\x9c\xac\xe8\xaa\x9e\xe3\x81\xae\xe3\x83\x95\xe3\x82\xa1\xe3'
                 '\x82\xa4\xe3\x83\xab\xe3\x81\xa7\xe3\x81\x99\xe3\x80\x82\n'
                 '</pre></body></html>'))
-        self.assertEquals(soup.encode("shift-jis"),
-                          shift_jis_html.replace('x-sjis'.encode(),
-                                                 'shift-jis'.encode()))
+        self.assertEquals(soup.renderContents("shift-jis"),
+                          shift_jis_html.replace('x-sjis', 'shift-jis'))
 
-        isolatin = """<html><meta http-equiv="Content-type" content="text/html; charset=ISO-Latin-1" />Sacr\xe9 bleu!</html>"""
+        isolatin ="""<html><meta http-equiv="Content-type" content="text/html; charset=ISO-Latin-1" />Sacr\xe9 bleu!</html>"""
         soup = BeautifulSoup(isolatin)
-
-        utf8 = isolatin.replace("ISO-Latin-1".encode(), "utf-8".encode())
-        utf8 = utf8.replace("\xe9", "\xc3\xa9")
-        self.assertSoupEquals(soup.encode("utf-8"), utf8, encoding='utf-8')
+        self.assertSoupEquals(soup.__str__("utf-8"),
+                              isolatin.replace("ISO-Latin-1", "utf-8").replace("\xe9", "\xc3\xa9"))
 
     def testHebrew(self):
         iso_8859_8= '<HEAD>\n<TITLE>Hebrew (ISO 8859-8) in Visual Directionality</TITLE>\n\n\n\n</HEAD>\n<BODY>\n<H1>Hebrew (ISO 8859-8) in Visual Directionality</H1>\n\xed\xe5\xec\xf9\n</BODY>\n'
         utf8 = '<head>\n<title>Hebrew (ISO 8859-8) in Visual Directionality</title>\n</head>\n<body>\n<h1>Hebrew (ISO 8859-8) in Visual Directionality</h1>\n\xd7\x9d\xd7\x95\xd7\x9c\xd7\xa9\n</body>\n'
         soup = BeautifulStoneSoup(iso_8859_8, fromEncoding="iso-8859-8")
-        self.assertEquals(soup.encode('utf-8'), utf8)
+        self.assertEquals(str(soup), utf8)
 
     def testSmartQuotesNotSoSmartAnymore(self):
         self.assertSoupEquals("\x91Foo\x92 <!--blah-->",
@@ -818,16 +804,15 @@ class EncodeRed(SoupTest):
     def testDontConvertSmartQuotesWhenAlsoConvertingEntities(self):
         smartQuotes = "Il a dit, \x8BSacr&eacute; bl&#101;u!\x9b"
         soup = BeautifulSoup(smartQuotes)
-        self.assertEquals(soup.decode(),
+        self.assertEquals(str(soup),
                           'Il a dit, &lsaquo;Sacr&eacute; bl&#101;u!&rsaquo;')
-        builder = HTMLParserTreeBuilder(convertEntities="html")
-        soup = BeautifulSoup(smartQuotes, builder)
-        self.assertEquals(soup.encode('utf-8'),
+        soup = BeautifulSoup(smartQuotes, convertEntities="html")
+        self.assertEquals(str(soup),
                           'Il a dit, \xe2\x80\xb9Sacr\xc3\xa9 bleu!\xe2\x80\xba')
 
     def testDontSeeSmartQuotesWhereThereAreNone(self):
         utf_8 = "\343\202\261\343\203\274\343\202\277\343\202\244 Watch"
-        self.assertSoupEquals(utf_8, encoding='utf-8')
+        self.assertSoupEquals(utf_8)
 
 
 class Whitewash(SoupTest):
@@ -840,19 +825,6 @@ class Whitewash(SoupTest):
     def testCollapsedWhitespace(self):
         self.assertSoupEquals("<p>   </p>", "<p> </p>")
 
-
-class AlternateBuilders(SoupTest):
-    """Test alternate builders."""
-
-    def testICantBelieveItsValidHTML(self):
-        builder = ICantBelieveItsValidHTMLTreeBuilder()
-        markup = "<b>Foo<b>Bar</b></b>"
-
-        soup = BeautifulSoup(markup)
-        self.assertEquals(soup.decode(), "<b>Foo</b><b>Bar</b>")
-
-        soup = BeautifulSoup(markup, builder=builder)
-        self.assertEquals(soup.decode(), markup)
 
 if __name__ == '__main__':
     unittest.main()
