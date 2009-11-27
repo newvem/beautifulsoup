@@ -210,6 +210,7 @@ class AllText(SoupTest):
     def testText(self):
         soup = BeautifulSoup("<ul><li>spam</li><li>eggs</li><li>cheese</li>")
         self.assertEquals(soup.ul.text, "spameggscheese")
+        self.assertEquals(soup.ul.getText('/'), "spam/eggs/cheese")
 
 class ThatsMyLimit(SoupTest):
     "Tests the limit argument."

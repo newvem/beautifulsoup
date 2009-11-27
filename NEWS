@@ -1,0 +1,56 @@
+Beautiful Soup 3.0.x series
+***************************
+
+This is the 'stable' series of Beautiful Soup. It will have only
+occasional bugfix releases. It will not work with alternate parsers or
+with Python 3.0. If you need these things, you'll need to use the 3.1
+series.
+
+3.0.8
+=====
+
+Inauguration of the 3.0.x series as the stable series.
+
+New features
+------------
+
+Tag.replaceWithChildren()
+  Replace a tag with its children.
+
+Tag.string assignment
+ `tag.string = string` replaces the contents of a tag with `string`.
+
+Tag.text property (NOT A FUNCTION!)
+ tag.text gathers together and joins all text children. Much faster than
+ "".join(tag.findAll(text=True))
+
+Tag.getText(seperator=u"")
+ Same as Tag.text, but a function that allows a custom seperator between joined
+ text elements.
+
+Tag.index(element) -> int
+ Returns the index of `element` within the tag. Matches the actual
+ element instead of using __eq__.
+
+Tag.clear()
+ Remove all child elements.
+
+Improvements
+------------
+
+Previously, searching by CSS class only matched tags that had the
+requested CSS class and no other classes. Now, searching by CSS class
+matches every tag that uses that class.
+
+Performance
+-----------
+
+Beware! Although searching the tree is much faster in 3.0.8 than in
+previous versions, you probably won't notice the difference in real
+situations, because the time spent searching the tree is typically
+dwarfed by the time spent parsing the file in the first place.
+
+Tag.decompose() is several times faster.
+A very basic findAll(...) is several times faster.
+findAll(True) is special cased
+Tag.recursiveChildGenerator is much faster

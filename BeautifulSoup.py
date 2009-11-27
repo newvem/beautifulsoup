@@ -557,7 +557,7 @@ class Tag(PageElement):
         self.append(string)
 
     string = property(getString, setString)
-    
+
     def getText(self, separator=u""):
         if not len(self.contents):
             return u""
@@ -568,9 +568,8 @@ class Tag(PageElement):
             if isinstance(current, NavigableString):
                 strings.append(current.strip())
             current = current.next
-        return u"".join(strings)
-            
-    
+        return separator.join(strings)
+
     text = property(getText)
 
     def get(self, key, default=None):
