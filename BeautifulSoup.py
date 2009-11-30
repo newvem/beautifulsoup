@@ -93,10 +93,10 @@ try:
   from htmlentitydefs import name2codepoint
 except ImportError:
   name2codepoint = {}
-#try:
-#    set
-#except NameError:
-#    from sets import Set as set
+try:
+    set
+except NameError:
+    from sets import Set as set
 
 #These hacks make Beautiful Soup able to parse XML with namespaces
 sgmllib.tagfind = re.compile('[a-zA-Z][-_.:a-zA-Z0-9]*')
@@ -369,31 +369,31 @@ class PageElement(object):
     #NavigableStrings and Tags.
     def nextGenerator(self):
         i = self
-        while i:
+        while i is not None:
             i = i.next
             yield i
 
     def nextSiblingGenerator(self):
         i = self
-        while i:
+        while i is not None:
             i = i.nextSibling
             yield i
 
     def previousGenerator(self):
         i = self
-        while i:
+        while i is not None:
             i = i.previous
             yield i
 
     def previousSiblingGenerator(self):
         i = self
-        while i:
+        while i is not None:
             i = i.previousSibling
             yield i
 
     def parentGenerator(self):
         i = self
-        while i:
+        while i is not None:
             i = i.parent
             yield i
 
@@ -1519,7 +1519,7 @@ class BeautifulSoup(BeautifulStoneSoup):
                                     ('br' , 'hr', 'input', 'img', 'meta',
                                     'spacer', 'link', 'frame', 'base', 'col'))
 
-    PRESERVE_WHITESPACE_TAGS = buildTagMap(None, ('pre', 'textarea'))
+    PRESERVE_WHITESPACE_TAGS = set(['pre', 'textarea'])
 
     QUOTE_TAGS = {'script' : None, 'textarea' : None}
 
