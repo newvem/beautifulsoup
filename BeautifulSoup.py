@@ -582,7 +582,7 @@ class Tag(PageElement):
         """Extract all children."""
         for child in self.contents[:]:
             child.extract()
-            
+
     def index(self, element):
         for i, child in enumerate(self.contents):
             if child is element:
