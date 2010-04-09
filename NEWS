@@ -6,6 +6,20 @@ occasional bugfix releases. It will not work with alternate parsers or
 with Python 3.0. If you need these things, you'll need to use the 3.1
 series.
 
+3.0.8.1
+=======
+
+Bug fixes
+---------
+
+Corrected Beautiful Soup's behavior when a findAll() call contained a
+value for the "text" argument as well as values for arguments that
+imply it should search for tags. (The "text" argument takes priority
+and text is returned, not tags.)
+
+Corrected a typo that made I_CANT_BELIEVE_THEYRE_NESTABLE_BLOCK_TAGS
+stop being a tuple.
+
 3.0.8
 =====
 

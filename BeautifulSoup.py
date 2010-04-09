@@ -42,7 +42,7 @@ http://www.crummy.com/software/BeautifulSoup/documentation.html
 
 Here, have some legalese:
 
-Copyright (c) 2004-2009, Leonard Richardson
+Copyright (c) 2004-2010, Leonard Richardson
 
 All rights reserved.
 
@@ -79,8 +79,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE, DAMMIT.
 from __future__ import generators
 
 __author__ = "Leonard Richardson (leonardr@segfault.org)"
-__version__ = "3.0.8"
-__copyright__ = "Copyright (c) 2004-2009 Leonard Richardson"
+__version__ = "3.0.8.1"
+__copyright__ = "Copyright (c) 2004-2010 Leonard Richardson"
 __license__ = "New-style BSD"
 
 from sgmllib import SGMLParser, SGMLParseError
@@ -1648,7 +1648,7 @@ class ICantBelieveItsBeautifulSoup(BeautifulSoup):
       'cite', 'code', 'dfn', 'kbd', 'samp', 'strong', 'var', 'b',
       'big')
 
-    I_CANT_BELIEVE_THEYRE_NESTABLE_BLOCK_TAGS = ('noscript')
+    I_CANT_BELIEVE_THEYRE_NESTABLE_BLOCK_TAGS = ('noscript',)
 
     NESTABLE_TAGS = buildTagMap([], BeautifulSoup.NESTABLE_TAGS,
                                 I_CANT_BELIEVE_THEYRE_NESTABLE_BLOCK_TAGS,
