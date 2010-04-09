@@ -114,15 +114,11 @@ class FollowThatTag(SoupTest):
     def testConflictingFindArguments(self):
         """The 'text' argument takes precedence."""
         soup = BeautifulSoup('Foo<b>Bar</b>Baz')
-        match = soup.find('b', text='Baz')
-        self.assertEqual(match, 'Baz')
-        match = soup.findAll('b', text='Baz')[0]
-        self.assertEqual(match, 'Baz')
+        self.assertEqual(soup.find('b', text='Baz'), 'Baz')
+        self.assertEqual(soup.findAll('b', text='Baz'), ['Baz'])
 
-        match = soup.find(True, text='Baz')
-        self.assertEqual(match, 'Baz')
-        match = soup.findAll(True, text='Baz')[0]
-        self.assertEqual(match, 'Baz')
+        self.assertEqual(soup.find(True, text='Baz'), 'Baz')
+        self.assertEqual(soup.findAll(True, text='Baz'), ['Baz'])
 
     def testParents(self):
         soup = BeautifulSoup('<ul id="foo"></ul><ul id="foo"><ul><ul id="foo" a="b"><b>Blah')
