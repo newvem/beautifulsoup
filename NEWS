@@ -1,10 +1,19 @@
-Beautiful Soup 3.0.x series
+Beautiful Soup 3.2.x series
 ***************************
 
 This is the 'stable' series of Beautiful Soup. It will have only
 occasional bugfix releases. It will not work with alternate parsers or
 with Python 3.0. If you need these things, you'll need to use the 3.1
 series.
+
+3.2.0
+=====
+
+Gave the stable series a higher version number than the unstable
+series, to make it very clear which series most people should be using.
+
+When creating a Tag object, you can specify its attributes as a dict
+rather than as a list of 2-tuples.
 
 3.0.8.1
 =======
