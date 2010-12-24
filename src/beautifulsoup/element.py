@@ -696,25 +696,6 @@ class Tag(PageElement, Entities):
         return self._findAll(name, attrs, text, limit, generator, **kwargs)
     findChildren = findAll
 
-    # Pre-3.x compatibility methods. Will go away in 4.0.
-    first = find
-    fetch = findAll
-
-    def fetchText(self, text=None, recursive=True, limit=None):
-        return self.findAll(text=text, recursive=recursive, limit=limit)
-
-    def firstText(self, text=None, recursive=True):
-        return self.find(text=text, recursive=recursive)
-
-    # 3.x compatibility methods. Will go away in 4.0.
-    def renderContents(self, encoding=DEFAULT_OUTPUT_ENCODING,
-                       prettyPrint=False, indentLevel=0):
-        if encoding is None:
-            return self.decodeContents(prettyPrint, indentLevel, encoding)
-        else:
-            return self.encodeContents(encoding, prettyPrint, indentLevel)
-
-
     #Private methods
 
     def _getAttrMap(self):

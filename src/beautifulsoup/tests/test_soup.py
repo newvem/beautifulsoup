@@ -734,7 +734,7 @@ class EncodeRed(SoupTest):
                             "Otherwise, ignore it.")
 
         self.assertEquals(soup.originalEncoding, "euc-jp")
-        self.assertEquals(soup.renderContents('utf-8'), utf8)
+        self.assertEquals(soup.encodeContents('utf-8'), utf8)
 
         old_text = "<?xml encoding='windows-1252'><foo>\x92</foo>"
         new_text = "<?xml version='1.0' encoding='utf-8'?><foo>&rsquo;</foo>"
