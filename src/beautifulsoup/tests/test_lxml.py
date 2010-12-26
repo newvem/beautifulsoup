@@ -53,4 +53,4 @@ class TestLXMLBuilder(SoupTest):
 
 
 def test_suite():
-    unittest.TestLoader().loadTestsFromName('__name__')
+    return unittest.TestLoader().loadTestsFromName('__name__')
