@@ -19,13 +19,15 @@ def additional_tests():
 
 class SoupTest(unittest.TestCase):
 
-    def assertSoupEquals(self, toParse, rep=None, c=BeautifulSoup,
+    default_builder = HTMLParserXMLTreeBuilder()
+
+    def assertSoupEquals(self, toParse, rep=None, builder=None,
                          encoding=None):
         """Parse the given text and make sure its string rep is the other
         given text."""
         if rep == None:
             rep = toParse
-        obj = c(toParse)
+        obj = BeautifulSoup(toParse, builder=self.default_builder)
         if encoding is None:
             rep2 = obj.decode()
         else:
