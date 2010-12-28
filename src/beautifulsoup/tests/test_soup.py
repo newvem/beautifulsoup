@@ -10,7 +10,7 @@ import unittest
 from beautifulsoup import *
 from beautifulsoup.element import CData, Comment, Declaration, SoupStrainer, Tag
 from beautifulsoup.dammit import UnicodeDammit
-from beautifulsoup.builder.html5_builder import HTML5TreeBuilder
+from beautifulsoup.builder.html5lib_builder import HTML5TreeBuilder
 
 def additional_tests():
     return unittest.TestLoader().loadTestsFromName(__name__)
