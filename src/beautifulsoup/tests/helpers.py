@@ -3,7 +3,6 @@
 import unittest
 from beautifulsoup import BeautifulSoup
 from beautifulsoup.element import SoupStrainer
-from test_soup import SoupTest
 
 class SoupTest(unittest.TestCase):
 

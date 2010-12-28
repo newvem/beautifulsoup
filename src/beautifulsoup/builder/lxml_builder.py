@@ -1,18 +1,12 @@
 from lxml import etree
 from beautifulsoup.element import Comment
-from beautifulsoup.builder import HTMLParserTreeBuilder, TreeBuilder
+from beautifulsoup.builder import HTMLTreeBuilder
 
-class LXMLTreeBuilder(TreeBuilder):
+class LXMLTreeBuilder(HTMLTreeBuilder):
 
-    def __init__(self, parser_class=etree.HTMLParser, self_closing_tags=None):
+    def __init__(self, parser_class=etree.HTMLParser):
         self.parser = parser_class(target=self)
-        if self_closing_tags is None:
-            self_closing_tags = HTMLParserTreeBuilder.self_closing_tags
-        self.self_closing_tags = self_closing_tags
         self.soup = None
-
-    def isSelfClosingTag(self, name):
-        return name in self.self_closing_tags
 
     def feed(self, markup):
         self.parser.feed(markup)

@@ -83,10 +83,6 @@ __all__ = ['BeautifulSoup',
 
            # Stuff imported from other packages
            'Entities',
-           'HTMLParserXMLTreeBuilder',
-           'HTMLParserTreeBuilder',
-           'HTMLTreeBuilder',
-           'XMLTreeBuilder',
 
            'BeautifulStoneSoup',
            'ICantBelieveItsBeautifulSoup']
@@ -95,9 +91,6 @@ import re
 
 from util import isList, isString, buildSet
 from dammit import UnicodeDammit
-from builder import (
-    HTMLParserXMLTreeBuilder, HTMLParserTreeBuilder, HTMLTreeBuilder,
-    ICantBelieveItsValidHTMLTreeBuilder, XMLTreeBuilder)
 from element import Entities, NavigableString, Tag
 
 
@@ -137,7 +130,9 @@ class BeautifulStoneSoup(Tag):
     STRIP_ASCII_SPACES = { 9: None, 10: None, 12: None, 13: None, 32: None, }
 
     def _defaultBuilder(self):
-        return HTMLParserXMLTreeBuilder()
+        from lxml import etree
+        from builder.lxml_builder import LXMLTreeBuilder
+        return LXMLTreeBuilder(parser_class=etree.XMLParser)
 
     def __init__(self, markup="", builder=None, parseOnlyThese=None,
                  fromEncoding=None):
@@ -175,7 +170,7 @@ class BeautifulStoneSoup(Tag):
         else:
             dammit = UnicodeDammit\
                      (markup, [self.fromEncoding, inDocumentEncoding],
-                      smartQuotesTo=self.builder.smartQuotesTo, isHTML=isHTML)
+                      smartQuotesTo=self.builder.smart_quotes_to, isHTML=isHTML)
             markup = dammit.unicode
             self.originalEncoding = dammit.originalEncoding
             self.declaredHTMLEncoding = dammit.declaredHTMLEncoding
@@ -349,7 +344,12 @@ class BeautifulStoneSoup(Tag):
 class BeautifulSoup(BeautifulStoneSoup):
     """A convenience class for parsing HTML without creating a builder."""
     def _defaultBuilder(self):
-        return HTMLParserTreeBuilder()
+        try:
+            from builder.html5_builder import HTML5TreeBuilder
+            return HTML5TreeBuilder()
+        except ImportError:
+            from builder.lxml_builder import LXMLTreeBuilder
+            return LXMLTreeBuilder()
 
 
 class StopParsing(Exception):

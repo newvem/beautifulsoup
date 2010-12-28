@@ -9,9 +9,8 @@ import re
 import unittest
 from beautifulsoup import *
 from beautifulsoup.element import CData, Comment, Declaration, SoupStrainer, Tag
-from beautifulsoup.builder import ICantBelieveItsValidHTMLTreeBuilder
 from beautifulsoup.dammit import UnicodeDammit
-
+from beautifulsoup.builder.html5_builder import HTML5TreeBuilder
 
 def additional_tests():
     return unittest.TestLoader().loadTestsFromName(__name__)
@@ -19,7 +18,7 @@ def additional_tests():
 
 class SoupTest(unittest.TestCase):
 
-    default_builder = HTMLParserXMLTreeBuilder()
+    default_builder = HTML5TreeBuilder()
 
     def assertSoupEquals(self, toParse, rep=None, builder=None,
                          encoding=None):
