@@ -383,10 +383,10 @@ class Tag(PageElement, Entities):
         entities are being converted, any unrecognized entities are
         escaped."""
         x = match.group(1)
-        if builder.convertHTMLEntities and x in name2codepoint:
+        if builder.convert_html_entities and x in name2codepoint:
             return unichr(name2codepoint[x])
         elif x in self.XML_ENTITIES_TO_SPECIAL_CHARS:
-            if builder.convertXMLEntities:
+            if builder.convert_xml_entities:
                 return self.XML_ENTITIES_TO_SPECIAL_CHARS[x]
             else:
                 return u'&%s;' % x

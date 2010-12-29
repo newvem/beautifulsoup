@@ -66,15 +66,43 @@ class BuilderSmokeTest(SoupTest):
         self.assertEqual(blockquote.p.b.string, 'Foo')
         self.assertEqual(blockquote.b.string, 'Foo')
 
+    def test_collapsed_whitespace(self):
+        """In most tags, whitespace is collapsed."""
+        self.assertSoupEquals("<p>   </p>", "<p> </p>")
+
+    def test_preserved_whitespace_in_pre_and_textarea(self):
+        """In <pre> and <textarea> tags, whitespace is preserved."""
+        self.assertSoupEquals("<pre>   </pre>")
+        self.assertSoupEquals("<textarea> woo  </textarea>")
+
+
+    def test_single_quote_attribute_values_become_double_quotes(self):
+        self.assertSoupEquals("<foo attr='bar'></foo>",
+                              '<foo attr="bar"></foo>')
+
+    def test_attribute_values_with_nested_quotes_are_left_alone(self):
+        text = """<foo attr='bar "brawls" happen'>a</foo>"""
+        self.assertSoupEquals(text)
+
+    def test_attribute_values_with_double_nested_quotes_get_quoted(self):
+        text = """<foo attr='bar "brawls" happen'>a</foo>"""
+        soup = self.soup(text)
+        soup.foo['attr'] = 'Brawls happen at "Bob\'s Bar"'
+        self.assertSoupEquals(
+            soup.foo.decode(),
+            """<foo attr='Brawls happen at "Bob&squot;s Bar"'>a</foo>""")
+
+    def test_ampersand_in_attribute_value_gets_quoted(self):
+        self.assertSoupEquals('<this is="really messed up & stuff"></this>',
+                              '<this is="really messed up &amp; stuff"></this>')
+
 
 class BuilderInvalidMarkupSmokeTest(SoupTest):
     """Tests of invalid markup.
 
     These are very likely to give different results for different tree
-    builders.
-
-    It's not required that a tree builder handle invalid markup at
-    all.
+    builders. It's not required that a tree builder handle invalid
+    markup at all.
     """
 
     def test_unclosed_block_level_elements(self):
@@ -82,3 +110,17 @@ class BuilderInvalidMarkupSmokeTest(SoupTest):
         self.assertSoupEquals(
             '<blockquote><p><b>Foo</blockquote><p>Bar',
             '<blockquote><p><b>Foo</b></p></blockquote><p>Bar</p>')
+
+    def test_fake_self_closing_tag(self):
+        # If a self-closing tag presents as a normal tag, the 'open'
+        # tag is treated as an instance of the self-closing tag and
+        # the 'close' tag is ignored.
+        self.assertSoupEquals(
+            "<item><link>http://foo.com/</link></item>",
+            "<item><link />http://foo.com/</item>")
+
+    def test_boolean_attribute_with_no_value_gets_empty_value(self):
+        soup = self.soup("<table><td nowrap>foo</td></table>")
+        self.assertEquals(soup.table.td['nowrap'], '')
+
+

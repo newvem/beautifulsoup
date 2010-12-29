@@ -439,25 +439,6 @@ class TheManWithoutAttributes(SoupTest):
         text = "<foo attr='bar'>"
         self.assertTrue(BeautifulSoup(text).foo.has_key('attr'))
 
-class QuoteMeOnThat(SoupTest):
-    "Test quoting"
-    def testQuotedAttributeValues(self):
-        self.assertSoupEquals("<foo attr='bar'></foo>",
-                              '<foo attr="bar"></foo>')
-
-        text = """<foo attr='bar "brawls" happen'>a</foo>"""
-        soup = BeautifulSoup(text)
-        self.assertEquals(soup.decode(), text)
-
-        soup.foo['attr'] = 'Brawls happen at "Bob\'s Bar"'
-        newText = """<foo attr='Brawls happen at "Bob&squot;s Bar"'>a</foo>"""
-        self.assertSoupEquals(soup.decode(), newText)
-
-        self.assertSoupEquals('<this is="really messed up & stuff">',
-                              '<this is="really messed up &amp; stuff"></this>')
-
-
-
 class YoureSoLiteral(SoupTest):
     "Test literal mode."
     def testLiteralMode(self):
@@ -535,16 +516,6 @@ class CleanupOnAisleFour(SoupTest):
         soup = BeautifulSoup(text, builder)
         self.assertEqual(soup.decode(),
                          '<p>test1<selfclosing />test2</p>')
-
-    def testSelfClosingTagOrNot(self):
-        text = "<item><link>http://foo.com/</link></item>"
-        self.assertEqual(BeautifulStoneSoup(text).decode(), text)
-        self.assertEqual(BeautifulSoup(text).decode(),
-                         '<item><link />http://foo.com/</item>')
-
-    def testBooleanAttributes(self):
-        text = "<td nowrap>foo</td>"
-        self.assertSoupEquals(text, text)
 
     def testCData(self):
         xml = "<root>foo<![CDATA[foobar]]>bar</root>"
@@ -824,30 +795,6 @@ class EncodeRed(SoupTest):
         utf_8 = "\343\202\261\343\203\274\343\202\277\343\202\244 Watch"
         self.assertSoupEquals(utf_8, encoding='utf-8')
 
-
-class Whitewash(SoupTest):
-    """Test whitespace preservation."""
-
-    def testPreservedWhitespace(self):
-        self.assertSoupEquals("<pre>   </pre>")
-        self.assertSoupEquals("<pre> woo  </pre>")
-
-    def testCollapsedWhitespace(self):
-        self.assertSoupEquals("<p>   </p>", "<p> </p>")
-
-
-class AlternateBuilders(SoupTest):
-    """Test alternate builders."""
-
-    def testICantBelieveItsValidHTML(self):
-        builder = ICantBelieveItsValidHTMLTreeBuilder()
-        markup = "<b>Foo<b>Bar</b></b>"
-
-        soup = BeautifulSoup(markup)
-        self.assertEquals(soup.decode(), "<b>Foo</b><b>Bar</b>")
-
-        soup = BeautifulSoup(markup, builder=builder)
-        self.assertEquals(soup.decode(), markup)
 
 if __name__ == '__main__':
     unittest.main()
