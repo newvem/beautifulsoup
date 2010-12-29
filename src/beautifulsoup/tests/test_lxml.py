@@ -1,20 +1,16 @@
-from helpers import SoupTest
-from beautifulsoup.builder.lxml_builder import LXMLTreeBuilder
+"""Tests to ensure that the lxml tree builder generates good trees."""
 
+from helpers import BuilderInvalidMarkupSmokeTest, BuilderSmokeTest
 
-class TestLXMLBuilder(SoupTest):
+class TestLXMLBuilder(BuilderSmokeTest):
+    """See `BuilderSmokeTest`."""
 
     def test_bare_string(self):
+        # lxml puts a <p> tag around the bare string.
         self.assertSoupEquals(
             "A bare string", "<p>A bare string</p>")
 
-    def test_tag_nesting(self):
-        b_tag = "<b>Inside a B tag</b>"
-        self.assertSoupEquals(b_tag)
 
-        nested_b_tag = "<p>A <i>nested <b>tag</b></i></p>"
-        self.assertSoupEquals(nested_b_tag)
+class TestLXMLBuilderInvalidMarkup(BuilderInvalidMarkupSmokeTest):
+    """See `BuilderInvalidMarkupSmokeTest`."""
 
-    def test_self_closing(self):
-        self.assertSoupEquals(
-            "<p>A <meta> tag</p>", "<p>A <meta /> tag</p>")

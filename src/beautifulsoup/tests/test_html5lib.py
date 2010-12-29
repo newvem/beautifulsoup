@@ -1,23 +1,24 @@
-from helpers import SoupTest
+from helpers import BuilderInvalidMarkupSmokeTest, BuilderSmokeTest
 from beautifulsoup.builder.html5lib_builder import HTML5TreeBuilder
 
 
-class TestHTML5Builder(SoupTest):
+class TestHTML5Builder(BuilderSmokeTest):
+    """See `BuilderSmokeTest`."""
 
     def setUp(self):
         self.default_builder = HTML5TreeBuilder()
 
-    def test_bare_string(self):
-        self.assertSoupEquals("A bare string")
 
-    def test_tag_nesting(self):
-        b_tag = "<b>Inside a B tag</b>"
-        self.assertSoupEquals(b_tag)
+class TestHTML5BuilderInvalidMarkup(BuilderInvalidMarkupSmokeTest):
+    """See `BuilderInvalidMarkupSmokeTest`."""
 
-        nested_b_tag = "<p>A <i>nested <b>tag</b></i></p>"
-        self.assertSoupEquals(nested_b_tag)
+    def setUp(self):
+        self.default_builder = HTML5TreeBuilder()
 
-    def test_self_closing(self):
+    def test_unclosed_block_level_elements(self):
+        # The unclosed <b> tag is closed so that the block-level tag
+        # can be closed, and another <b> tag is inserted after the
+        # next block-level tag begins.
         self.assertSoupEquals(
-            "<p>A <meta> tag</p>", "<p>A <meta /> tag</p>")
-
+            '<blockquote><p><b>Foo</blockquote><p>Bar',
+            '<blockquote><p><b>Foo</b></p></blockquote><p><b>Bar</b></p>')

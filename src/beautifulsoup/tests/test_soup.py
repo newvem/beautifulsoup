@@ -492,12 +492,6 @@ class OperatorOverload(SoupTest):
 class NestableEgg(SoupTest):
     """Here we test tag nesting. TEST THE NEST, DUDE! X-TREME!"""
 
-    def testParaInsideBlockquote(self):
-        soup = BeautifulSoup('<blockquote><p><b>Foo</blockquote><p>Bar')
-        self.assertEqual(soup.blockquote.p.b.string, 'Foo')
-        self.assertEqual(soup.blockquote.b.string, 'Foo')
-        self.assertEqual(soup.find('p', recursive=False).string, 'Bar')
-
     def testNestedTables(self):
         text = """<table id="1"><tr><td>Here's another table:
         <table id="2"><tr><td>Juicy text</td></tr></table></td></tr></table>"""
