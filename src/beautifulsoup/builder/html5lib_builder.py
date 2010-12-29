@@ -21,4 +21,7 @@ class HTML5TreeBuilder(SAXTreeBuilder, HTMLTreeBuilder):
         walker = treewalkers.getTreeWalker('dom')
         dom2sax(doc, self)
 
+    def test_fragment_to_document(self, fragment):
+        """See `TreeBuilder`."""
+        return u'<html><head></head><body>%s</body></html>' % fragment
 

@@ -29,3 +29,8 @@ class LXMLTreeBuilder(HTMLTreeBuilder):
         self.soup.endData()
         self.soup.handle_data(content)
         self.soup.endData(Comment)
+
+    def test_fragment_to_document(self, fragment):
+        """See `TreeBuilder`."""
+        return u'<html><body>%s</body></html>' % fragment
+

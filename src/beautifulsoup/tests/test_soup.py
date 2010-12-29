@@ -41,9 +41,9 @@ class FollowThatTag(SoupTest):
     def setUp(self):
         ml = """
         <a id="x">1</a>
-        <A id="a">2</a>
-        <b id="b">3</a>
-        <b href="foo" id="x">4</a>
+        <A id="a">2</A>
+        <b id="b">3</b>
+        <b href="foo" id="x">4</b>
         <ac width=100>4</ac>"""
         self.soup = BeautifulStoneSoup(ml)
 
