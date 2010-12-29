@@ -44,10 +44,19 @@ class BuilderSmokeTest(SoupTest):
         # fragment recognizable as the original string.
         self.assertSoupEquals("A bare string")
 
+    def test_mixed_case_tags(self):
+        # Mixed-case tags are folded to lowercase.
+        self.assertSoupEquals(
+            "<a><B><Cd><EFG></efg></CD></b></A>",
+            "<a><b><cd><efg></efg></cd></b></a>")
+
     def test_self_closing(self):
         # HTML's self-closing tags are recognized as such.
         self.assertSoupEquals(
             "<p>A <meta> tag</p>", "<p>A <meta /> tag</p>")
+
+        self.assertSoupEquals(
+            "<p>Foo<br/>bar</p>", "<p>Foo<br />bar</p>")
 
     def test_nested_inline_elements(self):
         # Inline tags can be nested indefinitely.
@@ -74,7 +83,6 @@ class BuilderSmokeTest(SoupTest):
         """In <pre> and <textarea> tags, whitespace is preserved."""
         self.assertSoupEquals("<pre>   </pre>")
         self.assertSoupEquals("<textarea> woo  </textarea>")
-
 
     def test_single_quote_attribute_values_become_double_quotes(self):
         self.assertSoupEquals("<foo attr='bar'></foo>",

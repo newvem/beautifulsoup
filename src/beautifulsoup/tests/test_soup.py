@@ -47,67 +47,6 @@ class FollowThatTag(SoupTest):
         <ac width=100>4</ac>"""
         self.soup = BeautifulStoneSoup(ml)
 
-    def testFindAllByName(self):
-        matching = self.soup('a')
-        self.assertEqual(len(matching), 2)
-        self.assertEqual(matching[0].name, 'a')
-        self.assertEqual(matching, self.soup.findAll('a'))
-        self.assertEqual(matching, self.soup.findAll(SoupStrainer('a')))
-
-    def testFindAllByAttribute(self):
-        matching = self.soup.findAll(id='x')
-        self.assertEqual(len(matching), 2)
-        self.assertEqual(matching[0].name, 'a')
-        self.assertEqual(matching[1].name, 'b')
-
-        matching2 = self.soup.findAll(attrs={'id' : 'x'})
-        self.assertEqual(matching, matching2)
-
-        strainer = SoupStrainer(attrs={'id' : 'x'})
-        self.assertEqual(matching, self.soup.findAll(strainer))
-
-        self.assertEqual(len(self.soup.findAll(id=None)), 1)
-
-        self.assertEqual(len(self.soup.findAll(width=100)), 1)
-        self.assertEqual(len(self.soup.findAll(junk=None)), 5)
-        self.assertEqual(len(self.soup.findAll(junk=[1, None])), 5)
-
-        self.assertEqual(len(self.soup.findAll(junk=re.compile('.*'))), 0)
-        self.assertEqual(len(self.soup.findAll(junk=True)), 0)
-
-        self.assertEqual(len(self.soup.findAll(junk=True)), 0)
-        self.assertEqual(len(self.soup.findAll(href=True)), 1)
-
-    def testFindallByClass(self):
-        soup = BeautifulSoup('<a>Foo</a><a class="1">Bar</a>')
-        self.assertEqual(soup.find('a', '1').string, "Bar")
-
-    def testFindAllByList(self):
-        matching = self.soup(['a', 'ac'])
-        self.assertEqual(len(matching), 3)
-
-    def testFindAllByHash(self):
-        matching = self.soup({'a' : True, 'b' : True})
-        self.assertEqual(len(matching), 4)
-
-    def testFindAllText(self):
-        soup = BeautifulSoup("<html>\xbb</html>")
-        self.assertEqual(soup.findAll(text=re.compile('.*')),
-                         [u'\xbb'])
-
-    def testFindAllByRE(self):
-        import re
-        r = re.compile('a.*')
-        self.assertEqual(len(self.soup(r)), 3)
-
-    def testFindAllByMethod(self):
-        def matchTagWhereIDMatchesName(tag):
-            return tag.name == tag.get('id')
-
-        matching = self.soup.findAll(matchTagWhereIDMatchesName)
-        self.assertEqual(len(matching), 2)
-        self.assertEqual(matching[0].name, 'a')
-
     def testParents(self):
         soup = BeautifulSoup('<ul id="foo"></ul><ul id="foo"><ul><ul id="foo" a="b"><b>Blah')
         b = soup.b
@@ -174,33 +113,6 @@ class SiblingRivalry(SoupTest):
         self.assertEquals(soup.find(text='1').nextSibling.name, 'p')
         self.assertEquals(soup.find('p').nextSibling, 'B')
         self.assertEquals(soup.find('p').nextSibling.previousSibling.nextSibling, 'B')
-
-class TagsAreObjectsToo(SoupTest):
-    "Tests the various built-in functions of Tag objects."
-
-    def testLen(self):
-        soup = BeautifulSoup("<top>1<b>2</b>3</top>")
-        self.assertEquals(len(soup.top), 3)
-
-class StringEmUp(SoupTest):
-    "Tests the use of 'string' as an alias for a tag's only content."
-
-    def testString(self):
-        s = BeautifulSoup("<b>foo</b>")
-        self.assertEquals(s.b.string, 'foo')
-
-    def testLackOfString(self):
-        s = BeautifulSoup("<b>f<i>e</i>o</b>")
-        self.assert_(not s.b.string)
-
-class ThatsMyLimit(SoupTest):
-    "Tests the limit argument."
-
-    def testBasicLimits(self):
-        s = BeautifulSoup('<br id="1" /><br id="1" /><br id="1" /><br id="1" />')
-        self.assertEquals(len(s.findAll('br')), 4)
-        self.assertEquals(len(s.findAll('br', limit=2)), 2)
-        self.assertEquals(len(s('br', limit=2)), 2)
 
 class OnlyTheLonely(SoupTest):
     "Tests the parseOnly argument to the constructor."
@@ -432,13 +344,6 @@ class WriteOnlyCode(SoupTest):
         self.assertEqual(one.parent.nextSibling, three)
         self.assertEqual(three.previousSibling, soup.a)
 
-class TheManWithoutAttributes(SoupTest):
-    "Test attribute access"
-
-    def testHasKey(self):
-        text = "<foo attr='bar'>"
-        self.assertTrue(BeautifulSoup(text).foo.has_key('attr'))
-
 class YoureSoLiteral(SoupTest):
     "Test literal mode."
     def testLiteralMode(self):
@@ -452,23 +357,6 @@ class YoureSoLiteral(SoupTest):
         soup = BeautifulSoup(text)
         self.assertEqual(soup.textarea.contents[0],
                          "<b>This is an example of an HTML tag</b><&<&")
-
-class OperatorOverload(SoupTest):
-    "Our operators do it all! Call now!"
-
-    def testTagNameAsFind(self):
-        "Tests that referencing a tag name as a member delegates to find()."
-        soup = BeautifulSoup('<b id="1">foo<i>bar</i></b><b>Red herring</b>')
-        self.assertEqual(soup.b.i, soup.find('b').find('i'))
-        self.assertEqual(soup.b.i.string, 'bar')
-        self.assertEqual(soup.b['id'], '1')
-        self.assertEqual(soup.b.contents[0], 'foo')
-        self.assert_(not soup.a)
-
-        #Test the .fooTag variant of .foo.
-        self.assertEqual(soup.bTag.iTag.string, 'bar')
-        self.assertEqual(soup.b.iTag.string, 'bar')
-        self.assertEqual(soup.find('b').find('i'), soup.bTag.iTag)
 
 class NestableEgg(SoupTest):
     """Here we test tag nesting. TEST THE NEST, DUDE! X-TREME!"""
@@ -499,23 +387,6 @@ class NestableEgg(SoupTest):
 class CleanupOnAisleFour(SoupTest):
     """Here we test cleanup of text that breaks HTMLParser or is just
     obnoxious."""
-
-    def testSelfClosingtag(self):
-        self.assertEqual(BeautifulSoup("Foo<br/>Bar").find('br').decode(),
-                         '<br />')
-
-        self.assertSoupEquals('<p>test1<br/>test2</p>',
-                              '<p>test1<br />test2</p>')
-
-        text = '<p>test1<selfclosing>test2'
-        soup = BeautifulStoneSoup(text)
-        self.assertEqual(soup.decode(),
-                         '<p>test1<selfclosing>test2</selfclosing></p>')
-
-        builder = HTMLParserXMLTreeBuilder(selfClosingTags='selfclosing')
-        soup = BeautifulSoup(text, builder)
-        self.assertEqual(soup.decode(),
-                         '<p>test1<selfclosing />test2</p>')
 
     def testCData(self):
         xml = "<root>foo<![CDATA[foobar]]>bar</root>"
