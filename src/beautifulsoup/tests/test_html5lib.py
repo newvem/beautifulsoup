@@ -22,3 +22,12 @@ class TestHTML5BuilderInvalidMarkup(BuilderInvalidMarkupSmokeTest):
         self.assertSoupEquals(
             '<blockquote><p><b>Foo</blockquote><p>Bar',
             '<blockquote><p><b>Foo</b></p></blockquote><p><b>Bar</b></p>')
+
+    def test_incorrectly_nested_tables(self):
+        self.assertSoupEquals(
+            '<table><tr><table><tr id="nested">',
+            ('<table><tbody><tr></tr></tbody></table>'
+             '<table><tbody><tr id="nested"></tr></tbody></table>'))
+
+
+

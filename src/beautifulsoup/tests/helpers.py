@@ -145,4 +145,10 @@ class BuilderInvalidMarkupSmokeTest(SoupTest):
         soup = self.soup("<table><td nowrap>foo</td></table>")
         self.assertEquals(soup.table.td['nowrap'], '')
 
+    def test_incorrectly_nested_tables(self):
+        self.assertSoupEquals(
+            '<table><tr><table><tr id="nested">',
+            '<table><tr><table><tr id="nested"></tr></table></tr></table>')
+
+
 
