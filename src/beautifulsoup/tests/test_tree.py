@@ -290,10 +290,11 @@ class TestParentOperations(TreeTest):
 
 class TestNextOperations(TreeTest):
 
+    MARKUP = '<html id="start"><head></head><body><b id="1">One</b><b id="2">Two</b><b id="3">Three</b></body></html>'
+
     def setUp(self):
         super(TestNextOperations, self).setUp()
-        self.tree = self.soup(
-            '<html id="start"><b id="1">One</b><b id="2">Two</b><b id="3">Three</b></html>')
+        self.tree = self.soup(self.MARKUP)
         self.start = self.tree.b
 
     def test_next(self):
@@ -310,7 +311,7 @@ class TestNextOperations(TreeTest):
 
     def test_find_all_next(self):
         self.assertSelects(self.start.findAllNext('b'), ["Two", "Three"])
-        self.assertSelects(self.start.findAllNext('b', id=3), ["Three"])
+        self.assertSelects(self.start.findAllNext(id=3), ["Three"])
 
     def test_find_next(self):
         self.assertEquals(self.start.findNext('b')['id'], '2')
@@ -333,6 +334,62 @@ class TestNextOperations(TreeTest):
 
         # XXX Should nextGenerator really return None? Seems like it
         # should just stop.
+
+
+class TestPreviousOperations(TreeTest):
+
+    def setUp(self):
+        super(TestPreviousOperations, self).setUp()
+        self.tree = self.soup(TestNextOperations.MARKUP)
+        self.end = self.tree.find(text="Three")
+
+    def test_previous(self):
+        self.assertEquals(self.end.previous['id'], "3")
+        self.assertEquals(self.end.previous.previous, "Two")
+
+    def test_previous_of_first_item_is_none(self):
+        first = self.tree.find('html')
+        self.assertEquals(first.previous, None)
+
+    def test_previous_of_root_is_none(self):
+        # The document root is outside the next/previous chain.
+        # XXX This is broken!
+        #self.assertEquals(self.tree.previous, None)
+        pass
+
+    def test_find_all_previous(self):
+        # The <b> tag containing the "Three" node is the predecessor
+        # of the "Three" node itself, which is why "Three" shows up
+        # here.
+        self.assertSelects(
+            self.end.findAllPrevious('b'), ["Three", "Two", "One"])
+        self.assertSelects(self.end.findAllPrevious(id=1), ["One"])
+
+    def test_find_previous(self):
+        self.assertEquals(self.end.findPrevious('b')['id'], '3')
+        self.assertEquals(self.end.findPrevious(text="One"), "One")
+
+    def test_find_previous_for_text_element(self):
+        text = self.tree.find(text="Three")
+        self.assertEquals(text.findPrevious("b").string, "Three")
+        self.assertSelects(
+            text.findAllPrevious("b"), ["Three", "Two", "One"])
+
+    def test_previous_generator(self):
+        start = self.tree.find(text="One")
+        predecessors = [node for node in start.previousGenerator()]
+
+        # There are four predecessors: the <b> tag containing "One"
+        # the <body> tag, the <head> tag, and the <html> tag. Then we
+        # go off the end.
+        b, body, head, html, none = predecessors
+        self.assertEquals(b['id'], '1')
+        self.assertEquals(body.name, "body")
+        self.assertEquals(head.name, "head")
+        self.assertEquals(html.name, "html")
+        self.assertEquals(none, None)
+
+        # Again, we shouldn't be returning None.
 
 
 class TestElementObjects(SoupTest):

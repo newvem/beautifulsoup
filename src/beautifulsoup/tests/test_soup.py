@@ -75,7 +75,7 @@ class TestUnicodeDammit(unittest.TestCase):
 
     def test_ignore_inappropriate_codecs(self):
         utf8_data = u"Räksmörgås".encode("utf-8")
-        dammit = UnicodeDammit(utf8_data, ["utf-16"])
+        dammit = UnicodeDammit(utf8_data, ["iso-8859-1"])
         self.assertEquals(dammit.originalEncoding, 'utf-8')
 
     def test_ignore_invalid_codecs(self):
