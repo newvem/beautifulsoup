@@ -288,13 +288,18 @@ class TestParentOperations(TreeTest):
         self.assertEquals(parents, ['bottom', 'middle', 'top'])
 
 
-class TestNextOperations(TreeTest):
+class ProximityTest(TreeTest):
 
-    MARKUP = '<html id="start"><head></head><body><b id="1">One</b><b id="2">Two</b><b id="3">Three</b></body></html>'
+    def setUp(self):
+        super(TreeTest, self).setUp()
+        self.tree = self.soup(
+            '<html id="start"><head></head><body><b id="1">One</b><b id="2">Two</b><b id="3">Three</b></body></html>')
+
+
+class TestNextOperations(ProximityTest):
 
     def setUp(self):
         super(TestNextOperations, self).setUp()
-        self.tree = self.soup(self.MARKUP)
         self.start = self.tree.b
 
     def test_next(self):
@@ -336,11 +341,10 @@ class TestNextOperations(TreeTest):
         # should just stop.
 
 
-class TestPreviousOperations(TreeTest):
+class TestPreviousOperations(ProximityTest):
 
     def setUp(self):
         super(TestPreviousOperations, self).setUp()
-        self.tree = self.soup(TestNextOperations.MARKUP)
         self.end = self.tree.find(text="Three")
 
     def test_previous(self):
@@ -390,6 +394,118 @@ class TestPreviousOperations(TreeTest):
         self.assertEquals(none, None)
 
         # Again, we shouldn't be returning None.
+
+
+class SiblingTest(TreeTest):
+
+    def setUp(self):
+        super(SiblingTest, self).setUp()
+        markup = '''<html>
+                    <span id="1">
+                     <span id="1.1"></span>
+                    </span>
+                    <span id="2">
+                     <span id="2.1"></span>
+                    </span>
+                    <span id="3">
+                     <span id="3.1"></span>
+                    </span>
+                    <span id="4"></span>
+                    </html>'''
+        # All that whitespace looks good but makes the tests more
+        # difficult. Get rid of it.
+        markup = re.compile("\n\s*").sub("", markup)
+        self.tree = self.soup(markup)
+
+
+class TestNextSibling(SiblingTest):
+
+    def setUp(self):
+        super(TestNextSibling, self).setUp()
+        self.start = self.tree.find(id="1")
+
+    def test_next_sibling_of_root_is_none(self):
+        self.assertEquals(self.tree.nextSibling, None)
+
+    def test_next_sibling(self):
+        self.assertEquals(self.start.nextSibling['id'], '2')
+        self.assertEquals(self.start.nextSibling.nextSibling['id'], '3')
+
+        # Note the difference between nextSibling and next.
+        self.assertEquals(self.start.next['id'], '1.1')
+
+    def test_next_sibling_may_not_exist(self):
+        self.assertEquals(self.tree.html.nextSibling, None)
+
+        nested_span = self.tree.find(id="1.1")
+        self.assertEquals(nested_span.nextSibling, None)
+
+        last_span = self.tree.find(id="4")
+        self.assertEquals(last_span.nextSibling, None)
+
+    def test_find_next_sibling(self):
+        self.assertEquals(self.start.findNextSibling('span')['id'], '2')
+
+    def test_next_siblings(self):
+        self.assertSelectsIDs(self.start.findNextSiblings("span"),
+                              ['2', '3', '4'])
+
+        self.assertSelectsIDs(self.start.findNextSiblings(id='3'), ['3'])
+
+    def test_next_sibling_for_text_element(self):
+        soup = self.soup("Foo<b>bar</b>baz")
+        start = soup.find(text="Foo")
+        self.assertEquals(start.nextSibling.name, 'b')
+        self.assertEquals(start.nextSibling.nextSibling, 'baz')
+
+        self.assertSelects(start.findNextSiblings('b'), ['bar'])
+        self.assertEquals(start.findNextSibling(text="baz"), "baz")
+        self.assertEquals(start.findNextSibling(text="nonesuch"), None)
+
+
+class TestPreviousSibling(SiblingTest):
+
+    def setUp(self):
+        super(TestPreviousSibling, self).setUp()
+        self.end = self.tree.find(id="4")
+
+    def test_previous_sibling_of_root_is_none(self):
+        self.assertEquals(self.tree.previousSibling, None)
+
+    def test_previous_sibling(self):
+        self.assertEquals(self.end.previousSibling['id'], '3')
+        self.assertEquals(self.end.previousSibling.previousSibling['id'], '2')
+
+        # Note the difference between previousSibling and previous.
+        self.assertEquals(self.end.previous['id'], '3.1')
+
+    def test_previous_sibling_may_not_exist(self):
+        self.assertEquals(self.tree.html.previousSibling, None)
+
+        nested_span = self.tree.find(id="1.1")
+        self.assertEquals(nested_span.previousSibling, None)
+
+        first_span = self.tree.find(id="1")
+        self.assertEquals(first_span.previousSibling, None)
+
+    def test_find_previous_sibling(self):
+        self.assertEquals(self.end.findPreviousSibling('span')['id'], '3')
+
+    def test_previous_siblings(self):
+        self.assertSelectsIDs(self.end.findPreviousSiblings("span"),
+                              ['3', '2', '1'])
+
+        self.assertSelectsIDs(self.end.findPreviousSiblings(id='1'), ['1'])
+
+    def test_previous_sibling_for_text_element(self):
+        soup = self.soup("Foo<b>bar</b>baz")
+        start = soup.find(text="baz")
+        self.assertEquals(start.previousSibling.name, 'b')
+        self.assertEquals(start.previousSibling.previousSibling, 'Foo')
+
+        self.assertSelects(start.findPreviousSiblings('b'), ['bar'])
+        self.assertEquals(start.findPreviousSibling(text="Foo"), "Foo")
+        self.assertEquals(start.findPreviousSibling(text="nonesuch"), None)
 
 
 class TestElementObjects(SoupTest):
