@@ -2,7 +2,7 @@
 
 import unittest
 from beautifulsoup import BeautifulSoup
-from beautifulsoup.element import SoupStrainer
+from beautifulsoup.element import Comment, SoupStrainer
 from beautifulsoup.builder.lxml_builder import LXMLTreeBuilder
 
 class SoupTest(unittest.TestCase):
@@ -62,6 +62,15 @@ class BuilderSmokeTest(SoupTest):
 
         self.assertSoupEquals(
             "<p>Foo<br/>bar</p>", "<p>Foo<br />bar</p>")
+
+    def test_comment(self):
+        # Comments are represented as Comment objects.
+        markup = "<p>foo<!--foobar-->baz</p>"
+        self.assertSoupEquals(markup)
+
+        soup = self.soup(markup)
+        comment = soup.find(text="foobar")
+        self.assertEquals(comment.__class__, Comment)
 
     def test_nested_inline_elements(self):
         # Inline tags can be nested indefinitely.

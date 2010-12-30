@@ -5,6 +5,7 @@ import unittest
 from helpers import SoupTest
 from beautifulsoup.dammit import UnicodeDammit
 
+
 class TestEncodingConversion(SoupTest):
     # Test Beautiful Soup's ability to decode and encode from various
     # encodings.
@@ -45,7 +46,6 @@ class TestEncodingConversion(SoupTest):
         # The internal data structures can be encoded as UTF-8.
         soup_from_unicode = self.soup(self.unicode_data)
         self.assertEquals(soup_from_unicode.encode('utf-8'), self.utf8_data)
-
 
 class TestUnicodeDammit(unittest.TestCase):
     """Standalone tests of Unicode, Dammit."""
