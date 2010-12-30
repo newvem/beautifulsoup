@@ -35,7 +35,15 @@ class TreeTest(SoupTest):
 
 
 class TestFind(TreeTest):
-    """Basic tests of the find() method."""
+    """Basic tests of the find() method.
+
+    find() just calls findAll() with limit=1, so it's not tested all
+    that thouroughly here.
+    """
+
+    def test_find_tag(self):
+        soup = self.soup("<a>1</a><b>2</b><a>3</a><b>4</b>")
+        self.assertEqual(soup.find("b").string, "2")
 
     def test_unicode_text_find(self):
         soup = self.soup(u'<h1>Räksmörgås</h1>')
@@ -296,9 +304,9 @@ class TestNextOperations(TreeTest):
         last = self.tree.find(text="Three")
         self.assertEquals(last.next, None)
 
-    # XXX This doesn't actually work.
-    #def test_next_of_root_is_first_item(self):
-    #    self.assertEquals(self.tree.next['id'], 'start')
+    def test_next_of_root_is_none(self):
+        # The document root is outside the next/previous chain.
+        self.assertEquals(self.tree.next, None)
 
     def test_find_all_next(self):
         self.assertSelects(self.start.findAllNext('b'), ["Two", "Three"])
