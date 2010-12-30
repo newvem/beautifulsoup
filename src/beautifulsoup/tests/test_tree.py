@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Tests for Beautiful Soup's tree traversal methods.
 
 The tree traversal methods are the main advantage of using Beautiful
@@ -31,6 +32,14 @@ class TreeTest(SoupTest):
         some mechanism.
         """
         self.assertEqual([tag['id'] for tag in tags], should_match)
+
+
+class TestFind(TreeTest):
+    """Basic tests of the find() method."""
+
+    def test_unicode_text_find(self):
+        soup = self.soup(u'<h1>Räksmörgås</h1>')
+        self.assertEqual(soup.find(text=u'Räksmörgås'), u'Räksmörgås')
 
 
 class TestFindAll(TreeTest):

@@ -66,3 +66,9 @@ class TestUnicodeDammit(unittest.TestCase):
         dammit = UnicodeDammit(hebrew, ["iso-8859-8"])
         self.assertEquals(dammit.originalEncoding, 'iso-8859-8')
         self.assertEquals(dammit.unicode, u'\u05dd\u05d5\u05dc\u05e9')
+
+    def test_dont_see_smart_quotes_where_there_are_none(self):
+        utf_8 = "\343\202\261\343\203\274\343\202\277\343\202\244 Watch"
+        dammit = UnicodeDammit(utf_8)
+        self.assertEquals(dammit.originalEncoding, 'utf-8')
+        self.assertEquals(dammit.unicode.encode("utf-8"), utf_8)
