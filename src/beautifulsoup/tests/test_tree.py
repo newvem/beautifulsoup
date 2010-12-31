@@ -10,7 +10,8 @@ methods tested here.
 """
 
 import re
-from beautifulsoup.element import SoupStrainer
+from beautifulsoup import BeautifulSoup
+from beautifulsoup.element import SoupStrainer, Tag
 from helpers import SoupTest
 
 class TreeTest(SoupTest):
@@ -506,6 +507,192 @@ class TestPreviousSibling(SiblingTest):
         self.assertSelects(start.findPreviousSiblings('b'), ['bar'])
         self.assertEquals(start.findPreviousSibling(text="Foo"), "Foo")
         self.assertEquals(start.findPreviousSibling(text="nonesuch"), None)
+
+
+class TestTreeModification(SoupTest):
+
+    def test_attribute_modification(self):
+        soup = self.soup('<a id="1"></a>')
+        soup.a['id'] = 2
+        self.assertEqual(soup.decode(), self.document_for('<a id="2"></a>'))
+        del(soup.a['id'])
+        self.assertEqual(soup.decode(), self.document_for('<a></a>'))
+        soup.a['id2'] = 'foo'
+        self.assertEqual(soup.decode(), self.document_for('<a id2="foo"></a>'))
+
+    def test_new_tag_creation(self):
+        builder = BeautifulSoup.default_builder()
+        soup = BeautifulSoup("", builder=builder)
+        a = Tag(soup, builder, 'a')
+        ol = Tag(soup, builder, 'ol')
+        a['href'] = 'http://foo.com/'
+        soup.insert(0, a)
+        soup.insert(1, ol)
+        self.assertEqual(
+            soup.decode(), '<a href="http://foo.com/"></a><ol></ol>')
+
+    def test_append_to_contents_moves_tag(self):
+       doc = """<p id="1">Don't leave me <b>here</b>.</p>
+                <p id="2">Don\'t leave!</p>"""
+       soup = self.soup(doc)
+       second_para = soup.find(id='2')
+       bold = soup.b
+
+       # Move the <b> tag to the end of the second paragraph.
+       soup.find(id='2').append(soup.b)
+
+       # The <b> tag is now a child of the second paragraph.
+       self.assertEqual(bold.parent, second_para)
+
+       self.assertEqual(
+           soup.decode(), self.document_for(
+               '<p id="1">Don\'t leave me .</p>\n'
+               '<p id="2">Don\'t leave!<b>here</b></p>'))
+
+    def test_replace_tag_with_itself(self):
+        text = "<a><b></b><c>Foo<d></d></c></a><a><e></e></a>"
+        soup = BeautifulSoup(text)
+        c = soup.c
+        soup.c.replaceWith(c)
+        self.assertEquals(soup.decode(), self.document_for(text))
+
+    def test_replace_final_node(self):
+        soup = self.soup("<b>Argh!</b>")
+        soup.find(text="Argh!").replaceWith("Hooray!")
+        new_text = soup.find(text="Hooray!")
+        b = soup.b
+        self.assertEqual(new_text.previous, b)
+        self.assertEqual(new_text.parent, b)
+        self.assertEqual(new_text.previous.next, new_text)
+        self.assertEqual(new_text.next, None)
+
+    def test_consecutive_text_nodes(self):
+        # A builder should never create two consecutive text nodes,
+        # but if you insert one next to another, Beautiful Soup will
+        # handle it correctly.
+        soup = self.soup("<a><b>Argh!</b><c></c></a>")
+        soup.b.insert(1, "Hooray!")
+
+        self.assertEqual(
+            soup.decode(), self.document_for(
+                "<a><b>Argh!Hooray!</b><c></c></a>"))
+
+        new_text = soup.find(text="Hooray!")
+        self.assertEqual(new_text.previous, "Argh!")
+        self.assertEqual(new_text.previous.next, new_text)
+
+        self.assertEqual(new_text.previousSibling, "Argh!")
+        self.assertEqual(new_text.previousSibling.nextSibling, new_text)
+
+        self.assertEqual(new_text.nextSibling, None)
+        self.assertEqual(new_text.next, soup.c)
+
+
+    def test_insert_tag(self):
+        builder = self.default_builder
+        soup = BeautifulSoup(
+            "<a><b>Find</b><c>lady!</c><d></d></a>", builder=builder)
+        magic_tag = Tag(soup, builder, 'magictag')
+        magic_tag.insert(0, "the")
+        soup.a.insert(1, magic_tag)
+
+        self.assertEqual(
+            soup.decode(), self.document_for(
+                "<a><b>Find</b><magictag>the</magictag><c>lady!</c><d></d></a>"))
+
+        # Make sure all the relationships are hooked up correctly.
+        b_tag = soup.b
+        self.assertEqual(b_tag.nextSibling, magic_tag)
+        self.assertEqual(magic_tag.previousSibling, b_tag)
+
+        find = b_tag.find(text="Find")
+        self.assertEqual(find.next, magic_tag)
+        self.assertEqual(magic_tag.previous, find)
+
+        c_tag = soup.c
+        self.assertEqual(magic_tag.nextSibling, c_tag)
+        self.assertEqual(c_tag.previousSibling, magic_tag)
+
+        the = magic_tag.find(text="the")
+        self.assertEqual(the.parent, magic_tag)
+        self.assertEqual(the.next, c_tag)
+        self.assertEqual(c_tag.previous, the)
+
+    def test_replace_with(self):
+        soup = self.soup(
+                "<p>There's <b>no</b> business like <b>show</b> business</p>")
+        no, show = soup.findAll('b')
+        show.replaceWith(no)
+        self.assertEquals(
+            soup.decode(),
+            self.document_for(
+                "<p>There's  business like <b>no</b> business</p>"))
+
+        self.assertEquals(show.parent, None)
+        self.assertEquals(no.parent, soup.p)
+        self.assertEquals(no.next, "no")
+        self.assertEquals(no.nextSibling, " business")
+
+    def test_nested_tag_replace_with(self):
+        soup = BeautifulSoup(
+            """<a>We<b>reserve<c>the</c><d>right</d></b></a><e>to<f>refuse</f><g>service</g></e>""")
+
+        # Replace the entire <b> tag and its contents ("reserve the
+        # right") with the <f> tag ("refuse").
+        remove_tag = soup.b
+        move_tag = soup.f
+        remove_tag.replaceWith(move_tag)
+
+        self.assertEqual(
+            soup.decode(), self.document_for(
+                "<a>We<f>refuse</f></a><e>to<g>service</g></e>"))
+
+        # The <b> tag is now an orphan.
+        self.assertEqual(remove_tag.parent, None)
+        self.assertEqual(remove_tag.find(text="right").next, None)
+        self.assertEqual(remove_tag.previous, None)
+        self.assertEqual(remove_tag.nextSibling, None)
+        self.assertEqual(remove_tag.previousSibling, None)
+
+        # The <f> tag is now connected to the <a> tag.
+        self.assertEqual(move_tag.parent, soup.a)
+        self.assertEqual(move_tag.previous, "We")
+        self.assertEqual(move_tag.next.next, soup.e)
+        self.assertEqual(move_tag.nextSibling, None)
+
+        # The gap where the <f> tag used to be has been mended, and
+        # the word "to" is now connected to the <g> tag.
+        to_text = soup.find(text="to")
+        g_tag = soup.g
+        self.assertEqual(to_text.next, g_tag)
+        self.assertEqual(to_text.nextSibling, g_tag)
+        self.assertEqual(g_tag.previous, to_text)
+        self.assertEqual(g_tag.previousSibling, to_text)
+
+    def test_extract(self):
+        soup = self.soup(
+            '<html><body>Some content. <div id="nav">Nav crap</div> More content.</body></html>')
+
+        self.assertEqual(len(soup.body.contents), 3)
+        extracted = soup.find(id="nav").extract()
+
+        self.assertEqual(
+            soup.decode(), "<html><body>Some content.  More content.</body></html>")
+        self.assertEqual(extracted.decode(), '<div id="nav">Nav crap</div>')
+
+        # The extracted tag is now an orphan.
+        self.assertEqual(len(soup.body.contents), 2)
+        self.assertEqual(extracted.parent, None)
+        self.assertEqual(extracted.previous, None)
+        self.assertEqual(extracted.next.next, None)
+
+        # The gap where the extracted tag used to be has been mended.
+        content_1 = soup.find(text="Some content. ")
+        content_2 = soup.find(text=" More content.")
+        self.assertEquals(content_1.next, content_2)
+        self.assertEquals(content_1.nextSibling, content_2)
+        self.assertEquals(content_2.previous, content_1)
+        self.assertEquals(content_2.previousSibling, content_1)
 
 
 class TestElementObjects(SoupTest):

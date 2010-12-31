@@ -129,7 +129,8 @@ class BeautifulStoneSoup(Tag):
     # alone.
     STRIP_ASCII_SPACES = { 9: None, 10: None, 12: None, 13: None, 32: None, }
 
-    def _defaultBuilder(self):
+    @classmethod
+    def default_builder(self):
         from lxml import etree
         from builder.lxml_builder import LXMLTreeBuilder
         return LXMLTreeBuilder(parser_class=etree.XMLParser)
@@ -141,7 +142,7 @@ class BeautifulStoneSoup(Tag):
         is fed into the underlying parser."""
 
         if builder is None:
-            builder = self._defaultBuilder()
+            builder = self.default_builder()
         self.builder = builder
         self.builder.soup = self
 
@@ -343,7 +344,9 @@ class BeautifulStoneSoup(Tag):
 
 class BeautifulSoup(BeautifulStoneSoup):
     """A convenience class for parsing HTML without creating a builder."""
-    def _defaultBuilder(self):
+
+    @classmethod
+    def default_builder(self):
         try:
             from builder.html5_builder import HTML5TreeBuilder
             return HTML5TreeBuilder()
@@ -354,11 +357,6 @@ class BeautifulSoup(BeautifulStoneSoup):
 
 class StopParsing(Exception):
     pass
-
-
-class ICantBelieveItsBeautifulSoup(BeautifulStoneSoup):
-    def _defaultBuilder(self):
-        return ICantBelieveItsValidHTMLBuilder()
 
 
 #By default, act as an HTML pretty-printer.
