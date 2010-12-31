@@ -3,6 +3,7 @@
 
 import unittest
 from helpers import SoupTest
+from beautifulsoup.element import SoupStrainer
 from beautifulsoup.dammit import UnicodeDammit
 
 
@@ -46,6 +47,17 @@ class TestEncodingConversion(SoupTest):
         # The internal data structures can be encoded as UTF-8.
         soup_from_unicode = self.soup(self.unicode_data)
         self.assertEquals(soup_from_unicode.encode('utf-8'), self.utf8_data)
+
+
+class TestSelectiveParsing(SoupTest):
+
+    def test_parse_with_soupstrainer(self):
+        markup = "No<b>Yes</b><a>No<b>Yes <c>Yes</c></b>"
+        strainer = SoupStrainer("b")
+        soup = self.soup(markup, parseOnlyThese=strainer)
+        self.assertEquals(soup.encode(), "<b>Yes</b><b>Yes <c>Yes</c></b>")
+
+
 
 class TestUnicodeDammit(unittest.TestCase):
     """Standalone tests of Unicode, Dammit."""
