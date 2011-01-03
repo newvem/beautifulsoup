@@ -1,7 +1,7 @@
 import unittest
-from helpers import SoupTest
 from beautifulsoup import BeautifulSoup
 from beautifulsoup.element import SoupStrainer
+from beautifulsoup.testing import SoupTest
 
 class TestSoupStrainer(unittest.TestCase):
 

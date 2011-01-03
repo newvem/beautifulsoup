@@ -299,20 +299,26 @@ class BeautifulStoneSoup(Tag):
     def handleSpecialMetaTag(self, attrs):
         """Beautiful Soup can detect a charset included in a META tag,
         try to convert the document to that charset, and re-parse the
-        document from the beginning."""
+        document from the beginning. Neither lxml nor html5lib does
+        this, so the feature is still here."""
         httpEquiv = None
         contentType = None
         contentTypeIndex = None
         tagNeedsEncodingSubstitution = False
 
-        for i in range(0, len(attrs)):
-            key, value = attrs[i]
-            key = key.lower()
-            if key == 'http-equiv':
-                httpEquiv = value
-            elif key == 'content':
-                contentType = value
-                contentTypeIndex = i
+        if isinstance(attrs, dict):
+            httpEquiv = attrs.get('http-equiv')
+            contentType = attrs.get('content')
+        else:
+            # XXX do we need this?
+            for i in range(0, len(attrs)):
+                key, value = attrs[i]
+                key = key.lower()
+                if key == 'http-equiv':
+                    httpEquiv = value
+                elif key == 'content':
+                    contentType = value
+                    contentTypeIndex = i
 
         if httpEquiv and contentType: # It's an interesting meta tag.
             match = self.CHARSET_RE.search(contentType)
@@ -327,8 +333,11 @@ class BeautifulStoneSoup(Tag):
                     def rewrite(match):
                         return match.group(1) + "%SOUP-ENCODING%"
                     newAttr = self.CHARSET_RE.sub(rewrite, contentType)
-                    attrs[contentTypeIndex] = (attrs[contentTypeIndex][0],
-                                               newAttr)
+                    if isinstance(attrs, dict):
+                        attrs['content'] = newAttr
+                    else:
+                        attrs[contentTypeIndex] = (attrs[contentTypeIndex][0],
+                                                   newAttr)
                     tagNeedsEncodingSubstitution = True
                 else:
                     # This is our first pass through the document.

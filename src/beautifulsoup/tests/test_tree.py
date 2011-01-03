@@ -12,7 +12,7 @@ methods tested here.
 import re
 from beautifulsoup import BeautifulSoup
 from beautifulsoup.element import SoupStrainer, Tag
-from helpers import SoupTest
+from beautifulsoup.testing import SoupTest
 
 class TreeTest(SoupTest):
 

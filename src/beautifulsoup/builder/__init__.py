@@ -11,8 +11,8 @@ class TreeBuilder(Entities):
 
     assume_html = False
     smart_quotes_to = Entities.XML_ENTITIES
-    convert_html_entities = True
-    convert_xml_entities = True
+    convert_html_entities = False
+    convert_xml_entities = False
 
     def __init__(self):
         self.soup = None

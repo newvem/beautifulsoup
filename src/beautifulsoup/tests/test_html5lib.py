@@ -1,5 +1,8 @@
-from helpers import BuilderInvalidMarkupSmokeTest, BuilderSmokeTest
 from beautifulsoup.builder.html5lib_builder import HTML5TreeBuilder
+from beautifulsoup.testing import (
+    BuilderInvalidMarkupSmokeTest,
+    BuilderSmokeTest,
+)
 
 
 class TestHTML5Builder(BuilderSmokeTest):
@@ -30,4 +33,11 @@ class TestHTML5BuilderInvalidMarkup(BuilderInvalidMarkupSmokeTest):
              '<table><tbody><tr id="nested"></tr></tbody></table>'))
 
 
+    def test_foo(self):
+        isolatin = """<html><meta http-equiv="Content-type" content="text/html; charset=ISO-Latin-1" />Sacr\xe9 bleu!</html>"""
+        soup = self.soup(isolatin)
 
+        utf8 = isolatin.replace("ISO-Latin-1".encode(), "utf-8".encode())
+        utf8 = utf8.replace("\xe9", "\xc3\xa9")
+
+        print soup
