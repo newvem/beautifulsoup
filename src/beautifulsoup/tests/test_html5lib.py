@@ -11,6 +11,11 @@ class TestHTML5Builder(BuilderSmokeTest):
     def setUp(self):
         self.default_builder = HTML5TreeBuilder()
 
+    def test_collapsed_whitespace(self):
+        """Whitespace is preserved even in tags that don't require it."""
+        self.assertSoupEquals("<p>   </p>")
+        self.assertSoupEquals("<b>   </b>")
+
 
 class TestHTML5BuilderInvalidMarkup(BuilderInvalidMarkupSmokeTest):
     """See `BuilderInvalidMarkupSmokeTest`."""

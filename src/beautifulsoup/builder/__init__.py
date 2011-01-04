@@ -16,8 +16,6 @@ class TreeBuilder(Entities):
 
     def __init__(self):
         self.soup = None
-        self.self_closing_tags = set()
-        self.preserve_whitespace_tags = set()
 
     def isSelfClosingTag(self, name):
         return name in self.self_closing_tags
