@@ -8,8 +8,17 @@ from beautifulsoup.testing import (
 class TestHTML5Builder(BuilderSmokeTest):
     """See `BuilderSmokeTest`."""
 
-    def setUp(self):
-        self.default_builder = HTML5TreeBuilder()
+    @property
+    def default_builder(self):
+        return HTML5TreeBuilder()
+
+    def test_bare_string(self):
+        # A bare string is turned into some kind of HTML document or
+        # fragment recognizable as the original string.
+        #
+        # In this case, lxml puts a <p> tag around the bare string.
+        self.assertSoupEquals(
+            "A bare string", "A bare string")
 
     def test_collapsed_whitespace(self):
         """Whitespace is preserved even in tags that don't require it."""
@@ -20,8 +29,9 @@ class TestHTML5Builder(BuilderSmokeTest):
 class TestHTML5BuilderInvalidMarkup(BuilderInvalidMarkupSmokeTest):
     """See `BuilderInvalidMarkupSmokeTest`."""
 
-    def setUp(self):
-        self.default_builder = HTML5TreeBuilder()
+    @property
+    def default_builder(self):
+        return HTML5TreeBuilder()
 
     def test_unclosed_block_level_elements(self):
         # The unclosed <b> tag is closed so that the block-level tag
@@ -36,7 +46,6 @@ class TestHTML5BuilderInvalidMarkup(BuilderInvalidMarkupSmokeTest):
             '<table><tr><table><tr id="nested">',
             ('<table><tbody><tr></tr></tbody></table>'
              '<table><tbody><tr id="nested"></tr></tbody></table>'))
-
 
     def test_foo(self):
         isolatin = """<html><meta http-equiv="Content-type" content="text/html; charset=ISO-Latin-1" />Sacr\xe9 bleu!</html>"""

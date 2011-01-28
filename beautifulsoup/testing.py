@@ -7,11 +7,9 @@ from beautifulsoup.builder.lxml_builder import LXMLTreeBuilder
 
 class SoupTest(unittest.TestCase):
 
-    def setUp(self):
-        # LXMLTreeBuilder won't handle bad markup, but that's fine,
-        # since all the parsing tests take place in parser-specific
-        # test suites that override default_builder.
-        self.default_builder = LXMLTreeBuilder()
+    @property
+    def default_builder(self):
+        return LXMLTreeBuilder()
 
     def soup(self, markup, **kwargs):
         """Build a Beautiful Soup object from markup."""
@@ -47,7 +45,10 @@ class BuilderSmokeTest(SoupTest):
     def test_bare_string(self):
         # A bare string is turned into some kind of HTML document or
         # fragment recognizable as the original string.
-        self.assertSoupEquals("A bare string")
+        #
+        # In this case, lxml puts a <p> tag around the bare string.
+        self.assertSoupEquals(
+            "A bare string", "<p>A bare string</p>")
 
     def test_mixed_case_tags(self):
         # Mixed-case tags are folded to lowercase.
