@@ -119,6 +119,26 @@ class BuilderSmokeTest(SoupTest):
         self.assertSoupEquals('<this is="really messed up & stuff"></this>',
                               '<this is="really messed up &amp; stuff"></this>')
 
+    def test_literal_in_textarea(self):
+        # Anything inside a <textarea> is supposed to be treated as
+        # the literal value of the field, (XXX citation needed).
+        #
+        # But, both lxml and html5lib do their best to parse the
+        # contents of a <textarea> as HTML.
+        text = '<textarea>Junk like <b> tags and <&<&amp;</textarea>'
+        soup = BeautifulSoup(text)
+        self.assertEquals(len(soup.textarea.contents), 2)
+        self.assertEquals(soup.textarea.contents[0], u"Junk like ")
+        self.assertEquals(soup.textarea.contents[1].name, 'b')
+        self.assertEquals(soup.textarea.b.string, u" tags and ")
+
+    def test_literal_in_script(self):
+        # The contents of a <script> tag are treated as a literal string,
+        # even if that string contains HTML.
+        javascript = 'if (i < 2) { alert("<b>foo</b>"); }'
+        soup = BeautifulSoup('<script>%s</script>' % javascript)
+        self.assertEquals(soup.script.string, javascript)
+
 
 class BuilderInvalidMarkupSmokeTest(SoupTest):
     """Tests of invalid markup.
