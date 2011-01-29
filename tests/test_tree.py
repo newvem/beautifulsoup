@@ -9,6 +9,8 @@ same markup, but all Beautiful Soup trees can be traversed with the
 methods tested here.
 """
 
+import copy
+import cPickle as pickle
 import re
 from beautifulsoup import BeautifulSoup
 from beautifulsoup.element import SoupStrainer, Tag
@@ -768,3 +770,48 @@ class TestElementObjects(SoupTest):
 
         soup = self.soup("<b></b>")
         self.assertFalse(soup.b.string)
+
+
+class TestPersistence(SoupTest):
+    "Testing features like pickle and deepcopy."
+
+    def setUp(self):
+        super(TestPersistence, self).setUp()
+        self.page = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+"http://www.w3.org/TR/REC-html40/transitional.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Beautiful Soup: We called him Tortoise because he taught us.</title>
+<link rev="made" href="mailto:leonardr@segfault.org">
+<meta name="Description" content="Beautiful Soup: an HTML parser optimized for screen-scraping.">
+<meta name="generator" content="Markov Approximation 1.4 (module: leonardr)">
+<meta name="author" content="Leonard Richardson">
+</head>
+<body>
+<a href="foo">foo</a>
+<a href="foo"><b>bar</b></a>
+</body>
+</html>"""
+        self.tree = self.soup(self.page)
+
+    def test_pickle_and_unpickle_identity(self):
+        # Pickling a tree, then unpickling it, yields a tree identical
+        # to the original.
+        dumped = pickle.dumps(self.tree, 2)
+        loaded = pickle.loads(dumped)
+        self.assertEqual(loaded.__class__, BeautifulSoup)
+        self.assertEqual(loaded.decode(), self.tree.decode())
+
+    def test_deepcopy_identity(self):
+        # Making a deepcopy of a tree yields an identical tree.
+        copied = copy.deepcopy(self.tree)
+        self.assertEqual(copied.decode(), self.tree.decode())
+
+    def test_unicode_pickle(self):
+        # A tree containing Unicode characters can be pickled.
+        html = u"<b>\N{SNOWMAN}</b>"
+        soup = self.soup(html)
+        dumped = pickle.dumps(soup, pickle.HIGHEST_PROTOCOL)
+        loaded = pickle.loads(dumped)
+        self.assertEqual(loaded.decode(), soup.decode())
