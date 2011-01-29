@@ -1,3 +1,12 @@
+= 4.0 =
+
+tag.string now operates recursively. If tag A contains a single tag B
+and nothing else, then A.string is the same as B.string. So:
+
+<a><b>foo</b></a>
+
+The value of a.string used to be None, and now it's "foo".
+
 = 3.1.0 =
 
 A hybrid version that supports 2.4 and can be automatically converted
