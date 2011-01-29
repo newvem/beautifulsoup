@@ -4,7 +4,6 @@ from beautifulsoup.testing import (
     BuilderSmokeTest,
 )
 
-
 class TestHTML5Builder(BuilderSmokeTest):
     """See `BuilderSmokeTest`."""
 
