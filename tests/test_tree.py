@@ -734,6 +734,33 @@ class TestElementObjects(SoupTest):
         soup = self.soup("<b>foo</b>")
         self.assertEquals(soup.b.string, 'foo')
 
+    def test_empty_tag_has_no_string(self):
+        # A tag with no children has no .stirng.
+        soup = self.soup("<b></b>")
+        self.assertEqual(soup.b.string, None)
+
+    def test_tag_with_multiple_children_has_no_string(self):
+        # A tag with no children has no .string.
+        soup = self.soup("<a>foo<b></b><b></b></b>")
+        self.assertEqual(soup.b.string, None)
+
+        soup = self.soup("<a>foo<b></b>bar</b>")
+        self.assertEqual(soup.b.string, None)
+
+        # Even if all the children are strings, due to trickery,
+        # it won't work--but this would be a good optimization.
+        soup = self.soup("<a>foo</b>")
+        soup.a.insert(1, "bar")
+        self.assertEqual(soup.a.string, None)
+
+    def test_tag_with_recursive_string_has_string(self):
+        # A tag with a single child which has a .string inherits that
+        # .string.
+        soup = self.soup("<a><b>foo</b></a>")
+        self.assertEqual(soup.a.string, "foo")
+        self.assertEqual(soup.string, "foo")
+
+
     def test_lack_of_string(self):
         """Only a tag containing a single text node has a .string."""
         soup = self.soup("<b>f<i>e</i>o</b>")
