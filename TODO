@@ -2,11 +2,6 @@ html5lib has its own Unicode, Dammit-like system. Converting the input
 to Unicode should be up to the builder. The lxml builder would use
 Unicode, Dammit, and the html5lib builder would be a no-op.
 
-Calculate tag.string dynamically rather than when creating the
-tree. The html5lib builder doesn't use popTag, and adding/removing
-things from the tree after the fact may also change the
-value/availability of tag.string.
-
 ---
 
 Here are some unit tests that fail with HTMLParser.

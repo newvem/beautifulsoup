@@ -194,13 +194,6 @@ class BeautifulStoneSoup(Tag):
 
     def popTag(self):
         tag = self.tagStack.pop()
-        # Tags with just one string-owning child get the child as a
-        # 'string' property, so that soup.tag.string is shorthand for
-        # soup.tag.contents[0]
-        if len(self.currentTag.contents) == 1 and \
-           isinstance(self.currentTag.contents[0], NavigableString):
-            self.currentTag.string = self.currentTag.contents[0]
-
         #print "Pop", tag.name
         if self.tagStack:
             self.currentTag = self.tagStack[-1]

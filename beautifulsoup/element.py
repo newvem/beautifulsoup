@@ -434,6 +434,23 @@ class Tag(PageElement, Entities):
         else:
             self.attrs = map(convert, attrs)
 
+    @property
+    def string(self):
+        """Convenience property to get the single string within this tag.
+
+        :Return: If this tag has a single string child, return value
+         is that string. If this tag has no children, or more than one
+         child, return value is None. If this tag has one child tag,
+         return value is the 'string' attribute of the child tag,
+         recursively.
+        """
+        if len(self.contents) != 1:
+            return None
+        child = self.contents[0]
+        if isinstance(child, NavigableString):
+            return child
+        return child.string
+
     def get(self, key, default=None):
         """Returns the value of the 'key' attribute for the tag, or
         the value given for 'default' if it doesn't have that
