@@ -1,11 +1,10 @@
 from beautifulsoup.builder.html5lib_builder import HTML5TreeBuilder
-from beautifulsoup.testing import (
-    BuilderInvalidMarkupSmokeTest,
-    BuilderSmokeTest,
-)
+from test_lxml import (
+    TestLXMLBuilder,
+    TestLXMLBuilderInvalidMarkup,
+    )
 
-
-class TestHTML5Builder(BuilderSmokeTest):
+class TestHTML5Builder(TestLXMLBuilder):
     """See `BuilderSmokeTest`."""
 
     @property
@@ -26,7 +25,7 @@ class TestHTML5Builder(BuilderSmokeTest):
         self.assertSoupEquals("<b>   </b>")
 
 
-class TestHTML5BuilderInvalidMarkup(BuilderInvalidMarkupSmokeTest):
+class TestHTML5BuilderInvalidMarkup(TestLXMLBuilderInvalidMarkup):
     """See `BuilderInvalidMarkupSmokeTest`."""
 
     @property
