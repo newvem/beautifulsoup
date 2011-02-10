@@ -76,40 +76,24 @@ class TestLXMLBuilder(SoupTest):
                      '<tr><td>foo</td></tr>'
                      '</table></td>')
 
-    # This is the same as TABLE_MARKUP_1, but the nested table is
-    # floating freely rather than being inside a <td> cell.
-    TABLE_MARKUP_2 = ('<table id="1">'
-                     '<tr>'
-                     "<td>Here's another table:</td>"
-                     '<table id="2">'
-                     '<tr><td>foo</td></tr>'
-                     '</table></td>')
+    def test_correctly_nested_tables(self):
+        markup = ('<table id="1">'
+                  '<tr>'
+                  "<td>Here's another table:"
+                  '<table id="2">'
+                  '<tr><td>foo</td></tr>'
+                  '</table></td>')
 
-
-    def test_nested_tables(self):
-        # lxml closes the <tr> and <table> tags that weren't closed by
-        # TABLE_MARKUP. Unlike html5lib, it treats both bits of markup
-        # as nested tables.
         self.assertSoupEquals(
-            self.TABLE_MARKUP_1,
-            '<table id="1">'
-            '<tr>'
-            "<td>Here's another table:"
-            '<table id="2">'
-            '<tr><td>foo</td></tr>'
-            '</table>'
+            markup,
+            '<table id="1"><tr><td>Here\'s another table:'
+            '<table id="2"><tr><td>foo</td></tr></table>'
             '</td></tr></table>')
 
         self.assertSoupEquals(
-            self.TABLE_MARKUP_2,
-            '<table id="1">'
-            '<tr>'
-            "<td>Here's another table:</td>"
-            '<table id="2">'
-            '<tr><td>foo</td></tr>'
-            '</table>'
-            '</tr></table>')
-
+            "<table><thead><tr><td>Foo</td></tr></thead>"
+            "<tbody><tr><td>Bar</td></tr></tbody>"
+            "<tfoot><tr><td>Baz</td></tr></tfoot></table>")
 
     def test_collapsed_whitespace(self):
         """In most tags, whitespace is collapsed."""
@@ -239,6 +223,20 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
     builders. It's not required that a tree builder handle invalid
     markup at all.
     """
+
+    def test_table_containing_bare_markup(self):
+        # Markup should be in table cells, not directly in the table.
+        self.assertSoupEquals("<table><div>Foo</div></table>")
+
+    def test_incorrectly_nested_table(self):
+        # The second <table> tag is floating in the <tr> tag
+        # rather than being inside a <td>.
+        bad_markup = ('<table id="1">'
+                      '<tr>'
+                      "<td>Here's another table:</td>"
+                      '<table id="2">'
+                      '<tr><td>foo</td></tr>'
+                      '</table></td>')
 
     def test_unclosed_block_level_elements(self):
         # Unclosed block-level elements should be closed.

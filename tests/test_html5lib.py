@@ -19,31 +19,24 @@ class TestHTML5Builder(TestLXMLBuilder):
         self.assertSoupEquals(
             "A bare string", "A bare string")
 
-    def test_nested_tables(self):
-        # See TestLXMLBuilder for TABLE_MARKUP_1 and
-        # TABLE_MARKUP_2. They're both nested tables where the
-        # top-level <table> and <tr> aren't closed. In TABLE_MARKUP_1
-        # the second table is within a <td> tag. In
-        # TABLE_MARKUP_2, the second table is floating inside a <tr> tag.
-        #
-        # html5lib adds <tbody> tags to each table. It treats
-        # TABLE_MARKUP_1 as a nested table, and TABLE_MARKUP_2 as two
-        # different tables.
-        self.assertSoupEquals(
-            self.TABLE_MARKUP_1,
-            '<table id="1"><tbody>'
-            "<tr><td>Here's another table:"
-            '<table id="2"><tbody><tr><td>foo</td></tr></tbody></table>'
-            "</td></tr></tbody></table>"
-            )
+    def test_correctly_nested_tables(self):
+        markup = ('<table id="1">'
+                  '<tr>'
+                  "<td>Here's another table:"
+                  '<table id="2">'
+                  '<tr><td>foo</td></tr>'
+                  '</table></td>')
 
         self.assertSoupEquals(
-            self.TABLE_MARKUP_2,
-            '<table id="1"><tbody>'
-            "<tr><td>Here's another table:</td></tr>"
-            '</tbody></table>'
+            markup,
+            '<table id="1"><tbody><tr><td>Here\'s another table:'
             '<table id="2"><tbody><tr><td>foo</td></tr></tbody></table>'
-            )
+            '</td></tr></tbody></table>')
+
+        self.assertSoupEquals(
+            "<table><thead><tr><td>Foo</td></tr></thead>"
+            "<tbody><tr><td>Bar</td></tr></tbody>"
+            "<tfoot><tr><td>Baz</td></tr></tfoot></table>")
 
     def test_collapsed_whitespace(self):
         """Whitespace is preserved even in tags that don't require it."""
@@ -65,6 +58,11 @@ class TestHTML5BuilderInvalidMarkup(TestLXMLBuilderInvalidMarkup):
         self.assertSoupEquals(
             '<blockquote><p><b>Foo</blockquote><p>Bar',
             '<blockquote><p><b>Foo</b></p></blockquote><p><b>Bar</b></p>')
+
+    def test_table_containing_bare_markup(self):
+        # Markup should be in table cells, not directly in the table.
+        self.assertSoupEquals("<table><div>Foo</div></table>",
+                              "<div>Foo</div><table></table>")
 
     def test_incorrectly_nested_tables(self):
         self.assertSoupEquals(
