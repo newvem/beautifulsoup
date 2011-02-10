@@ -114,14 +114,29 @@ class TestLXMLBuilder(SoupTest):
         soup = BeautifulSoup('<script>%s</script>' % javascript)
         self.assertEquals(soup.script.string, javascript)
 
+    def test_entities_converted_on_the_way_in(self):
+        # Both XML and HTML entities are converted to Unicode characters
+        # during parsing.
+        text = "<p>&lt;&lt;sacr&eacute;&#32;bleu!&gt;&gt;</p>"
+        expected = u"<p><<sacr\N{LATIN SMALL LETTER E WITH ACUTE} bleu!>></p>"
+        self.assertSoupEquals(text, expected)
+
+    # Tests below this line need work.
+
+    def test_entities_converted_on_the_way_out(self):
+        text = "<p>&lt;&lt;sacr&eacute;&#32;bleu!&gt;&gt;</p>"
+        expected = u"&lt;&lt;sacr\N{LATIN SMALL LETTER E WITH ACUTE} bleu!&gt;&gt;".encode("utf-8")
+        soup = BeautifulSoup(text)
+        str = soup.p.string
+        #self.assertEquals(str.encode("utf-8"), expected)
+
     def test_foo(self):
         isolatin = """<html><meta http-equiv="Content-type" content="text/html; charset=ISO-Latin-1" />Sacr\xe9 bleu!</html>"""
         soup = self.soup(isolatin)
 
         utf8 = isolatin.replace("ISO-Latin-1".encode(), "utf-8".encode())
         utf8 = utf8.replace("\xe9", "\xc3\xa9")
-
-        print soup
+        #print soup
 
 
 class TestLXMLBuilderInvalidMarkup(SoupTest):
