@@ -815,3 +815,19 @@ class TestPersistence(SoupTest):
         dumped = pickle.dumps(soup, pickle.HIGHEST_PROTOCOL)
         loaded = pickle.loads(dumped)
         self.assertEqual(loaded.decode(), soup.decode())
+
+
+class TestEncoding(SoupTest):
+    """Test the ability to encode strings."""
+
+    def test_unicode_string_can_be_encoded(self):
+        html = u"<b>\N{SNOWMAN}</b>"
+        soup = self.soup(html)
+        self.assertEquals(soup.b.string.encode("utf-8"),
+                          u"\N{SNOWMAN}".encode("utf-8"))
+
+    def test_tag_containing_unicode_string_can_be_encoded(self):
+        html = u"<b>\N{SNOWMAN}</b>"
+        soup = self.soup(html)
+        self.assertEquals(soup.b.encode("utf-8"),
+                          html.encode("utf-8"))
