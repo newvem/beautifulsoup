@@ -19,6 +19,32 @@ class TestHTML5Builder(TestLXMLBuilder):
         self.assertSoupEquals(
             "A bare string", "A bare string")
 
+    def test_nested_tables(self):
+        # See TestLXMLBuilder for TABLE_MARKUP_1 and
+        # TABLE_MARKUP_2. They're both nested tables where the
+        # top-level <table> and <tr> aren't closed. In TABLE_MARKUP_1
+        # the second table is within a <td> tag. In
+        # TABLE_MARKUP_2, the second table is floating inside a <tr> tag.
+        #
+        # html5lib adds <tbody> tags to each table. It treats
+        # TABLE_MARKUP_1 as a nested table, and TABLE_MARKUP_2 as two
+        # different tables.
+        self.assertSoupEquals(
+            self.TABLE_MARKUP_1,
+            '<table id="1"><tbody>'
+            "<tr><td>Here's another table:"
+            '<table id="2"><tbody><tr><td>foo</td></tr></tbody></table>'
+            "</td></tr></tbody></table>"
+            )
+
+        self.assertSoupEquals(
+            self.TABLE_MARKUP_2,
+            '<table id="1"><tbody>'
+            "<tr><td>Here's another table:</td></tr>"
+            '</tbody></table>'
+            '<table id="2"><tbody><tr><td>foo</td></tr></tbody></table>'
+            )
+
     def test_collapsed_whitespace(self):
         """Whitespace is preserved even in tags that don't require it."""
         self.assertSoupEquals("<p>   </p>")

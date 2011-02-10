@@ -1,5 +1,7 @@
 """Tests to ensure that the lxml tree builder generates good trees."""
 
+import re
+
 from beautifulsoup import BeautifulSoup
 from beautifulsoup.builder.lxml_builder import LXMLTreeBuilder
 from beautifulsoup.element import Comment
@@ -64,6 +66,50 @@ class TestLXMLBuilder(SoupTest):
         blockquote = soup.blockquote
         self.assertEqual(blockquote.p.b.string, 'Foo')
         self.assertEqual(blockquote.b.string, 'Foo')
+
+    # This is a <table> tag containing another <table> tag in one of its
+    # cells.
+    TABLE_MARKUP_1 = ('<table id="1">'
+                     '<tr>'
+                     "<td>Here's another table:"
+                     '<table id="2">'
+                     '<tr><td>foo</td></tr>'
+                     '</table></td>')
+
+    # This is the same as TABLE_MARKUP_1, but the nested table is
+    # floating freely rather than being inside a <td> cell.
+    TABLE_MARKUP_2 = ('<table id="1">'
+                     '<tr>'
+                     "<td>Here's another table:</td>"
+                     '<table id="2">'
+                     '<tr><td>foo</td></tr>'
+                     '</table></td>')
+
+
+    def test_nested_tables(self):
+        # lxml closes the <tr> and <table> tags that weren't closed by
+        # TABLE_MARKUP. Unlike html5lib, it treats both bits of markup
+        # as nested tables.
+        self.assertSoupEquals(
+            self.TABLE_MARKUP_1,
+            '<table id="1">'
+            '<tr>'
+            "<td>Here's another table:"
+            '<table id="2">'
+            '<tr><td>foo</td></tr>'
+            '</table>'
+            '</td></tr></table>')
+
+        self.assertSoupEquals(
+            self.TABLE_MARKUP_2,
+            '<table id="1">'
+            '<tr>'
+            "<td>Here's another table:</td>"
+            '<table id="2">'
+            '<tr><td>foo</td></tr>'
+            '</table>'
+            '</tr></table>')
+
 
     def test_collapsed_whitespace(self):
         """In most tags, whitespace is collapsed."""
