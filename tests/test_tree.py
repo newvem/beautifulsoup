@@ -818,7 +818,7 @@ class TestPersistence(SoupTest):
 
 
 class TestEncoding(SoupTest):
-    """Test the ability to encode strings."""
+    """Test the ability to encode objects into strings."""
 
     def test_unicode_string_can_be_encoded(self):
         html = u"<b>\N{SNOWMAN}</b>"
@@ -829,5 +829,5 @@ class TestEncoding(SoupTest):
     def test_tag_containing_unicode_string_can_be_encoded(self):
         html = u"<b>\N{SNOWMAN}</b>"
         soup = self.soup(html)
-        self.assertEquals(soup.b.encode("utf-8"),
-                          html.encode("utf-8"))
+        self.assertEquals(
+            soup.b.encode("utf-8"), html.encode("utf-8"))

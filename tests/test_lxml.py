@@ -114,12 +114,57 @@ class TestLXMLBuilder(SoupTest):
         soup = BeautifulSoup('<script>%s</script>' % javascript)
         self.assertEquals(soup.script.string, javascript)
 
-    def test_entities_converted_on_the_way_in(self):
+    def test_naked_ampersands(self):
+        # Ampersands are left alone.
+        text = "<p>AT&T</p>"
+        soup = self.soup(text)
+        self.assertEquals(soup.p.string, "AT&T")
+
+        # Even if they're in attribute values.
+        invalid_url = '<a href="http://example.org?a=1&b=2;3">foo</a>'
+        soup = self.soup(invalid_url)
+        self.assertEquals(soup.a['href'], "http://example.org?a=1&b=2;3")
+
+    def test_entities_in_strings_converted_during_parsing(self):
         # Both XML and HTML entities are converted to Unicode characters
         # during parsing.
         text = "<p>&lt;&lt;sacr&eacute;&#32;bleu!&gt;&gt;</p>"
         expected = u"<p><<sacr\N{LATIN SMALL LETTER E WITH ACUTE} bleu!>></p>"
         self.assertSoupEquals(text, expected)
+
+    def test_entities_in_attribute_values_converted_during_parsing(self):
+        text = '<x t="pi&#241ata">'
+        expected = u"pi\N{LATIN SMALL LETTER N WITH TILDE}ata"
+        soup = self.soup(text)
+        self.assertEquals(soup.x['t'], expected)
+
+        text = '<x t="pi&#xf1;ata">'
+        soup = self.soup(text)
+        self.assertEquals(soup.x['t'], expected)
+
+        text = '<x t="sacr&eacute; bleu">'
+        soup = self.soup(text)
+        self.assertEquals(
+            soup.x['t'],
+            u"sacr\N{LATIN SMALL LETTER E WITH ACUTE} bleu")
+
+        # This can cause valid HTML to become invalid.
+        valid_url = '<a href="http://example.org?a=1&amp;b=2;3">foo</a>'
+        soup = self.soup(valid_url)
+        self.assertEquals(soup.a['href'], "http://example.org?a=1&b=2;3")
+
+    def test_smart_quotes_converted_on_the_way_in(self):
+        # Microsoft smart quotes are converted to Unicode characters during
+        # parsing.
+        quote = "<p>\x91Foo\x92</p>"
+        soup = self.soup(quote)
+        self.assertEquals(
+            soup.p.string,
+            u"\N{LEFT SINGLE QUOTATION MARK}Foo\N{RIGHT SINGLE QUOTATION MARK}")
+
+    def test_non_breaking_spaces_converted_on_the_way_in(self):
+        soup = self.soup("<a>&nbsp;&nbsp;</a>")
+        self.assertEquals(soup.a.string, u"\N{NO-BREAK SPACE}" * 2)
 
     # Tests below this line need work.
 
