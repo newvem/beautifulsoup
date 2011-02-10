@@ -77,4 +77,4 @@ class TestHTML5BuilderInvalidMarkup(TestLXMLBuilderInvalidMarkup):
         utf8 = isolatin.replace("ISO-Latin-1".encode(), "utf-8".encode())
         utf8 = utf8.replace("\xe9", "\xc3\xa9")
 
-        print soup
+        #print soup
