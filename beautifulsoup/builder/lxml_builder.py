@@ -1,5 +1,5 @@
 from lxml import etree
-from beautifulsoup.element import Comment
+from beautifulsoup.element import Comment, Doctype
 from beautifulsoup.builder import HTMLTreeBuilder
 
 class LXMLTreeBuilder(HTMLTreeBuilder):
@@ -23,6 +23,11 @@ class LXMLTreeBuilder(HTMLTreeBuilder):
 
     def data(self, content):
         self.soup.handle_data(content)
+
+    def doctype(self, name, pubid, system):
+        self.soup.endData()
+        self.soup.handle_data(name)
+        self.soup.endData(Doctype)
 
     def comment(self, content):
         "Handle comments as Comment objects."

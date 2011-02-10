@@ -198,6 +198,14 @@ class TestLXMLBuilder(SoupTest):
 
     # Tests below this line need work.
 
+    #def test_doctype(self):
+    #    xml = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"><html>foo</html></p>'
+    #    self.assertSoupEquals(xml)
+
+
+    #def test_cdata(self):
+    #    print self.soup("<div><![CDATA[foo]]></div>")
+
     def test_entities_converted_on_the_way_out(self):
         text = "<p>&lt;&lt;sacr&eacute;&#32;bleu!&gt;&gt;</p>"
         expected = u"&lt;&lt;sacr\N{LATIN SMALL LETTER E WITH ACUTE} bleu!&gt;&gt;".encode("utf-8")
@@ -261,4 +269,7 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
             '<table><tr><table><tr id="nested">',
             '<table><tr><table><tr id="nested"></tr></table></tr></table>')
 
+    def test_doctype_in_body(self):
+        markup = "<p>one<!DOCTYPE foobar>two</p>"
+        self.assertSoupEquals(markup)
 

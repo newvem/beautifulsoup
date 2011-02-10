@@ -43,6 +43,8 @@ class TestHTML5Builder(TestLXMLBuilder):
         self.assertSoupEquals("<p>   </p>")
         self.assertSoupEquals("<b>   </b>")
 
+    def test_cdata(self):
+        print self.soup("<div><![CDATA[foo]]></div>")
 
 class TestHTML5BuilderInvalidMarkup(TestLXMLBuilderInvalidMarkup):
     """See `BuilderInvalidMarkupSmokeTest`."""
@@ -69,6 +71,10 @@ class TestHTML5BuilderInvalidMarkup(TestLXMLBuilderInvalidMarkup):
             '<table><tr><table><tr id="nested">',
             ('<table><tbody><tr></tr></tbody></table>'
              '<table><tbody><tr id="nested"></tr></tbody></table>'))
+
+    def test_doctype_in_body(self):
+        markup = "<p>one<!DOCTYPE foobar>two</p>"
+        self.assertSoupEquals(markup, "<p>onetwo</p>")
 
     def test_foo(self):
         isolatin = """<html><meta http-equiv="Content-type" content="text/html; charset=ISO-Latin-1" />Sacr\xe9 bleu!</html>"""

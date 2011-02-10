@@ -370,6 +370,11 @@ class Declaration(NavigableString):
     def decodeGivenEventualEncoding(self, eventualEncoding):
         return u'<!' + self + u'>'
 
+class Doctype(NavigableString):
+
+    def decodeGivenEventualEncoding(self, eventualEncoding):
+        return u'<!DOCTYPE ' + self + u'>'
+
 class Tag(PageElement, Entities):
 
     """Represents a found HTML tag with its attributes and contents."""
