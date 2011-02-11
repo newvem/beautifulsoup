@@ -346,9 +346,6 @@ class NavigableString(unicode, PageElement):
         else:
             raise AttributeError, "'%s' object has no attribute '%s'" % (self.__class__.__name__, attr)
 
-    def encode(self, encoding=DEFAULT_OUTPUT_ENCODING):
-        return self.decode().encode(encoding)
-
     def decodeGivenEventualEncoding(self, eventualEncoding):
         return self
 
@@ -372,6 +369,11 @@ class Comment(NavigableString):
 class Declaration(NavigableString):
     def decodeGivenEventualEncoding(self, eventualEncoding):
         return u'<!' + self + u'>'
+
+class Doctype(NavigableString):
+
+    def decodeGivenEventualEncoding(self, eventualEncoding):
+        return u'<!DOCTYPE ' + self + u'>'
 
 class Tag(PageElement, Entities):
 
