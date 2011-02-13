@@ -196,15 +196,16 @@ class TestLXMLBuilder(SoupTest):
         soup = self.soup("<a>&nbsp;&nbsp;</a>")
         self.assertEquals(soup.a.string, u"\N{NO-BREAK SPACE}" * 2)
 
+    def test_cdata_where_its_ok(self):
+        # lxml strips CDATA sections, no matter where they occur.
+        markup = "<svg><![CDATA[foobar]]>"
+        self.assertSoupEquals(markup, "<svg></svg>")
+
     # Tests below this line need work.
 
     #def test_doctype(self):
     #    xml = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"><html>foo</html></p>'
     #    self.assertSoupEquals(xml)
-
-
-    #def test_cdata(self):
-    #    print self.soup("<div><![CDATA[foo]]></div>")
 
     def test_entities_converted_on_the_way_out(self):
         text = "<p>&lt;&lt;sacr&eacute;&#32;bleu!&gt;&gt;</p>"

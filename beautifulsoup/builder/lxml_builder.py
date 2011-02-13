@@ -6,8 +6,8 @@ class LXMLTreeBuilder(HTMLTreeBuilder):
 
     def __init__(self, parser_class=etree.HTMLParser):
         # etree.HTMLParser's constructor has an argument strip_cdata,
-        # but it does nothing. CDATA sections will become text when
-        # passed through etree.HTMLParser.
+        # but it does nothing. CDATA sections are always stripped when
+        # passed through HTMLParser.
         self.parser = parser_class(target=self)
         self.soup = None
 
