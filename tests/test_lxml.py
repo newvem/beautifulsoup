@@ -273,3 +273,7 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
         markup = "<p>one<!DOCTYPE foobar>two</p>"
         self.assertSoupEquals(markup)
 
+    def test_cdata_where_it_doesnt_belong(self):
+        #CDATA sections are ignored.
+        markup = "<div><![CDATA[foo]]>"
+        self.assertSoupEquals(markup, "<div></div>")

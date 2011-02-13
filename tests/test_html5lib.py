@@ -1,4 +1,5 @@
 from beautifulsoup.builder.html5lib_builder import HTML5TreeBuilder
+from beautifulsoup.element import Comment
 from test_lxml import (
     TestLXMLBuilder,
     TestLXMLBuilderInvalidMarkup,
@@ -43,8 +44,19 @@ class TestHTML5Builder(TestLXMLBuilder):
         self.assertSoupEquals("<p>   </p>")
         self.assertSoupEquals("<b>   </b>")
 
-    def test_cdata(self):
-        print self.soup("<div><![CDATA[foo]]></div>")
+    def test_cdata_where_its_ok(self):
+        # In html5lib 0.9.0, all CDATA sections are converted into
+        # comments.  In a later version (unreleased as of this
+        # writing), CDATA sections in tags like <svg> and <math> will
+        # be preserved. BUT, I'm not sure how Beautiful Soup needs to
+        # adjust to transform this preservation into the construction
+        # of a BS CData object.
+        markup = "<svg><![CDATA[foobar]]>"
+
+        # Eventually we should be able to do a find(text="foobar") and
+        # get a CData object.
+        self.assertSoupEquals(markup, "<svg><!--[CDATA[foobar]]--></svg>")
+
 
 class TestHTML5BuilderInvalidMarkup(TestLXMLBuilderInvalidMarkup):
     """See `BuilderInvalidMarkupSmokeTest`."""
@@ -75,6 +87,13 @@ class TestHTML5BuilderInvalidMarkup(TestLXMLBuilderInvalidMarkup):
     def test_doctype_in_body(self):
         markup = "<p>one<!DOCTYPE foobar>two</p>"
         self.assertSoupEquals(markup, "<p>onetwo</p>")
+
+    def test_cdata_where_it_doesnt_belong(self):
+        # Random CDATA sections are converted into comments.
+        markup = "<div><![CDATA[foo]]>"
+        soup = self.soup(markup)
+        data = soup.find(text="[CDATA[foo]]")
+        self.assertEquals(data.__class__, Comment)
 
     def test_foo(self):
         isolatin = """<html><meta http-equiv="Content-type" content="text/html; charset=ISO-Latin-1" />Sacr\xe9 bleu!</html>"""

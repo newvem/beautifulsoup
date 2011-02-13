@@ -5,6 +5,9 @@ from beautifulsoup.builder import HTMLTreeBuilder
 class LXMLTreeBuilder(HTMLTreeBuilder):
 
     def __init__(self, parser_class=etree.HTMLParser):
+        # etree.HTMLParser's constructor has an argument strip_cdata,
+        # but it does nothing. CDATA sections will become text when
+        # passed through etree.HTMLParser.
         self.parser = parser_class(target=self)
         self.soup = None
 
@@ -20,6 +23,9 @@ class LXMLTreeBuilder(HTMLTreeBuilder):
 
     def end(self, name):
         self.soup.handle_endtag(name)
+
+    def pi(self, target, data):
+        pass
 
     def data(self, content):
         self.soup.handle_data(content)

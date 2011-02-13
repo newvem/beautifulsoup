@@ -7,6 +7,23 @@ Bare ampersands should be converted to HTML entities upon output.
 It should also be possible to convert certain Unicode characters to
 HTML entities upon output.
 
+XML handling:
+
+The elementtree XMLParser has a strip_cdata argument that, when set to
+False, should allow Beautiful Soup to preserve CDATA sections instead
+of treating them as text. (This argument is also present for
+HTMLParser, but does nothing.)
+
+Later:
+
+Currently, htm5lib converts CDATA sections into comments. An
+as-yet-unreleased version of html5lib changes the parser's handling of
+CDATA sections to allow CDATA sections in tags like <svg> and
+<math>. The HTML5TreeBuilder will need to be updated to create CData
+objects instead of Comment objects in this situation.
+
+
+
 ---
 
 Here are some unit tests that fail with HTMLParser.
