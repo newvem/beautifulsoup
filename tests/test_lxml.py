@@ -205,7 +205,7 @@ class TestLXMLBuilder(SoupTest):
         """Run a battery of assertions on a given doctype string."""
         doctype_str = '<!DOCTYPE %s>' % doctype_fragment
         markup = doctype_str + '<p>foo</p>'
-        soup = BeautifulSoup(markup)
+        soup = self.soup(markup)
         doctype = soup.contents[0]
         self.assertEquals(doctype.__class__, Doctype)
         self.assertEquals(doctype, doctype_fragment)
