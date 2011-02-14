@@ -107,6 +107,28 @@ class TestHTML5BuilderInvalidMarkup(TestLXMLBuilderInvalidMarkup):
                           ("<html><head></head><body><p>a</p>"
                            "<!-- Foo = -8--></body></html>"))
 
+    def test_whitespace_in_doctype(self):
+        # A declaration that has extra whitespace is turned into a comment.
+        soup = self.soup((
+                '<! DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN">'
+                '<p>foo</p>'))
+        self.assertEquals(
+            str(soup),
+            ('<!-- DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"-->'
+             '<html><head></head><body><p>foo</p></body></html>'))
+
+    def test_incomplete_declaration(self):
+        # An incomplete declaration is treated as a comment.
+        markup = 'a<!b <p>c'
+        self.assertSoupEquals(markup, "a<!--b <p-->c")
+
+        # Let's spell that out a little more explicitly.
+        soup = self.soup(markup)
+        str1, comment, str2 = soup.body.contents
+        self.assertEquals(str1, 'a')
+        self.assertEquals(comment.__class__, Comment)
+        self.assertEquals(comment, 'b <p')
+        self.assertEquals(str2, 'c')
 
     def test_foo(self):
         isolatin = """<html><meta http-equiv="Content-type" content="text/html; charset=ISO-Latin-1" />Sacr\xe9 bleu!</html>"""
