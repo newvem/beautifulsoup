@@ -4,7 +4,7 @@ import re
 
 from beautifulsoup import BeautifulSoup
 from beautifulsoup.builder.lxml_builder import LXMLTreeBuilder
-from beautifulsoup.element import Comment
+from beautifulsoup.element import Comment, Doctype
 from beautifulsoup.testing import SoupTest
 
 
@@ -196,15 +196,40 @@ class TestLXMLBuilder(SoupTest):
         soup = self.soup("<a>&nbsp;&nbsp;</a>")
         self.assertEquals(soup.a.string, u"\N{NO-BREAK SPACE}" * 2)
 
+    def test_cdata_where_its_ok(self):
+        # lxml strips CDATA sections, no matter where they occur.
+        markup = "<svg><![CDATA[foobar]]>"
+        self.assertSoupEquals(markup, "<svg></svg>")
+
+    def _test_doctype(self, doctype_fragment):
+        """Run a battery of assertions on a given doctype string."""
+        doctype_str = '<!DOCTYPE %s>' % doctype_fragment
+        markup = doctype_str + '<p>foo</p>'
+        soup = self.soup(markup)
+        doctype = soup.contents[0]
+        self.assertEquals(doctype.__class__, Doctype)
+        self.assertEquals(doctype, doctype_fragment)
+        self.assertEquals(str(soup)[:len(doctype_str)], doctype_str)
+
+        # Make sure that the doctype was correctly associated with the
+        # parse tree and that the rest of the document parsed.
+        self.assertEquals(soup.p.contents[0], 'foo')
+
+    def test_doctype(self):
+        # Test a normal HTML doctype you'll commonly see in a real document.
+        self._test_doctype(
+            'html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"')
+
+    def test_namespaced_system_doctype(self):
+        # Test a namespaced doctype with a system id.
+        self._test_doctype('xsl:stylesheet SYSTEM "htmlent.dtd"')
+
+    def test_namespaced_system_doctype(self):
+        # Test a namespaced doctype with a public id.
+        self._test_doctype('xsl:stylesheet PUBLIC "htmlent.dtd"')
+
     # Tests below this line need work.
 
-    #def test_doctype(self):
-    #    xml = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"><html>foo</html></p>'
-    #    self.assertSoupEquals(xml)
-
-
-    #def test_cdata(self):
-    #    print self.soup("<div><![CDATA[foo]]></div>")
 
     def test_entities_converted_on_the_way_out(self):
         text = "<p>&lt;&lt;sacr&eacute;&#32;bleu!&gt;&gt;</p>"
@@ -272,6 +297,10 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
     def test_doctype_in_body(self):
         markup = "<p>one<!DOCTYPE foobar>two</p>"
         self.assertSoupEquals(markup)
+
+    def test_nonsensical_declaration(self):
+        # Declarations that don't make any sense are ignored.
+        self.assertSoupEquals('<! Foo = -8><p>a</p>', "<p>a</p>")
 
     def test_cdata_where_it_doesnt_belong(self):
         #CDATA sections are ignored.

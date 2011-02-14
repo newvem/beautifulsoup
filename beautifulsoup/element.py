@@ -372,6 +372,16 @@ class Declaration(NavigableString):
 
 class Doctype(NavigableString):
 
+    @classmethod
+    def for_name_and_ids(cls, name, pub_id, system_id):
+        value = name
+        if pub_id is not None:
+            value += ' PUBLIC "%s"' % pub_id
+        if system_id is not None:
+            value += ' SYSTEM "%s"' % system_id
+
+        return Doctype(value)
+
     def decodeGivenEventualEncoding(self, eventualEncoding):
         return u'<!DOCTYPE ' + self + u'>'
 

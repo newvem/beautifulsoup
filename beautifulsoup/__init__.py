@@ -222,11 +222,15 @@ class BeautifulStoneSoup(Tag):
                     not self.parseOnlyThese.search(currentData)):
                 return
             o = containerClass(currentData)
-            o.setup(self.currentTag, self.previous)
-            if self.previous:
-                self.previous.next = o
-            self.previous = o
-            self.currentTag.contents.append(o)
+            self.object_was_parsed(o)
+
+    def object_was_parsed(self, o):
+        """Add an object to the parse tree."""
+        o.setup(self.currentTag, self.previous)
+        if self.previous:
+            self.previous.next = o
+        self.previous = o
+        self.currentTag.contents.append(o)
 
 
     def _popToTag(self, name, inclusivePop=True):

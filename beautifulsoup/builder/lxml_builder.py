@@ -6,8 +6,8 @@ class LXMLTreeBuilder(HTMLTreeBuilder):
 
     def __init__(self, parser_class=etree.HTMLParser):
         # etree.HTMLParser's constructor has an argument strip_cdata,
-        # but it does nothing. CDATA sections will become text when
-        # passed through etree.HTMLParser.
+        # but it does nothing. CDATA sections are always stripped when
+        # passed through HTMLParser.
         self.parser = parser_class(target=self)
         self.soup = None
 
@@ -32,8 +32,8 @@ class LXMLTreeBuilder(HTMLTreeBuilder):
 
     def doctype(self, name, pubid, system):
         self.soup.endData()
-        self.soup.handle_data(name)
-        self.soup.endData(Doctype)
+        doctype = Doctype.for_name_and_ids(name, pubid, system)
+        self.soup.object_was_parsed(doctype)
 
     def comment(self, content):
         "Handle comments as Comment objects."

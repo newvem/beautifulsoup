@@ -2,7 +2,12 @@ from beautifulsoup.builder import HTMLTreeBuilder, SAXTreeBuilder
 import html5lib
 from html5lib.constants import DataLossWarning
 import warnings
-from beautifulsoup.element import Tag, NavigableString, Comment, Declaration
+from beautifulsoup.element import (
+    Comment,
+    Doctype,
+    NavigableString,
+    Tag,
+    )
 
 
 class HTML5TreeBuilder(HTMLTreeBuilder):
@@ -40,13 +45,8 @@ class TreeBuilderForHtml5lib(html5lib.treebuilders._base.TreeBuilder):
         publicId = token["publicId"]
         systemId = token["systemId"]
 
-        if publicId:
-            self.soup.insert(0, Declaration("%s PUBLIC \"%s\" \"%s\""%(name, publicId, systemId or "")))
-        elif systemId:
-            self.soup.insert(0, Declaration("%s SYSTEM \"%s\""%
-                                            (name, systemId)))
-        else:
-            self.soup.insert(0, Declaration(name))
+        doctype = Doctype.for_name_and_ids(name, publicId, systemId)
+        self.soup.object_was_parsed(doctype)
 
     def elementClass(self, name, namespace):
         if namespace is not None:
