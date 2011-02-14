@@ -298,8 +298,9 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
         markup = "<p>one<!DOCTYPE foobar>two</p>"
         self.assertSoupEquals(markup)
 
-    #def testJunkInDeclaration(self):
-    #    self.assertSoupEquals('<! Foo = -8>a', '<!Foo = -8>a')
+    def test_nonsensical_declaration(self):
+        # Declarations that don't make any sense are ignored.
+        self.assertSoupEquals('<! Foo = -8><p>a</p>', "<p>a</p>")
 
     def test_cdata_where_it_doesnt_belong(self):
         #CDATA sections are ignored.

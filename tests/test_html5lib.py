@@ -95,6 +95,19 @@ class TestHTML5BuilderInvalidMarkup(TestLXMLBuilderInvalidMarkup):
         data = soup.find(text="[CDATA[foo]]")
         self.assertEquals(data.__class__, Comment)
 
+    def test_nonsensical_declaration(self):
+        # Declarations that don't make any sense are turned into comments.
+        soup = self.soup('<! Foo = -8><p>a</p>')
+        self.assertEquals(str(soup),
+                          ("<!-- Foo = -8-->"
+                           "<html><head></head><body><p>a</p></body></html>"))
+
+        soup = self.soup('<p>a</p><! Foo = -8>')
+        self.assertEquals(str(soup),
+                          ("<html><head></head><body><p>a</p>"
+                           "<!-- Foo = -8--></body></html>"))
+
+
     def test_foo(self):
         isolatin = """<html><meta http-equiv="Content-type" content="text/html; charset=ISO-Latin-1" />Sacr\xe9 bleu!</html>"""
         soup = self.soup(isolatin)
