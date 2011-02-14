@@ -201,33 +201,35 @@ class TestLXMLBuilder(SoupTest):
         markup = "<svg><![CDATA[foobar]]>"
         self.assertSoupEquals(markup, "<svg></svg>")
 
-    def test_namespaced_system_doctype(self):
-        doctype_str = '<!DOCTYPE xsl:stylesheet SYSTEM "htmlent.dtd">'
+    def _test_doctype(self, doctype_fragment):
+        """Run a battery of assertions on a given doctype string."""
+        doctype_str = '<!DOCTYPE %s>' % doctype_fragment
         markup = doctype_str + '<p>foo</p>'
         soup = BeautifulSoup(markup)
         doctype = soup.contents[0]
         self.assertEquals(doctype.__class__, Doctype)
-        self.assertEquals(doctype, 'xsl:stylesheet SYSTEM "htmlent.dtd"')
+        self.assertEquals(doctype, doctype_fragment)
         self.assertEquals(str(soup)[:len(doctype_str)], doctype_str)
+
+        # Make sure that the doctype was correctly associated with the
+        # parse tree and that the rest of the document parsed.
         self.assertEquals(soup.p.contents[0], 'foo')
 
-    def test_namespaced_public_doctype(self):
-        doctype_str = '<!DOCTYPE xsl:stylesheet PUBLIC "htmlent.dtd">'
-        markup = doctype_str + '<p>foo</p>'
-        soup = BeautifulSoup(markup)
-        doctype = soup.contents[0]
-        self.assertEquals(doctype.__class__, Doctype)
-        self.assertEquals(doctype, 'xsl:stylesheet PUBLIC "htmlent.dtd"')
-        self.assertEquals(str(soup)[:len(doctype_str)], doctype_str)
-        self.assertEquals(soup.p.contents[0], 'foo')
+    def test_doctype(self):
+        # Test a normal HTML doctype you'll commonly see in a real document.
+        self._test_doctype(
+            'html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"')
+
+    def test_namespaced_system_doctype(self):
+        # Test a namespaced doctype with a system id.
+        self._test_doctype('xsl:stylesheet SYSTEM "htmlent.dtd"')
+
+    def test_namespaced_system_doctype(self):
+        # Test a namespaced doctype with a public id.
+        self._test_doctype('xsl:stylesheet PUBLIC "htmlent.dtd"')
 
     # Tests below this line need work.
 
-
-    def test_doctype(self):
-        doctype_str = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN">
-        markup = doctype_str + '<p>foo</p>'
-        self.assertSoupEquals(xml)
 
     def test_entities_converted_on_the_way_out(self):
         text = "<p>&lt;&lt;sacr&eacute;&#32;bleu!&gt;&gt;</p>"
