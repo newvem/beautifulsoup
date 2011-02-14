@@ -32,8 +32,8 @@ class LXMLTreeBuilder(HTMLTreeBuilder):
 
     def doctype(self, name, pubid, system):
         self.soup.endData()
-        self.soup.handle_data(name)
-        self.soup.endData(Doctype)
+        doctype = Doctype.for_name_and_ids(name, pubid, system)
+        self.soup.object_was_parsed(doctype)
 
     def comment(self, content):
         "Handle comments as Comment objects."

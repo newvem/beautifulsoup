@@ -4,7 +4,7 @@ import re
 
 from beautifulsoup import BeautifulSoup
 from beautifulsoup.builder.lxml_builder import LXMLTreeBuilder
-from beautifulsoup.element import Comment
+from beautifulsoup.element import Comment, Doctype
 from beautifulsoup.testing import SoupTest
 
 
@@ -201,11 +201,33 @@ class TestLXMLBuilder(SoupTest):
         markup = "<svg><![CDATA[foobar]]>"
         self.assertSoupEquals(markup, "<svg></svg>")
 
+    def test_namespaced_system_doctype(self):
+        doctype_str = '<!DOCTYPE xsl:stylesheet SYSTEM "htmlent.dtd">'
+        markup = doctype_str + '<p>foo</p>'
+        soup = BeautifulSoup(markup)
+        doctype = soup.contents[0]
+        self.assertEquals(doctype.__class__, Doctype)
+        self.assertEquals(doctype, 'xsl:stylesheet SYSTEM "htmlent.dtd"')
+        self.assertEquals(str(soup)[:len(doctype_str)], doctype_str)
+        self.assertEquals(soup.p.contents[0], 'foo')
+
+    def test_namespaced_public_doctype(self):
+        doctype_str = '<!DOCTYPE xsl:stylesheet PUBLIC "htmlent.dtd">'
+        markup = doctype_str + '<p>foo</p>'
+        soup = BeautifulSoup(markup)
+        doctype = soup.contents[0]
+        self.assertEquals(doctype.__class__, Doctype)
+        self.assertEquals(doctype, 'xsl:stylesheet PUBLIC "htmlent.dtd"')
+        self.assertEquals(str(soup)[:len(doctype_str)], doctype_str)
+        self.assertEquals(soup.p.contents[0], 'foo')
+
     # Tests below this line need work.
 
-    #def test_doctype(self):
-    #    xml = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"><html>foo</html></p>'
-    #    self.assertSoupEquals(xml)
+
+    def test_doctype(self):
+        doctype_str = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN">
+        markup = doctype_str + '<p>foo</p>'
+        self.assertSoupEquals(xml)
 
     def test_entities_converted_on_the_way_out(self):
         text = "<p>&lt;&lt;sacr&eacute;&#32;bleu!&gt;&gt;</p>"
@@ -273,6 +295,9 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
     def test_doctype_in_body(self):
         markup = "<p>one<!DOCTYPE foobar>two</p>"
         self.assertSoupEquals(markup)
+
+    #def testJunkInDeclaration(self):
+    #    self.assertSoupEquals('<! Foo = -8>a', '<!Foo = -8>a')
 
     def test_cdata_where_it_doesnt_belong(self):
         #CDATA sections are ignored.
