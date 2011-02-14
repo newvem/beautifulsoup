@@ -302,6 +302,17 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
         # Declarations that don't make any sense are ignored.
         self.assertSoupEquals('<! Foo = -8><p>a</p>', "<p>a</p>")
 
+    def test_whitespace_in_doctype(self):
+        # A declaration that has extra whitespace is ignored.
+        self.assertSoupEquals(
+            ('<! DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN">'
+             '<p>foo</p>'),
+            '<p>foo</p>')
+
+    def test_incomplete_declaration(self):
+        # An incomplete declaration will screw up the rest of the document.
+        self.assertSoupEquals('a<!b <p>c', '<p>a</p>')
+
     def test_cdata_where_it_doesnt_belong(self):
         #CDATA sections are ignored.
         markup = "<div><![CDATA[foo]]>"
