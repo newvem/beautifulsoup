@@ -165,7 +165,7 @@ class PageElement:
         """Returns the first item that matches the given criteria and
         appears after this Tag in the document."""
         return self._findOne(self.find_all_next, name, attrs, text, **kwargs)
-    findNext = find_next # Compatibility with BS3.
+    findNext = find_next # BS3
 
     def find_all_next(self, name=None, attrs={}, text=None, limit=None,
                     **kwargs):
@@ -173,26 +173,30 @@ class PageElement:
         after this Tag in the document."""
         return self._find_all(name, attrs, text, limit, self.next_elements,
                              **kwargs)
-    findAllNext = find_all_next # Compatibility with BS3.
+    findAllNext = find_all_next # BS3
 
-    def find_nextSibling(self, name=None, attrs={}, text=None, **kwargs):
+    def find_next_sibling(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the closest sibling to this Tag that matches the
         given criteria and appears after this Tag in the document."""
-        return self._findOne(self.find_nextSiblings, name, attrs, text,
+        return self._findOne(self.find_next_siblings, name, attrs, text,
                              **kwargs)
+    findNextSibling = find_next_sibling # BS3
 
-    def find_nextSiblings(self, name=None, attrs={}, text=None, limit=None,
-                         **kwargs):
+    def find_next_siblings(self, name=None, attrs={}, text=None, limit=None,
+                           **kwargs):
         """Returns the siblings of this Tag that match the given
         criteria and appear after this Tag in the document."""
         return self._find_all(name, attrs, text, limit,
-                             self.next_siblings, **kwargs)
-    fetchNextSiblings = find_nextSiblings # Compatibility with BS2
+                              self.next_siblings, **kwargs)
+    findNextSiblings = find_next_siblings  # BS3
+    fetchNextSiblings = find_next_siblings # BS2
 
-    def findPrevious(self, name=None, attrs={}, text=None, **kwargs):
+    def find_previous(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the first item that matches the given criteria and
         appears before this Tag in the document."""
-        return self._findOne(self.find_all_previous, name, attrs, text, **kwargs)
+        return self._findOne(
+            self.find_all_previous, name, attrs, text, **kwargs)
+    findPrevious = find_previous # BS3
 
     def find_all_previous(self, name=None, attrs={}, text=None, limit=None,
                         **kwargs):
@@ -200,41 +204,45 @@ class PageElement:
         before this Tag in the document."""
         return self._find_all(name, attrs, text, limit, self.previous_elements,
                            **kwargs)
-    findAllPrevious = find_all_previous # Compatibility with BS3
-    fetchPrevious = find_all_previous   # Compatibility with BS2
+    findAllPrevious = find_all_previous # BS3
+    fetchPrevious = find_all_previous   # BS2
 
-    def findPreviousSibling(self, name=None, attrs={}, text=None, **kwargs):
+    def find_previous_sibling(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the closest sibling to this Tag that matches the
         given criteria and appears before this Tag in the document."""
-        return self._findOne(self.findPreviousSiblings, name, attrs, text,
+        return self._findOne(self.find_previous_siblings, name, attrs, text,
                              **kwargs)
+    findPreviousSibling = find_previous_sibling # BS3
 
-    def findPreviousSiblings(self, name=None, attrs={}, text=None,
-                             limit=None, **kwargs):
+    def find_previous_siblings(self, name=None, attrs={}, text=None,
+                               limit=None, **kwargs):
         """Returns the siblings of this Tag that match the given
         criteria and appear before this Tag in the document."""
         return self._find_all(name, attrs, text, limit,
-                             self.previous_siblings, **kwargs)
-    fetchPreviousSiblings = findPreviousSiblings # Compatibility with pre-3.x
+                              self.previous_siblings, **kwargs)
+    findPreviousSiblings = find_previous_siblings  # BS3
+    fetchPreviousSiblings = find_previous_siblings # BS2
 
-    def findParent(self, name=None, attrs={}, **kwargs):
+    def find_parent(self, name=None, attrs={}, **kwargs):
         """Returns the closest parent of this Tag that matches the given
         criteria."""
         # NOTE: We can't use _findOne because findParents takes a different
         # set of arguments.
         r = None
-        l = self.findParents(name, attrs, 1)
+        l = self.find_parents(name, attrs, 1)
         if l:
             r = l[0]
         return r
+    findParent = find_parent # BS3
 
-    def findParents(self, name=None, attrs={}, limit=None, **kwargs):
+    def find_parents(self, name=None, attrs={}, limit=None, **kwargs):
         """Returns the parents of this Tag that match the given
         criteria."""
 
         return self._find_all(name, attrs, None, limit, self.parents,
                              **kwargs)
-    fetchParents = findParents # Compatibility with pre-3.x
+    findParents = find_parents  # BS3
+    fetchParents = find_parents # BS2
 
     #These methods do the real heavy lifting.
 

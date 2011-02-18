@@ -270,12 +270,12 @@ class TestParentOperations(TreeTest):
 
     def test_find_parents(self):
         self.assertSelectsIDs(
-            self.start.findParents('ul'), ['bottom', 'middle', 'top'])
+            self.start.find_parents('ul'), ['bottom', 'middle', 'top'])
         self.assertSelectsIDs(
-            self.start.findParents('ul', id="middle"), ['middle'])
+            self.start.find_parents('ul', id="middle"), ['middle'])
 
     def test_find_parent(self):
-        self.assertEquals(self.start.findParent('ul')['id'], 'bottom')
+        self.assertEquals(self.start.find_parent('ul')['id'], 'bottom')
 
     def test_parent_of_text_element(self):
         text = self.tree.find(text="Start here")
@@ -283,7 +283,7 @@ class TestParentOperations(TreeTest):
 
     def test_text_element_find_parent(self):
         text = self.tree.find(text="Start here")
-        self.assertEquals(text.findParent('ul')['id'], 'bottom')
+        self.assertEquals(text.find_parent('ul')['id'], 'bottom')
 
     def test_parent_generator(self):
         parents = [parent['id'] for parent in self.start.parentGenerator()
@@ -447,13 +447,13 @@ class TestNextSibling(SiblingTest):
         self.assertEquals(last_span.nextSibling, None)
 
     def test_find_next_sibling(self):
-        self.assertEquals(self.start.find_nextSibling('span')['id'], '2')
+        self.assertEquals(self.start.find_next_sibling('span')['id'], '2')
 
     def test_next_siblings(self):
-        self.assertSelectsIDs(self.start.find_nextSiblings("span"),
+        self.assertSelectsIDs(self.start.find_next_siblings("span"),
                               ['2', '3', '4'])
 
-        self.assertSelectsIDs(self.start.find_nextSiblings(id='3'), ['3'])
+        self.assertSelectsIDs(self.start.find_next_siblings(id='3'), ['3'])
 
     def test_next_sibling_for_text_element(self):
         soup = self.soup("Foo<b>bar</b>baz")
@@ -461,9 +461,9 @@ class TestNextSibling(SiblingTest):
         self.assertEquals(start.nextSibling.name, 'b')
         self.assertEquals(start.nextSibling.nextSibling, 'baz')
 
-        self.assertSelects(start.find_nextSiblings('b'), ['bar'])
-        self.assertEquals(start.find_nextSibling(text="baz"), "baz")
-        self.assertEquals(start.find_nextSibling(text="nonesuch"), None)
+        self.assertSelects(start.find_next_siblings('b'), ['bar'])
+        self.assertEquals(start.find_next_sibling(text="baz"), "baz")
+        self.assertEquals(start.find_next_sibling(text="nonesuch"), None)
 
 
 class TestPreviousSibling(SiblingTest):
@@ -492,13 +492,13 @@ class TestPreviousSibling(SiblingTest):
         self.assertEquals(first_span.previousSibling, None)
 
     def test_find_previous_sibling(self):
-        self.assertEquals(self.end.findPreviousSibling('span')['id'], '3')
+        self.assertEquals(self.end.find_previous_sibling('span')['id'], '3')
 
     def test_previous_siblings(self):
-        self.assertSelectsIDs(self.end.findPreviousSiblings("span"),
+        self.assertSelectsIDs(self.end.find_previous_siblings("span"),
                               ['3', '2', '1'])
 
-        self.assertSelectsIDs(self.end.findPreviousSiblings(id='1'), ['1'])
+        self.assertSelectsIDs(self.end.find_previous_siblings(id='1'), ['1'])
 
     def test_previous_sibling_for_text_element(self):
         soup = self.soup("Foo<b>bar</b>baz")
@@ -506,9 +506,9 @@ class TestPreviousSibling(SiblingTest):
         self.assertEquals(start.previousSibling.name, 'b')
         self.assertEquals(start.previousSibling.previousSibling, 'Foo')
 
-        self.assertSelects(start.findPreviousSiblings('b'), ['bar'])
-        self.assertEquals(start.findPreviousSibling(text="Foo"), "Foo")
-        self.assertEquals(start.findPreviousSibling(text="nonesuch"), None)
+        self.assertSelects(start.find_previous_siblings('b'), ['bar'])
+        self.assertEquals(start.find_previous_sibling(text="Foo"), "Foo")
+        self.assertEquals(start.find_previous_sibling(text="nonesuch"), None)
 
 
 class TestTreeModification(SoupTest):
