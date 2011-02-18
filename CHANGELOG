@@ -51,6 +51,13 @@ and nothing else, then A.string is the same as B.string. So:
 
 The value of a.string used to be None, and now it's "foo".
 
+== Entities are always converted ==
+
+An HTML or XML entity is always converted into the corresponding
+Unicode character. There are no longer any smartQuotesTo or
+convertEntities arguments. (Unicode Dammit still has smartQuotesTo,
+though that may change.)
+
 = 3.1.0 =
 
 A hybrid version that supports 2.4 and can be automatically converted
