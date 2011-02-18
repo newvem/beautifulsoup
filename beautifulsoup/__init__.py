@@ -171,7 +171,7 @@ class BeautifulStoneSoup(Tag):
         else:
             dammit = UnicodeDammit\
                      (markup, [self.fromEncoding, inDocumentEncoding],
-                      smartQuotesTo=self.builder.smart_quotes_to, isHTML=isHTML)
+                      isHTML=isHTML)
             markup = dammit.unicode
             self.originalEncoding = dammit.originalEncoding
             self.declaredHTMLEncoding = dammit.declaredHTMLEncoding

@@ -40,7 +40,7 @@ class TreeTest(SoupTest):
 class TestFind(TreeTest):
     """Basic tests of the find() method.
 
-    find() just calls findAll() with limit=1, so it's not tested all
+    find() just calls find_all() with limit=1, so it's not tested all
     that thouroughly here.
     """
 
@@ -54,34 +54,34 @@ class TestFind(TreeTest):
 
 
 class TestFindAll(TreeTest):
-    """Basic tests of the findAll() method."""
+    """Basic tests of the find_all() method."""
 
     def test_find_all_text_nodes(self):
         """You can search the tree for text nodes."""
         soup = self.soup("<html>Foo<b>bar</b>\xbb</html>")
         # Exact match.
-        self.assertEqual(soup.findAll(text="bar"), [u"bar"])
+        self.assertEqual(soup.find_all(text="bar"), [u"bar"])
         # Match any of a number of strings.
         self.assertEqual(
-            soup.findAll(text=["Foo", "bar"]), [u"Foo", u"bar"])
+            soup.find_all(text=["Foo", "bar"]), [u"Foo", u"bar"])
         # Match a regular expression.
-        self.assertEqual(soup.findAll(text=re.compile('.*')),
+        self.assertEqual(soup.find_all(text=re.compile('.*')),
                          [u"Foo", u"bar", u'\xbb'])
         # Match anything.
-        self.assertEqual(soup.findAll(text=True),
+        self.assertEqual(soup.find_all(text=True),
                          [u"Foo", u"bar", u'\xbb'])
 
     def test_find_all_limit(self):
-        """You can limit the number of items returned by findAll."""
+        """You can limit the number of items returned by find_all."""
         soup = self.soup("<a>1</a><a>2</a><a>3</a><a>4</a><a>5</a>")
-        self.assertSelects(soup.findAll('a', limit=3), ["1", "2", "3"])
-        self.assertSelects(soup.findAll('a', limit=1), ["1"])
+        self.assertSelects(soup.find_all('a', limit=3), ["1", "2", "3"])
+        self.assertSelects(soup.find_all('a', limit=1), ["1"])
         self.assertSelects(
-            soup.findAll('a', limit=10), ["1", "2", "3", "4", "5"])
+            soup.find_all('a', limit=10), ["1", "2", "3", "4", "5"])
 
         # A limit of 0 means no limit.
         self.assertSelects(
-            soup.findAll('a', limit=0), ["1", "2", "3", "4", "5"])
+            soup.find_all('a', limit=0), ["1", "2", "3", "4", "5"])
 
 class TestFindAllByName(TreeTest):
     """Test ways of finding tags by tag name."""
@@ -95,33 +95,33 @@ class TestFindAllByName(TreeTest):
     def test_find_all_by_tag_name(self):
         # Find all the <a> tags.
         self.assertSelects(
-            self.tree.findAll('a'), ['First tag.', 'Nested tag.'])
+            self.tree.find_all('a'), ['First tag.', 'Nested tag.'])
 
     def test_find_all_on_non_root_element(self):
         # You can call find_all on any node, not just the root.
-        self.assertSelects(self.tree.c.findAll('a'), ['Nested tag.'])
+        self.assertSelects(self.tree.c.find_all('a'), ['Nested tag.'])
 
     def test_calling_element_invokes_find_all(self):
         self.assertSelects(self.tree('a'), ['First tag.', 'Nested tag.'])
 
     def test_find_all_by_tag_strainer(self):
         self.assertSelects(
-            self.tree.findAll(SoupStrainer('a')),
+            self.tree.find_all(SoupStrainer('a')),
             ['First tag.', 'Nested tag.'])
 
     def test_find_all_by_tag_names(self):
         self.assertSelects(
-            self.tree.findAll(['a', 'b']),
+            self.tree.find_all(['a', 'b']),
             ['First tag.', 'Second tag.', 'Nested tag.'])
 
     def test_find_all_by_tag_dict(self):
         self.assertSelects(
-            self.tree.findAll({'a' : True, 'b' : True}),
+            self.tree.find_all({'a' : True, 'b' : True}),
             ['First tag.', 'Second tag.', 'Nested tag.'])
 
     def test_find_all_by_tag_re(self):
         self.assertSelects(
-            self.tree.findAll(re.compile('^[ab]$')),
+            self.tree.find_all(re.compile('^[ab]$')),
             ['First tag.', 'Second tag.', 'Nested tag.'])
 
     def test_find_all_with_tags_matching_method(self):
@@ -135,26 +135,26 @@ class TestFindAllByName(TreeTest):
                             <b id="b">Match 2.</a>""")
 
         self.assertSelects(
-            tree.findAll(id_matches_name), ["Match 1.", "Match 2."])
+            tree.find_all(id_matches_name), ["Match 1.", "Match 2."])
 
 
 class TestFindAllByAttribute(TreeTest):
 
     def test_find_all_by_attribute_name(self):
-        # You can pass in keyword arguments to findAll to search by
+        # You can pass in keyword arguments to find_all to search by
         # attribute.
         tree = self.soup("""
                          <a id="first">Matching a.</a>
                          <a id="second">
                           Non-matching <b id="first">Matching b.</b>a.
                          </a>""")
-        self.assertSelects(tree.findAll(id='first'),
+        self.assertSelects(tree.find_all(id='first'),
                            ["Matching a.", "Matching b."])
 
     def test_find_all_by_attribute_dict(self):
         # You can pass in a dictionary as the argument 'attrs'. This
         # lets you search for attributes like 'name' (a fixed argument
-        # to findAll) and 'class' (a reserved word in Python.)
+        # to find_all) and 'class' (a reserved word in Python.)
         tree = self.soup("""
                          <a name="name1" class="class1">Name match.</a>
                          <a name="name2" class="class2">Class match.</a>
@@ -163,14 +163,14 @@ class TestFindAllByAttribute(TreeTest):
                          """)
 
         # This doesn't do what you want.
-        self.assertSelects(tree.findAll(name='name1'),
+        self.assertSelects(tree.find_all(name='name1'),
                            ["A tag called 'name1'."])
         # This does what you want.
-        self.assertSelects(tree.findAll(attrs={'name' : 'name1'}),
+        self.assertSelects(tree.find_all(attrs={'name' : 'name1'}),
                            ["Name match."])
 
         # Passing class='class2' would cause a syntax error.
-        self.assertSelects(tree.findAll(attrs={'class' : 'class2'}),
+        self.assertSelects(tree.find_all(attrs={'class' : 'class2'}),
                            ["Class match."])
 
     def test_find_all_by_class(self):
@@ -180,8 +180,8 @@ class TestFindAllByAttribute(TreeTest):
                          <a class="2">Class 2.</a>
                          <b class="1">Class 1.</a>
                          """)
-        self.assertSelects(tree.findAll('a', '1'), ['Class 1.'])
-        self.assertSelects(tree.findAll(attrs='1'), ['Class 1.', 'Class 1.'])
+        self.assertSelects(tree.find_all('a', '1'), ['Class 1.'])
+        self.assertSelects(tree.find_all(attrs='1'), ['Class 1.', 'Class 1.'])
 
     def test_find_all_by_attribute_soupstrainer(self):
         tree = self.soup("""
@@ -189,24 +189,24 @@ class TestFindAllByAttribute(TreeTest):
                          <a id="second">Non-match.</a>""")
 
         strainer = SoupStrainer(attrs={'id' : 'first'})
-        self.assertSelects(tree.findAll(strainer), ['Match.'])
+        self.assertSelects(tree.find_all(strainer), ['Match.'])
 
     def test_find_all_with_missing_atribute(self):
-        # You can pass in None as the value of an attribute to findAll.
+        # You can pass in None as the value of an attribute to find_all.
         # This will match tags that do not have that attribute set.
         tree = self.soup("""<a id="1">ID present.</a>
                             <a>No ID present.</a>
                             <a id="">ID is empty.</a>""")
-        self.assertSelects(tree.findAll('a', id=None), ["No ID present."])
+        self.assertSelects(tree.find_all('a', id=None), ["No ID present."])
 
     def test_find_all_with_defined_attribute(self):
-        # You can pass in None as the value of an attribute to findAll.
+        # You can pass in None as the value of an attribute to find_all.
         # This will match tags that have that attribute set to any value.
         tree = self.soup("""<a id="1">ID present.</a>
                             <a>No ID present.</a>
                             <a id="">ID is empty.</a>""")
         self.assertSelects(
-            tree.findAll(id=True), ["ID present.", "ID is empty."])
+            tree.find_all(id=True), ["ID present.", "ID is empty."])
 
     def test_find_all_with_numeric_attribute(self):
         # If you search for a number, it's treated as a string.
@@ -214,8 +214,8 @@ class TestFindAllByAttribute(TreeTest):
                             <a id="1">Quoted attribute.</a>""")
 
         expected = ["Unquoted attribute.", "Quoted attribute."]
-        self.assertSelects(tree.findAll(id=1), expected)
-        self.assertSelects(tree.findAll(id="1"), expected)
+        self.assertSelects(tree.find_all(id=1), expected)
+        self.assertSelects(tree.find_all(id="1"), expected)
 
     def test_find_all_with_list_attribute_values(self):
         # You can pass a list of attribute values instead of just one,
@@ -224,7 +224,7 @@ class TestFindAllByAttribute(TreeTest):
                             <a id="2">2</a>
                             <a id="3">3</a>
                             <a>No ID.</a>""")
-        self.assertSelects(tree.findAll(id=["1", "3", "4"]),
+        self.assertSelects(tree.find_all(id=["1", "3", "4"]),
                            ["1", "3"])
 
     def test_find_all_with_regular_expression_attribute_value(self):
@@ -237,7 +237,7 @@ class TestFindAllByAttribute(TreeTest):
                             <a id="b">One b.</a>
                             <a>No ID.</a>""")
 
-        self.assertSelects(tree.findAll(id=re.compile("^a+$")),
+        self.assertSelects(tree.find_all(id=re.compile("^a+$")),
                            ["One a.", "Two as."])
 
 
@@ -270,12 +270,12 @@ class TestParentOperations(TreeTest):
 
     def test_find_parents(self):
         self.assertSelectsIDs(
-            self.start.findParents('ul'), ['bottom', 'middle', 'top'])
+            self.start.find_parents('ul'), ['bottom', 'middle', 'top'])
         self.assertSelectsIDs(
-            self.start.findParents('ul', id="middle"), ['middle'])
+            self.start.find_parents('ul', id="middle"), ['middle'])
 
     def test_find_parent(self):
-        self.assertEquals(self.start.findParent('ul')['id'], 'bottom')
+        self.assertEquals(self.start.find_parent('ul')['id'], 'bottom')
 
     def test_parent_of_text_element(self):
         text = self.tree.find(text="Start here")
@@ -283,10 +283,10 @@ class TestParentOperations(TreeTest):
 
     def test_text_element_find_parent(self):
         text = self.tree.find(text="Start here")
-        self.assertEquals(text.findParent('ul')['id'], 'bottom')
+        self.assertEquals(text.find_parent('ul')['id'], 'bottom')
 
     def test_parent_generator(self):
-        parents = [parent['id'] for parent in self.start.parentGenerator()
+        parents = [parent['id'] for parent in self.start.parents
                    if parent is not None and parent.has_key('id')]
         self.assertEquals(parents, ['bottom', 'middle', 'top'])
 
@@ -318,21 +318,21 @@ class TestNextOperations(ProximityTest):
         self.assertEquals(self.tree.next, None)
 
     def test_find_all_next(self):
-        self.assertSelects(self.start.findAllNext('b'), ["Two", "Three"])
-        self.assertSelects(self.start.findAllNext(id=3), ["Three"])
+        self.assertSelects(self.start.find_all_next('b'), ["Two", "Three"])
+        self.assertSelects(self.start.find_all_next(id=3), ["Three"])
 
     def test_find_next(self):
-        self.assertEquals(self.start.findNext('b')['id'], '2')
-        self.assertEquals(self.start.findNext(text="Three"), "Three")
+        self.assertEquals(self.start.find_next('b')['id'], '2')
+        self.assertEquals(self.start.find_next(text="Three"), "Three")
 
     def test_find_next_for_text_element(self):
         text = self.tree.find(text="One")
-        self.assertEquals(text.findNext("b").string, "Two")
-        self.assertSelects(text.findAllNext("b"), ["Two", "Three"])
+        self.assertEquals(text.find_next("b").string, "Two")
+        self.assertSelects(text.find_all_next("b"), ["Two", "Three"])
 
     def test_next_generator(self):
         start = self.tree.find(text="Two")
-        successors = [node for node in start.nextGenerator()]
+        successors = [node for node in start.next_elements]
         # There are two successors: the final <b> tag and its text contents.
         # Then we go off the end.
         tag, contents, none = successors
@@ -340,7 +340,7 @@ class TestNextOperations(ProximityTest):
         self.assertEquals(contents, "Three")
         self.assertEquals(none, None)
 
-        # XXX Should nextGenerator really return None? Seems like it
+        # XXX Should next_elements really return None? Seems like it
         # should just stop.
 
 
@@ -369,22 +369,22 @@ class TestPreviousOperations(ProximityTest):
         # of the "Three" node itself, which is why "Three" shows up
         # here.
         self.assertSelects(
-            self.end.findAllPrevious('b'), ["Three", "Two", "One"])
-        self.assertSelects(self.end.findAllPrevious(id=1), ["One"])
+            self.end.find_all_previous('b'), ["Three", "Two", "One"])
+        self.assertSelects(self.end.find_all_previous(id=1), ["One"])
 
     def test_find_previous(self):
-        self.assertEquals(self.end.findPrevious('b')['id'], '3')
-        self.assertEquals(self.end.findPrevious(text="One"), "One")
+        self.assertEquals(self.end.find_previous('b')['id'], '3')
+        self.assertEquals(self.end.find_previous(text="One"), "One")
 
     def test_find_previous_for_text_element(self):
         text = self.tree.find(text="Three")
-        self.assertEquals(text.findPrevious("b").string, "Three")
+        self.assertEquals(text.find_previous("b").string, "Three")
         self.assertSelects(
-            text.findAllPrevious("b"), ["Three", "Two", "One"])
+            text.find_all_previous("b"), ["Three", "Two", "One"])
 
     def test_previous_generator(self):
         start = self.tree.find(text="One")
-        predecessors = [node for node in start.previousGenerator()]
+        predecessors = [node for node in start.previous_elements]
 
         # There are four predecessors: the <b> tag containing "One"
         # the <body> tag, the <head> tag, and the <html> tag. Then we
@@ -447,13 +447,13 @@ class TestNextSibling(SiblingTest):
         self.assertEquals(last_span.nextSibling, None)
 
     def test_find_next_sibling(self):
-        self.assertEquals(self.start.findNextSibling('span')['id'], '2')
+        self.assertEquals(self.start.find_next_sibling('span')['id'], '2')
 
     def test_next_siblings(self):
-        self.assertSelectsIDs(self.start.findNextSiblings("span"),
+        self.assertSelectsIDs(self.start.find_next_siblings("span"),
                               ['2', '3', '4'])
 
-        self.assertSelectsIDs(self.start.findNextSiblings(id='3'), ['3'])
+        self.assertSelectsIDs(self.start.find_next_siblings(id='3'), ['3'])
 
     def test_next_sibling_for_text_element(self):
         soup = self.soup("Foo<b>bar</b>baz")
@@ -461,9 +461,9 @@ class TestNextSibling(SiblingTest):
         self.assertEquals(start.nextSibling.name, 'b')
         self.assertEquals(start.nextSibling.nextSibling, 'baz')
 
-        self.assertSelects(start.findNextSiblings('b'), ['bar'])
-        self.assertEquals(start.findNextSibling(text="baz"), "baz")
-        self.assertEquals(start.findNextSibling(text="nonesuch"), None)
+        self.assertSelects(start.find_next_siblings('b'), ['bar'])
+        self.assertEquals(start.find_next_sibling(text="baz"), "baz")
+        self.assertEquals(start.find_next_sibling(text="nonesuch"), None)
 
 
 class TestPreviousSibling(SiblingTest):
@@ -492,13 +492,13 @@ class TestPreviousSibling(SiblingTest):
         self.assertEquals(first_span.previousSibling, None)
 
     def test_find_previous_sibling(self):
-        self.assertEquals(self.end.findPreviousSibling('span')['id'], '3')
+        self.assertEquals(self.end.find_previous_sibling('span')['id'], '3')
 
     def test_previous_siblings(self):
-        self.assertSelectsIDs(self.end.findPreviousSiblings("span"),
+        self.assertSelectsIDs(self.end.find_previous_siblings("span"),
                               ['3', '2', '1'])
 
-        self.assertSelectsIDs(self.end.findPreviousSiblings(id='1'), ['1'])
+        self.assertSelectsIDs(self.end.find_previous_siblings(id='1'), ['1'])
 
     def test_previous_sibling_for_text_element(self):
         soup = self.soup("Foo<b>bar</b>baz")
@@ -506,9 +506,9 @@ class TestPreviousSibling(SiblingTest):
         self.assertEquals(start.previousSibling.name, 'b')
         self.assertEquals(start.previousSibling.previousSibling, 'Foo')
 
-        self.assertSelects(start.findPreviousSiblings('b'), ['bar'])
-        self.assertEquals(start.findPreviousSibling(text="Foo"), "Foo")
-        self.assertEquals(start.findPreviousSibling(text="nonesuch"), None)
+        self.assertSelects(start.find_previous_siblings('b'), ['bar'])
+        self.assertEquals(start.find_previous_sibling(text="Foo"), "Foo")
+        self.assertEquals(start.find_previous_sibling(text="nonesuch"), None)
 
 
 class TestTreeModification(SoupTest):
@@ -623,7 +623,7 @@ class TestTreeModification(SoupTest):
     def test_replace_with(self):
         soup = self.soup(
                 "<p>There's <b>no</b> business like <b>show</b> business</p>")
-        no, show = soup.findAll('b')
+        no, show = soup.find_all('b')
         show.replaceWith(no)
         self.assertEquals(
             soup.decode(),

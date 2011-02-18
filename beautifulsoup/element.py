@@ -161,77 +161,88 @@ class PageElement:
         """Appends the given tag to the contents of this tag."""
         self.insert(len(self.contents), tag)
 
-    def findNext(self, name=None, attrs={}, text=None, **kwargs):
+    def find_next(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the first item that matches the given criteria and
         appears after this Tag in the document."""
-        return self._findOne(self.findAllNext, name, attrs, text, **kwargs)
+        return self._findOne(self.find_all_next, name, attrs, text, **kwargs)
+    findNext = find_next # BS3
 
-    def findAllNext(self, name=None, attrs={}, text=None, limit=None,
+    def find_all_next(self, name=None, attrs={}, text=None, limit=None,
                     **kwargs):
         """Returns all items that match the given criteria and appear
         after this Tag in the document."""
-        return self._findAll(name, attrs, text, limit, self.nextGenerator,
+        return self._find_all(name, attrs, text, limit, self.next_elements,
                              **kwargs)
+    findAllNext = find_all_next # BS3
 
-    def findNextSibling(self, name=None, attrs={}, text=None, **kwargs):
+    def find_next_sibling(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the closest sibling to this Tag that matches the
         given criteria and appears after this Tag in the document."""
-        return self._findOne(self.findNextSiblings, name, attrs, text,
+        return self._findOne(self.find_next_siblings, name, attrs, text,
                              **kwargs)
+    findNextSibling = find_next_sibling # BS3
 
-    def findNextSiblings(self, name=None, attrs={}, text=None, limit=None,
-                         **kwargs):
+    def find_next_siblings(self, name=None, attrs={}, text=None, limit=None,
+                           **kwargs):
         """Returns the siblings of this Tag that match the given
         criteria and appear after this Tag in the document."""
-        return self._findAll(name, attrs, text, limit,
-                             self.nextSiblingGenerator, **kwargs)
-    fetchNextSiblings = findNextSiblings # Compatibility with pre-3.x
+        return self._find_all(name, attrs, text, limit,
+                              self.next_siblings, **kwargs)
+    findNextSiblings = find_next_siblings  # BS3
+    fetchNextSiblings = find_next_siblings # BS2
 
-    def findPrevious(self, name=None, attrs={}, text=None, **kwargs):
+    def find_previous(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the first item that matches the given criteria and
         appears before this Tag in the document."""
-        return self._findOne(self.findAllPrevious, name, attrs, text, **kwargs)
+        return self._findOne(
+            self.find_all_previous, name, attrs, text, **kwargs)
+    findPrevious = find_previous # BS3
 
-    def findAllPrevious(self, name=None, attrs={}, text=None, limit=None,
+    def find_all_previous(self, name=None, attrs={}, text=None, limit=None,
                         **kwargs):
         """Returns all items that match the given criteria and appear
         before this Tag in the document."""
-        return self._findAll(name, attrs, text, limit, self.previousGenerator,
+        return self._find_all(name, attrs, text, limit, self.previous_elements,
                            **kwargs)
-    fetchPrevious = findAllPrevious # Compatibility with pre-3.x
+    findAllPrevious = find_all_previous # BS3
+    fetchPrevious = find_all_previous   # BS2
 
-    def findPreviousSibling(self, name=None, attrs={}, text=None, **kwargs):
+    def find_previous_sibling(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the closest sibling to this Tag that matches the
         given criteria and appears before this Tag in the document."""
-        return self._findOne(self.findPreviousSiblings, name, attrs, text,
+        return self._findOne(self.find_previous_siblings, name, attrs, text,
                              **kwargs)
+    findPreviousSibling = find_previous_sibling # BS3
 
-    def findPreviousSiblings(self, name=None, attrs={}, text=None,
-                             limit=None, **kwargs):
+    def find_previous_siblings(self, name=None, attrs={}, text=None,
+                               limit=None, **kwargs):
         """Returns the siblings of this Tag that match the given
         criteria and appear before this Tag in the document."""
-        return self._findAll(name, attrs, text, limit,
-                             self.previousSiblingGenerator, **kwargs)
-    fetchPreviousSiblings = findPreviousSiblings # Compatibility with pre-3.x
+        return self._find_all(name, attrs, text, limit,
+                              self.previous_siblings, **kwargs)
+    findPreviousSiblings = find_previous_siblings  # BS3
+    fetchPreviousSiblings = find_previous_siblings # BS2
 
-    def findParent(self, name=None, attrs={}, **kwargs):
+    def find_parent(self, name=None, attrs={}, **kwargs):
         """Returns the closest parent of this Tag that matches the given
         criteria."""
         # NOTE: We can't use _findOne because findParents takes a different
         # set of arguments.
         r = None
-        l = self.findParents(name, attrs, 1)
+        l = self.find_parents(name, attrs, 1)
         if l:
             r = l[0]
         return r
+    findParent = find_parent # BS3
 
-    def findParents(self, name=None, attrs={}, limit=None, **kwargs):
+    def find_parents(self, name=None, attrs={}, limit=None, **kwargs):
         """Returns the parents of this Tag that match the given
         criteria."""
 
-        return self._findAll(name, attrs, None, limit, self.parentGenerator,
+        return self._find_all(name, attrs, None, limit, self.parents,
                              **kwargs)
-    fetchParents = findParents # Compatibility with pre-3.x
+    findParents = find_parents  # BS3
+    fetchParents = find_parents # BS2
 
     #These methods do the real heavy lifting.
 
@@ -242,7 +253,7 @@ class PageElement:
             r = l[0]
         return r
 
-    def _findAll(self, name, attrs, text, limit, generator, **kwargs):
+    def _find_all(self, name, attrs, text, limit, generator, **kwargs):
         "Iterates over a generator looking for things that match."
 
         if isinstance(name, SoupStrainer):
@@ -251,10 +262,9 @@ class PageElement:
             # Build a SoupStrainer
             strainer = SoupStrainer(name, attrs, text, **kwargs)
         results = ResultSet(strainer)
-        g = generator()
         while True:
             try:
-                i = g.next()
+                i = generator.next()
             except StopIteration:
                 break
             if i:
@@ -265,37 +275,59 @@ class PageElement:
                         break
         return results
 
-    #These Generators can be used to navigate starting from both
+    #These generators can be used to navigate starting from both
     #NavigableStrings and Tags.
-    def nextGenerator(self):
+    @property
+    def next_elements(self):
         i = self
         while i:
             i = i.next
             yield i
 
-    def nextSiblingGenerator(self):
+    @property
+    def next_siblings(self):
         i = self
         while i:
             i = i.nextSibling
             yield i
 
-    def previousGenerator(self):
+    @property
+    def previous_elements(self):
         i = self
         while i:
             i = i.previous
             yield i
 
-    def previousSiblingGenerator(self):
+    @property
+    def previous_siblings(self):
         i = self
         while i:
             i = i.previousSibling
             yield i
 
-    def parentGenerator(self):
+    @property
+    def parents(self):
         i = self
         while i:
             i = i.parent
             yield i
+
+    # Old non-property versions of the generators, for backwards
+    # compatibility with BS3.
+    def nextGenerator(self):
+        return self.next_elements
+
+    def nextSiblingGenerator(self):
+        return self.next_siblings
+
+    def previousGenerator(self):
+        return self.previous_elements
+
+    def previousSiblingGenerator(self):
+        return self.previous_siblings
+
+    def parentGenerator(self):
+        return self.parents
 
     # Utility methods
     def substituteEncoding(self, str, encoding=None):
@@ -389,37 +421,12 @@ class Tag(PageElement, Entities):
 
     """Represents a found HTML tag with its attributes and contents."""
 
-    def _convertEntities(self, builder, match):
-        """Used in a call to re.sub to replace HTML, XML, and numeric
-        entities with the appropriate Unicode characters. If HTML
-        entities are being converted, any unrecognized entities are
-        escaped."""
-        x = match.group(1)
-        if builder.convert_html_entities and x in name2codepoint:
-            return unichr(name2codepoint[x])
-        elif x in self.XML_ENTITIES_TO_SPECIAL_CHARS:
-            if builder.convert_xml_entities:
-                return self.XML_ENTITIES_TO_SPECIAL_CHARS[x]
-            else:
-                return u'&%s;' % x
-        elif len(x) > 0 and x[0] == '#':
-            # Handle numeric entities
-            if len(x) > 1 and x[1] == 'x':
-                return unichr(int(x[2:], 16))
-            else:
-                return unichr(int(x[1:]))
-
-        elif self.escapeUnrecognizedEntities:
-            return u'&amp;%s;' % x
-        else:
-            return u'&%s;' % x
-
     def __init__(self, parser, builder, name, attrs=None, parent=None,
                  previous=None):
         "Basic constructor."
 
         # We don't actually store the parser object: that lets extracted
-        # chunks be garbage-collected
+        # chunks be garbage-collected.
         self.parserClass = parser.__class__
         self.name = name
         self.isSelfClosing = builder.isSelfClosingTag(name)
@@ -432,19 +439,11 @@ class Tag(PageElement, Entities):
         self.setup(parent, previous)
         self.hidden = False
         self.containsSubstitutions = False
-        self.escapeUnrecognizedEntities = parser.escapeUnrecognizedEntities
 
-        # Convert any HTML, XML, or numeric entities in the attribute values.
-        convert_one = lambda x: self._convertEntities(parser.builder, x)
-        def convert(kval):
-            k, val = kval
-            if val is None:
-                return kval
-            return (k, re.sub("&(#\d+|#x[0-9a-fA-F]+|\w+);", convert_one, val))
         if isinstance(attrs, types.DictType):
-            self.attrs = [convert(kv) for kv in attrs.items()]
+            self.attrs = [kv for kv in attrs.items()]
         else:
-            self.attrs = map(convert, attrs)
+            self.attrs = list(attrs)
 
     @property
     def string(self):
@@ -519,9 +518,9 @@ class Tag(PageElement, Entities):
 
     def __call__(self, *args, **kwargs):
         """Calling a tag like a function is the same as calling its
-        findAll() method. Eg. tag('a') returns a list of all the A tags
+        find_all() method. Eg. tag('a') returns a list of all the A tags
         found within this tag."""
-        return apply(self.findAll, args, kwargs)
+        return apply(self.find_all, args, kwargs)
 
     def __getattr__(self, tag):
         #print "Getattr %s.%s" % (self.__class__, tag)
@@ -702,14 +701,14 @@ class Tag(PageElement, Entities):
         """Return only the first child of this Tag matching the given
         criteria."""
         r = None
-        l = self.findAll(name, attrs, recursive, text, 1, **kwargs)
+        l = self.find_all(name, attrs, recursive, text, 1, **kwargs)
         if l:
             r = l[0]
         return r
     findChild = find
 
-    def findAll(self, name=None, attrs={}, recursive=True, text=None,
-                limit=None, **kwargs):
+    def find_all(self, name=None, attrs={}, recursive=True, text=None,
+                 limit=None, **kwargs):
         """Extracts a list of Tag objects that match the given
         criteria.  You can specify the name of the Tag and any
         attributes you want the Tag to have.
@@ -719,11 +718,12 @@ class Tag(PageElement, Entities):
         callable that takes a string and returns whether or not the
         string matches for some custom definition of 'matches'. The
         same is true of the tag name."""
-        generator = self.recursiveChildGenerator
+        generator = self.recursive_children
         if not recursive:
-            generator = self.childGenerator
-        return self._findAll(name, attrs, text, limit, generator, **kwargs)
-    findChildren = findAll
+            generator = self.children
+        return self._find_all(name, attrs, text, limit, generator, **kwargs)
+    findAll = find_all      # BS3
+    findChildren = find_all # BS2
 
     #Private methods
 
@@ -737,12 +737,14 @@ class Tag(PageElement, Entities):
         return self.attrMap
 
     #Generator methods
-    def childGenerator(self):
+    @property
+    def children(self):
         for i in range(0, len(self.contents)):
             yield self.contents[i]
         raise StopIteration
 
-    def recursiveChildGenerator(self):
+    @property
+    def recursive_children(self):
         if not len(self.contents):
             raise StopIteration
         stopNode = self._lastRecursiveChild().next
@@ -750,6 +752,14 @@ class Tag(PageElement, Entities):
         while current is not stopNode:
             yield current
             current = current.next
+
+    # Old names for backwards compatibility
+    def childGenerator(self):
+        return self.children
+
+    def recursiveChildGenerator(self):
+        return self.recursive_children
+
 
 # Next, a couple classes to represent queries and their results.
 class SoupStrainer:

@@ -1,11 +1,62 @@
 = 4.0 =
 
+== Better method names ==
+
+Methods have been renamed to comply with PEP 8. The old names still
+work. Here are the renames:
+
+ * findAll -> find_all
+ * findAllNext -> find_all_next
+ * findAllPrevious -> find_all_previous
+ * findNext -> find_next
+ * findNextSibling -> find_next_sibling
+ * findNextSiblings -> find_next_siblings
+ * findParent -> find_parent
+ * findParents -> find_parents
+ * findPrevious -> find_previous
+ * findPreviousSibling -> find_previous_sibling
+ * findPreviousSiblings -> find_previous_siblings
+
+== Generators are now properties ==
+
+The generators have been given more sensible (and PEP 8-compliant)
+names, and turned into properties:
+
+ * childGenerator() -> children
+ * nextGenerator() -> next_elements
+ * nextSiblingGenerator() -> next_siblings
+ * previousGenerator() -> previous_elements
+ * previousSiblingGenerator() -> previous_siblings
+ * recursiveChildGenerator() -> recursive_children
+ * parentGenerator() -> parents
+
+So instead of this:
+
+ for parent in tag.parentGenerator():
+     ...
+
+You can write this:
+
+ for parent in tag.parents:
+     ...
+
+(But the old code will still work.)
+
+== tag.string is recursive ==
+
 tag.string now operates recursively. If tag A contains a single tag B
 and nothing else, then A.string is the same as B.string. So:
 
 <a><b>foo</b></a>
 
 The value of a.string used to be None, and now it's "foo".
+
+== Entities are always converted to Unicode ==
+
+An HTML or XML entity is always converted into the corresponding
+Unicode character. There are no longer any smartQuotesTo or
+convertEntities arguments. (Unicode Dammit still has smartQuotesTo,
+though that may change.)
 
 = 3.1.0 =
 
