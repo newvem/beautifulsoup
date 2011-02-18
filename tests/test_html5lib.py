@@ -3,6 +3,7 @@ from beautifulsoup.element import Comment
 from test_lxml import (
     TestLXMLBuilder,
     TestLXMLBuilderInvalidMarkup,
+    TestLXMLBuilderEncodingConversion,
     )
 
 class TestHTML5Builder(TestLXMLBuilder):
@@ -138,3 +139,11 @@ class TestHTML5BuilderInvalidMarkup(TestLXMLBuilderInvalidMarkup):
         utf8 = utf8.replace("\xe9", "\xc3\xa9")
 
         #print soup
+
+
+class TestHTML5LibEncodingConversion(TestLXMLBuilderEncodingConversion):
+    @property
+    def default_builder(self):
+        return HTML5TreeBuilder()
+
+    pass

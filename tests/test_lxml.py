@@ -383,10 +383,10 @@ class TestLXMLBuilderEncodingConversion(SoupTest):
 
     def setUp(self):
         super(TestLXMLBuilderEncodingConversion, self).setUp()
-        self.unicode_data = u"<html><body><foo>\xe9</foo></body></html>"
+        self.unicode_data = u"<html><head></head><body><foo>\xe9</foo></body></html>"
         self.utf8_data = self.unicode_data.encode("utf-8")
         self.assertEqual(
-            self.utf8_data, "<html><body><foo>\xc3\xa9</foo></body></html>")
+            self.utf8_data, "<html><head></head><body><foo>\xc3\xa9</foo></body></html>")
 
     def test_ascii_in_unicode_out(self):
         # ASCII input is converted to Unicode. The originalEncoding
