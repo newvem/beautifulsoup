@@ -18,6 +18,9 @@ class HTML5TreeBuilder(HTMLTreeBuilder):
         parser = html5lib.HTMLParser(tree=self.create_treebuilder)
         doc = parser.parse(markup)
 
+        # Set the character encoding detected by the tokenizer.
+        doc.originalEncoding = parser.tokenizer.stream.charEncoding[0]
+
     def create_treebuilder(self, namespaceHTMLElements):
         self.underlying_builder = TreeBuilderForHtml5lib(
             self.soup, namespaceHTMLElements)
