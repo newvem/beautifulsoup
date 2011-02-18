@@ -13,10 +13,10 @@ class TestLXMLBuilder(SoupTest):
 
     Subclass this to test some other tree builder. Subclasses of this
     test ensure that all of Beautiful Soup's tree builders generate
-    more or less the same trees. It's okay for trees to differ,
-    especially when given invalid markup--just override the
-    appropriate test method to demonstrate how one tree builder
-    differs from the LXML builder.
+    more or less the same trees. It's okay for trees to differ--just
+    override the appropriate test method to demonstrate how one tree
+    builder differs from the LXML builder. But in general, all tree
+    builders should generate trees that make most of these tests pass.
     """
 
     def test_bare_string(self):
