@@ -322,12 +322,12 @@ class TestNextOperations(ProximityTest):
         self.assertSelects(self.start.find_allNext(id=3), ["Three"])
 
     def test_find_next(self):
-        self.assertEquals(self.start.findNext('b')['id'], '2')
-        self.assertEquals(self.start.findNext(text="Three"), "Three")
+        self.assertEquals(self.start.find_next('b')['id'], '2')
+        self.assertEquals(self.start.find_next(text="Three"), "Three")
 
     def test_find_next_for_text_element(self):
         text = self.tree.find(text="One")
-        self.assertEquals(text.findNext("b").string, "Two")
+        self.assertEquals(text.find_next("b").string, "Two")
         self.assertSelects(text.find_allNext("b"), ["Two", "Three"])
 
     def test_next_generator(self):
@@ -447,13 +447,13 @@ class TestNextSibling(SiblingTest):
         self.assertEquals(last_span.nextSibling, None)
 
     def test_find_next_sibling(self):
-        self.assertEquals(self.start.findNextSibling('span')['id'], '2')
+        self.assertEquals(self.start.find_nextSibling('span')['id'], '2')
 
     def test_next_siblings(self):
-        self.assertSelectsIDs(self.start.findNextSiblings("span"),
+        self.assertSelectsIDs(self.start.find_nextSiblings("span"),
                               ['2', '3', '4'])
 
-        self.assertSelectsIDs(self.start.findNextSiblings(id='3'), ['3'])
+        self.assertSelectsIDs(self.start.find_nextSiblings(id='3'), ['3'])
 
     def test_next_sibling_for_text_element(self):
         soup = self.soup("Foo<b>bar</b>baz")
@@ -461,9 +461,9 @@ class TestNextSibling(SiblingTest):
         self.assertEquals(start.nextSibling.name, 'b')
         self.assertEquals(start.nextSibling.nextSibling, 'baz')
 
-        self.assertSelects(start.findNextSiblings('b'), ['bar'])
-        self.assertEquals(start.findNextSibling(text="baz"), "baz")
-        self.assertEquals(start.findNextSibling(text="nonesuch"), None)
+        self.assertSelects(start.find_nextSiblings('b'), ['bar'])
+        self.assertEquals(start.find_nextSibling(text="baz"), "baz")
+        self.assertEquals(start.find_nextSibling(text="nonesuch"), None)
 
 
 class TestPreviousSibling(SiblingTest):

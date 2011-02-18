@@ -6,6 +6,9 @@ Methods have been renamed to comply with PEP 8. The old names still
 work. Here are the renames:
 
  * findAll -> find_all
+ * findNext -> find_next
+
+== Generators are now properties ==
 
 The generators have been given more sensible names, and turned into
 properties:

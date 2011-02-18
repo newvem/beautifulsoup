@@ -161,10 +161,11 @@ class PageElement:
         """Appends the given tag to the contents of this tag."""
         self.insert(len(self.contents), tag)
 
-    def findNext(self, name=None, attrs={}, text=None, **kwargs):
+    def find_next(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the first item that matches the given criteria and
         appears after this Tag in the document."""
         return self._findOne(self.find_allNext, name, attrs, text, **kwargs)
+    findNext = find_next # Compatibility with BS3.
 
     def find_allNext(self, name=None, attrs={}, text=None, limit=None,
                     **kwargs):
@@ -173,19 +174,19 @@ class PageElement:
         return self._find_all(name, attrs, text, limit, self.next_elements,
                              **kwargs)
 
-    def findNextSibling(self, name=None, attrs={}, text=None, **kwargs):
+    def find_nextSibling(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the closest sibling to this Tag that matches the
         given criteria and appears after this Tag in the document."""
-        return self._findOne(self.findNextSiblings, name, attrs, text,
+        return self._findOne(self.find_nextSiblings, name, attrs, text,
                              **kwargs)
 
-    def findNextSiblings(self, name=None, attrs={}, text=None, limit=None,
+    def find_nextSiblings(self, name=None, attrs={}, text=None, limit=None,
                          **kwargs):
         """Returns the siblings of this Tag that match the given
         criteria and appear after this Tag in the document."""
         return self._find_all(name, attrs, text, limit,
                              self.next_siblings, **kwargs)
-    fetchNextSiblings = findNextSiblings # Compatibility with pre-3.x
+    fetchNextSiblings = find_nextSiblings # Compatibility with BS2
 
     def findPrevious(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the first item that matches the given criteria and
