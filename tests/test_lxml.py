@@ -292,7 +292,7 @@ class TestLXMLBuilder(SoupTest):
         parsed_meta = soup.find('meta', {'http-equiv': 'Content-type'})
         self.assertEquals(parsed_meta['content'],
                           'text/html; charset=%SOUP-ENCODING%')
-        self.assertEquals(parsed_meta.containsSubstitutions, True)
+        self.assertEquals(parsed_meta.contains_substitutions, True)
 
         # For the rest of the story, see TestSubstitutions in
         # test_tree.py.

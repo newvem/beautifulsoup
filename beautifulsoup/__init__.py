@@ -120,9 +120,6 @@ class BeautifulStoneSoup(Tag):
     """
     ROOT_TAG_NAME = u'[document]'
 
-    # Used to detect the charset in a META tag; see handleSpecialMetaTag
-    CHARSET_RE = re.compile("((^|;)\s*charset=)([^;]*)", re.M)
-
     # Used when determining whether a text node is all whitespace and
     # can be replaced with a single space. A text node that contains
     # fancy Unicode spaces (usually non-breaking) should be left
@@ -272,13 +269,8 @@ class BeautifulStoneSoup(Tag):
                  or not self.parseOnlyThese.searchTag(name, attrs))):
             return None
 
-        containsSubstitutions = False
-        if name == 'meta' and self.builder.assume_html:
-            containsSubstitutions = self.handleSpecialMetaTag(attrs)
-
         tag = Tag(self, self.builder, name, attrs, self.currentTag,
                   self.previous)
-        tag.containsSubstitutions = containsSubstitutions
         if self.previous:
             self.previous.next = tag
         self.previous = tag
@@ -292,60 +284,6 @@ class BeautifulStoneSoup(Tag):
 
     def handle_data(self, data):
         self.currentData.append(data)
-
-    def handleSpecialMetaTag(self, attrs):
-        """Beautiful Soup can detect a charset included in a META tag,
-        try to convert the document to that charset, and re-parse the
-        document from the beginning. Neither lxml nor html5lib does
-        this, so the feature is still here."""
-        httpEquiv = None
-        contentType = None
-        contentTypeIndex = None
-        tagNeedsEncodingSubstitution = False
-
-        if isinstance(attrs, dict):
-            httpEquiv = attrs.get('http-equiv')
-            contentType = attrs.get('content')
-        else:
-            # XXX do we need this?
-            for i in range(0, len(attrs)):
-                key, value = attrs[i]
-                key = key.lower()
-                if key == 'http-equiv':
-                    httpEquiv = value
-                elif key == 'content':
-                    contentType = value
-                    contentTypeIndex = i
-
-        if httpEquiv and contentType: # It's an interesting meta tag.
-            match = self.CHARSET_RE.search(contentType)
-            if match:
-                if (self.declaredHTMLEncoding is not None or
-                    self.originalEncoding == self.fromEncoding):
-                    # An HTML encoding was sniffed while converting
-                    # the document to Unicode, or an HTML encoding was
-                    # sniffed during a previous pass through the
-                    # document, or an encoding was specified
-                    # explicitly and it worked. Rewrite the meta tag.
-                    def rewrite(match):
-                        return match.group(1) + "%SOUP-ENCODING%"
-                    newAttr = self.CHARSET_RE.sub(rewrite, contentType)
-                    if isinstance(attrs, dict):
-                        attrs['content'] = newAttr
-                    else:
-                        attrs[contentTypeIndex] = (attrs[contentTypeIndex][0],
-                                                   newAttr)
-                    tagNeedsEncodingSubstitution = True
-                else:
-                    # This is our first pass through the document.
-                    # Go through it again with the encoding information.
-                    newCharset = match.group(3)
-                    if newCharset and newCharset != self.originalEncoding:
-                        self.declaredHTMLEncoding = newCharset
-                        self._feed(self.declaredHTMLEncoding)
-                        raise StopParsing
-                    pass
-        return tagNeedsEncodingSubstitution
 
 
 class BeautifulSoup(BeautifulStoneSoup):
