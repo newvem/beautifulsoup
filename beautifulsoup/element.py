@@ -192,15 +192,16 @@ class PageElement:
     def findPrevious(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the first item that matches the given criteria and
         appears before this Tag in the document."""
-        return self._findOne(self.find_allPrevious, name, attrs, text, **kwargs)
+        return self._findOne(self.find_all_previous, name, attrs, text, **kwargs)
 
-    def find_allPrevious(self, name=None, attrs={}, text=None, limit=None,
+    def find_all_previous(self, name=None, attrs={}, text=None, limit=None,
                         **kwargs):
         """Returns all items that match the given criteria and appear
         before this Tag in the document."""
         return self._find_all(name, attrs, text, limit, self.previous_elements,
                            **kwargs)
-    fetchPrevious = find_allPrevious # Compatibility with pre-3.x
+    findAllPrevious = find_all_previous # Compatibility with BS3
+    fetchPrevious = find_all_previous   # Compatibility with BS2
 
     def findPreviousSibling(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the closest sibling to this Tag that matches the

@@ -369,8 +369,8 @@ class TestPreviousOperations(ProximityTest):
         # of the "Three" node itself, which is why "Three" shows up
         # here.
         self.assertSelects(
-            self.end.find_allPrevious('b'), ["Three", "Two", "One"])
-        self.assertSelects(self.end.find_allPrevious(id=1), ["One"])
+            self.end.find_all_previous('b'), ["Three", "Two", "One"])
+        self.assertSelects(self.end.find_all_previous(id=1), ["One"])
 
     def test_find_previous(self):
         self.assertEquals(self.end.findPrevious('b')['id'], '3')
@@ -380,7 +380,7 @@ class TestPreviousOperations(ProximityTest):
         text = self.tree.find(text="Three")
         self.assertEquals(text.findPrevious("b").string, "Three")
         self.assertSelects(
-            text.find_allPrevious("b"), ["Three", "Two", "One"])
+            text.find_all_previous("b"), ["Three", "Two", "One"])
 
     def test_previous_generator(self):
         start = self.tree.find(text="One")

@@ -7,6 +7,8 @@ work. Here are the renames:
 
  * findAll -> find_all
  * findNext -> find_next
+ * findAllNext -> find_all_next
+ * findAllPrevious -> find_all_previous
 
 == Generators are now properties ==
 
