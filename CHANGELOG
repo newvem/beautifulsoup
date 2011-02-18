@@ -55,8 +55,8 @@ The value of a.string used to be None, and now it's "foo".
 
 An HTML or XML entity is always converted into the corresponding
 Unicode character. There are no longer any smartQuotesTo or
-convertEntities arguments. (Unicode Dammit still has smartQuotesTo,
-though that may change.)
+convert_entities arguments. (Unicode Dammit still has smart_quotes_to,
+but the default is now to turn smart quotes into Unicode.)
 
 = 3.1.0 =
 

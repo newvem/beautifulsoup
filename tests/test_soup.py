@@ -19,9 +19,15 @@ class TestSelectiveParsing(SoupTest):
 class TestUnicodeDammit(unittest.TestCase):
     """Standalone tests of Unicode, Dammit."""
 
-    def test_smart_quotes_to_xml_entities(self):
+    def test_smart_quotes_to_unicode(self):
         markup = "<foo>\x91\x92\x93\x94</foo>"
         dammit = UnicodeDammit(markup)
+        self.assertEquals(
+            dammit.unicode, u"<foo>\u2018\u2019\u201c\u201d</foo>")
+
+    def test_smart_quotes_to_xml_entities(self):
+        markup = "<foo>\x91\x92\x93\x94</foo>"
+        dammit = UnicodeDammit(markup, smart_quotes_to="xml")
         self.assertEquals(
             dammit.unicode, "<foo>&#x2018;&#x2019;&#x201C;&#x201D;</foo>")
 
