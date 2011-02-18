@@ -130,12 +130,19 @@ class Element(html5lib.treebuilders._base.Node):
         return AttrList(self.element)
 
     def setAttributes(self, attributes):
-        if attributes:
+        if attributes is not None and attributes != {}:
             for name, value in attributes.items():
                 self.element[name] =  value
-
+            # The attributes may contain variables that need substitution.
+            # Call set_up_substitutions manually.
+            # The Tag constructor calls this method automatically,
+            # but html5lib creates a Tag object before setting up
+            # the attributes.
+            self.element.contains_substitutions = (
+                self.soup.builder.set_up_substitutions(
+                    self.element))
     attributes = property(getAttributes, setAttributes)
-    
+
     def insertText(self, data, insertBefore=None):
         text = TextNode(NavigableString(data), self.soup)
         if insertBefore:
