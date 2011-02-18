@@ -817,6 +817,47 @@ class TestPersistence(SoupTest):
         self.assertEqual(loaded.decode(), soup.decode())
 
 
+class TestSubstitutions(SoupTest):
+
+    def test_encoding_substitution(self):
+        # Here's the <meta> tag saying that a document is
+        # encoded in Shift-JIS.
+        meta_tag = ('<meta content="text/html; charset=x-sjis" '
+                    'http-equiv="Content-type" />')
+        soup = self.soup(meta_tag)
+
+        # Parse the document, and the charset is replaced with a
+        # generic value.
+        self.assertEquals(soup.meta['content'],
+                          'text/html; charset=%SOUP-ENCODING%')
+
+        # Encode the document into some encoding, and the encoding is
+        # substituted into the meta tag.
+        utf_8 = soup.encode("utf-8")
+        self.assertTrue("charset=utf-8" in utf_8)
+
+        euc_jp = soup.encode("euc_jp")
+        self.assertTrue("charset=euc_jp" in euc_jp)
+
+        shift_jis = soup.encode("shift-jis")
+        self.assertTrue("charset=shift-jis" in shift_jis)
+
+        utf_16_u = soup.encode("utf-16").decode("utf-16")
+        self.assertTrue("charset=utf-16" in utf_16_u)
+
+    def test_encoding_substitution_doesnt_happen_if_tag_is_strained(self):
+        markup = ('<head><meta content="text/html; charset=x-sjis" '
+                    'http-equiv="Content-type" /></head><pre>foo</pre>')
+
+        # Beautiful Soup used to try to rewrite the meta tag even if the
+        # meta tag got filtered out by the strainer. This test makes
+        # sure that doesn't happen.
+        strainer = SoupStrainer('pre')
+        soup = BeautifulSoup(markup, parseOnlyThese=strainer)
+        self.assertEquals(soup.contents[0].name, 'pre')
+
+
+
 class TestEncoding(SoupTest):
     """Test the ability to encode objects into strings."""
 

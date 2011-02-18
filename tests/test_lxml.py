@@ -228,8 +228,74 @@ class TestLXMLBuilder(SoupTest):
         # Test a namespaced doctype with a public id.
         self._test_doctype('xsl:stylesheet PUBLIC "htmlent.dtd"')
 
+    def test_real_iso_latin_document(self):
+        # Smoke test of interrelated functionality, using an
+        # easy-to-understand document.
+
+        # Here it is in Unicode. Note that it claims to be in ISO-Latin-1.
+        unicode_html = u'<html><head><meta content="text/html; charset=ISO-Latin-1" http-equiv="Content-type" /></head><body><p>Sacr\N{LATIN SMALL LETTER E WITH ACUTE} bleu!</p></body></html>'
+
+        # That's because we're going to encode it into ISO-Latin-1, and use
+        # that to test.
+        iso_latin_html = unicode_html.encode("iso-8859-1")
+
+        # Parse the ISO-Latin-1 HTML.
+        soup = self.soup(iso_latin_html)
+        # Encode it to UTF-8.
+        result = soup.encode("utf-8")
+
+        # What do we expect the result to look like? Well, it would
+        # look like unicode_html, except that the META tag would say
+        # UTF-8 instead of ISO-Latin-1.
+        expected = unicode_html.replace("ISO-Latin-1", "utf-8")
+
+        # And, of course, it would be in UTF-8, not Unicode.
+        expected = expected.encode("utf-8")
+
+        # Ta-da!
+        self.assertEquals(result, expected)
+
+    def test_real_shift_jis_document(self):
+        # Smoke test to make sure the parser can handle a document in
+        # Shift-JIS encoding, without choking.
+        shift_jis_html = (
+            '<html><head></head><body><pre>'
+            '\x82\xb1\x82\xea\x82\xcdShift-JIS\x82\xc5\x83R\x81[\x83f'
+            '\x83B\x83\x93\x83O\x82\xb3\x82\xea\x82\xbd\x93\xfa\x96{\x8c'
+            '\xea\x82\xcc\x83t\x83@\x83C\x83\x8b\x82\xc5\x82\xb7\x81B'
+            '</pre></body></html>')
+        unicode_html = shift_jis_html.decode("shift-jis")
+        soup = self.soup(shift_jis_html)
+
+        # Make sure the parse tree is correctly encoded to various
+        # encodings.
+        self.assertEquals(soup.encode("utf-8"), unicode_html.encode("utf-8"))
+        self.assertEquals(soup.encode("euc_jp"), unicode_html.encode("euc_jp"))
+
     # Tests below this line need work.
 
+    def test_meta_tag_reflects_current_encoding(self):
+        # Here's the <meta> tag saying that a document is
+        # encoded in Shift-JIS.
+        meta_tag = ('<meta content="text/html; charset=x-sjis" '
+                    'http-equiv="Content-type" />')
+
+        # Here's a document incorporating that meta tag.
+        shift_jis_html = (
+            '<html><head>\n%s\n'
+            '<meta http-equiv="Content-language" content="ja" />'
+            '</head><body>Shift-JIS markup goes here.') % meta_tag
+        soup = self.soup(shift_jis_html)
+
+        # Parse the document, and the charset is replaced with a
+        # generic value.
+        parsed_meta = soup.find('meta', {'http-equiv': 'Content-type'})
+        self.assertEquals(parsed_meta['content'],
+                          'text/html; charset=%SOUP-ENCODING%')
+        self.assertEquals(parsed_meta.containsSubstitutions, True)
+
+        # For the rest of the story, see TestSubstitutions in
+        # test_tree.py.
 
     def test_entities_converted_on_the_way_out(self):
         text = "<p>&lt;&lt;sacr&eacute;&#32;bleu!&gt;&gt;</p>"
