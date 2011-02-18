@@ -686,7 +686,7 @@ class Tag(PageElement, Entities):
         callable that takes a string and returns whether or not the
         string matches for some custom definition of 'matches'. The
         same is true of the tag name."""
-        generator = self.recursiveChildGenerator
+        generator = self.recursive_children
         if not recursive:
             generator = self.childGenerator
         return self._find_all(name, attrs, text, limit, generator, **kwargs)
@@ -712,7 +712,7 @@ class Tag(PageElement, Entities):
             yield self.contents[i]
         raise StopIteration
 
-    def recursiveChildGenerator(self):
+    def recursive_children(self):
         if not len(self.contents):
             raise StopIteration
         stopNode = self._lastRecursiveChild().next
@@ -720,6 +720,9 @@ class Tag(PageElement, Entities):
         while current is not stopNode:
             yield current
             current = current.next
+    # Old name for backwards compatibility
+    recursiveChildGenerator = recursive_children
+
 
 # Next, a couple classes to represent queries and their results.
 class SoupStrainer:
