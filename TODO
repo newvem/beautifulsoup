@@ -21,21 +21,3 @@ as-yet-unreleased version of html5lib changes the parser's handling of
 CDATA sections to allow CDATA sections in tags like <svg> and
 <math>. The HTML5TreeBuilder will need to be updated to create CData
 objects instead of Comment objects in this situation.
-
-
-
----
-
-Tag names that contain Unicode characters crash the parser:
-    def testUnicodeTagNamesFAILS(self):
-	self.assertSoupEquals("<デダ芻デダtext>2PM</デダ芻デダtext>")
-
-Here's the implementation of NavigableString.__unicode__:
-
-    def __unicode__(self):
-        return unicode(str(self))
-
-It converts the Unicode to a string, and then back to Unicode. I can't
-find any other way of turning an element of a Unicode subclass into a
-normal Unicode object. This is pretty bad and a better technique is
-welcome.

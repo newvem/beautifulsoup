@@ -425,6 +425,10 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
         # The declaration is ignored altogether.
         self.assertEquals(soup.encode(), "<html><body><p>a</p></body></html>")
 
+    def test_tag_name_contains_unicode(self):
+        # Unicode characters in tag names are stripped.
+        tag_name = u"<our\N{SNOWMAN}>Joe</our\N{SNOWMAN}>"
+        self.assertSoupEquals("<our>Joe</our>")
 
 class TestLXMLBuilderEncodingConversion(SoupTest):
     # Test Beautiful Soup's ability to decode and encode from various
