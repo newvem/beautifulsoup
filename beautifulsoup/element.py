@@ -389,28 +389,6 @@ class Tag(PageElement, Entities):
 
     """Represents a found HTML tag with its attributes and contents."""
 
-    def _convertEntities(self, match):
-        """Used in a call to re.sub to replace HTML, XML, and numeric
-        entities with the appropriate Unicode characters. If HTML
-        entities are being converted, any unrecognized entities are
-        escaped."""
-        x = match.group(1)
-        if x in name2codepoint:
-            return unichr(name2codepoint[x])
-        elif x in self.XML_ENTITIES_TO_SPECIAL_CHARS:
-            return self.XML_ENTITIES_TO_SPECIAL_CHARS[x]
-        elif len(x) > 0 and x[0] == '#':
-            # Handle numeric entities
-            if len(x) > 1 and x[1] == 'x':
-                return unichr(int(x[2:], 16))
-            else:
-                return unichr(int(x[1:]))
-
-        elif self.escapeUnrecognizedEntities:
-            return u'&amp;%s;' % x
-        else:
-            return u'&%s;' % x
-
     def __init__(self, parser, builder, name, attrs=None, parent=None,
                  previous=None):
         "Basic constructor."
@@ -431,17 +409,10 @@ class Tag(PageElement, Entities):
         self.containsSubstitutions = False
         self.escapeUnrecognizedEntities = parser.escapeUnrecognizedEntities
 
-        # Convert any HTML, XML, or numeric entities in the attribute values.
-        convert_one = lambda x: self._convertEntities(x)
-        def convert(kval):
-            k, val = kval
-            if val is None:
-                return kval
-            return (k, re.sub("&(#\d+|#x[0-9a-fA-F]+|\w+);", convert_one, val))
         if isinstance(attrs, types.DictType):
-            self.attrs = [convert(kv) for kv in attrs.items()]
+            self.attrs = [kv for kv in attrs.items()]
         else:
-            self.attrs = map(convert, attrs)
+            self.attrs = list(attrs)
 
     @property
     def string(self):
