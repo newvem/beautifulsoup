@@ -144,37 +144,29 @@ class BeautifulStoneSoup(Tag):
         self.builder.soup = self
 
         self.parseOnlyThese = parseOnlyThese
-        self.fromEncoding = fromEncoding
 
         self.reset()
 
         if hasattr(markup, 'read'):        # It's a file-type object.
             markup = markup.read()
-        self.markup = markup
+        self.markup, self.originalEncoding, self.declaredHTMLEncoding = (
+            self.builder.prepare_markup(markup, fromEncoding))
+
         try:
-            self._feed(isHTML=self.builder.assume_html)
+            self._feed()
         except StopParsing:
             pass
-        self.markup = None                 # The markup can now be GCed.
-        self.builder.soup = None
-        self.builder = None                # So can the builder.
 
-    def _feed(self, inDocumentEncoding=None, isHTML=False):
+        # Clear out the markup and the builder so they can be CGed.
+        self.markup = None
+        self.builder.soup = None
+        self.builder = None
+
+    def _feed(self):
         # Convert the document to Unicode.
-        markup = self.markup
-        if isinstance(markup, unicode):
-            if not hasattr(self, 'originalEncoding'):
-                self.originalEncoding = None
-        else:
-            dammit = UnicodeDammit\
-                     (markup, [self.fromEncoding, inDocumentEncoding],
-                      isHTML=isHTML)
-            markup = dammit.unicode
-            self.originalEncoding = dammit.originalEncoding
-            self.declaredHTMLEncoding = dammit.declaredHTMLEncoding
         self.builder.reset()
 
-        self.builder.feed(markup)
+        self.builder.feed(self.markup)
         # Close out any unfinished strings and close all the open tags.
         self.endData()
         while self.currentTag.name != self.ROOT_TAG_NAME:

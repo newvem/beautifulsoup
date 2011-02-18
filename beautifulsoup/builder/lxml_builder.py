@@ -1,6 +1,7 @@
 from lxml import etree
 from beautifulsoup.element import Comment, Doctype
 from beautifulsoup.builder import HTMLTreeBuilder
+from beautifulsoup.dammit import UnicodeDammit
 
 class LXMLTreeBuilder(HTMLTreeBuilder):
 
@@ -10,6 +11,20 @@ class LXMLTreeBuilder(HTMLTreeBuilder):
         # passed through HTMLParser.
         self.parser = parser_class(target=self)
         self.soup = None
+
+    def prepare_markup(self, markup, user_specified_encoding=None,
+                       document_declared_encoding=None):
+        """
+        :return: A 3-tuple (markup, original encoding, encoding
+        declared within markup).
+        """
+        if isinstance(markup, unicode):
+            return markup, None, None
+
+        try_encodings = [user_specified_encoding, document_declared_encoding]
+        dammit = UnicodeDammit(markup, try_encodings, isHTML=True)
+        return dammit.markup, dammit.originalEncoding, dammit.declaredHTMLEncoding
+
 
     def feed(self, markup):
         self.parser.feed(markup)
