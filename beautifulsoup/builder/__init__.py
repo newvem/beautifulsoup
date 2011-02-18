@@ -25,6 +25,10 @@ class TreeBuilder(Entities):
     def feed(self, markup):
         raise NotImplementedError()
 
+    def prepare_markup(self, markup, user_specified_encoding=None,
+                       document_declared_encoding=None):
+        return markup, None, None
+
     def test_fragment_to_document(self, fragment):
         """Wrap an HTML fragment to make it look like a document.
 

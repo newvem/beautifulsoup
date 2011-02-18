@@ -13,10 +13,23 @@ from beautifulsoup.element import (
 class HTML5TreeBuilder(HTMLTreeBuilder):
     """Use html5lib to build a tree."""
 
+    def prepare_markup(self, markup, user_specified_encoding):
+        # Store the user-specified encoding for use later on.
+        self.user_specified_encoding = user_specified_encoding
+        return markup, None, None
+
     # These methods are defined by Beautiful Soup.
     def feed(self, markup):
         parser = html5lib.HTMLParser(tree=self.create_treebuilder)
-        doc = parser.parse(markup)
+        doc = parser.parse(markup, encoding=self.user_specified_encoding)
+
+        # Set the character encoding detected by the tokenizer.
+        if isinstance(markup, unicode):
+            # We need to special-case this because html5lib sets
+            # charEncoding to UTF-8 if it gets Unicode input.
+            doc.originalEncoding = None
+        else:
+            doc.originalEncoding = parser.tokenizer.stream.charEncoding[0]
 
     def create_treebuilder(self, namespaceHTMLElements):
         self.underlying_builder = TreeBuilderForHtml5lib(
