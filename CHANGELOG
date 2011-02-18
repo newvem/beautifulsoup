@@ -19,16 +19,16 @@ work. Here are the renames:
 
 == Generators are now properties ==
 
-The generators have been given more sensible names, and turned into
-properties:
+The generators have been given more sensible (and PEP 8-compliant)
+names, and turned into properties:
 
- * childGenerator -> children
- * nextGenerator -> next_elements
- * nextSiblingGenerator -> next_siblings
- * previousGenerator -> previous_elements
- * previousSiblingGenerator -> previous_siblings
- * recursiveChildGenerator -> recursive_children
- * parentGenerator -> parents
+ * childGenerator() -> children
+ * nextGenerator() -> next_elements
+ * nextSiblingGenerator() -> next_siblings
+ * previousGenerator() -> previous_elements
+ * previousSiblingGenerator() -> previous_siblings
+ * recursiveChildGenerator() -> recursive_children
+ * parentGenerator() -> parents
 
 So instead of this:
 

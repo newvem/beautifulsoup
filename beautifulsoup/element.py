@@ -722,10 +722,8 @@ class Tag(PageElement, Entities):
         if not recursive:
             generator = self.children
         return self._find_all(name, attrs, text, limit, generator, **kwargs)
-
-    # Old names for backwards compatibility.
-    find_all = find_all
-    findChildren = find_all
+    findAll = find_all      # BS3
+    findChildren = find_all # BS2
 
     #Private methods
 
