@@ -6,13 +6,11 @@ __all__ = [
     'TreeBuilder',
     ]
 
+
 class TreeBuilder(Entities):
     """Turn a document into a Beautiful Soup object tree."""
 
     assume_html = False
-    smart_quotes_to = Entities.XML_ENTITIES
-    convert_html_entities = False
-    convert_xml_entities = False
 
     def __init__(self):
         self.soup = None
@@ -93,7 +91,6 @@ class HTMLTreeBuilder(TreeBuilder):
     """
 
     assume_html = True
-    smart_quotes_to = Entities.HTML_ENTITIES
 
     preserve_whitespace_tags = set(['pre', 'textarea'])
     self_closing_tags = set(['br' , 'hr', 'input', 'img', 'meta',
