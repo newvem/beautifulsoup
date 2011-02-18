@@ -1,12 +1,34 @@
 = 4.0 =
 
-Methods have been renamed for comply with PEP 8. findAll is now
-find_all, and so on. Old names still work.
+== Better method names ==
+
+Methods have been renamed to comply with PEP 8. The old names still
+work. Here are the renames:
 
  * findAll -> find_all
- * childGenerator -> children
- * recursiveChildGenerator -> recursive_children
 
+The generators have been given more sensible names, and turned into
+properties:
+
+ * childGenerator -> children
+ * nextGenerator -> next_elements
+ * nextSiblingGenerator -> next_siblings
+ * previousGenerator -> previous_elements
+ * previousSiblingGenerator -> previous_siblings
+ * recursiveChildGenerator -> recursive_children
+ * parentGenerator -> parents
+
+So instead of this:
+
+ for parent in tag.parentGenerator():
+     ...
+
+You can write this:
+
+ for parent in tag.parents:
+     ...
+
+== tag.string is recursive ==
 
 tag.string now operates recursively. If tag A contains a single tag B
 and nothing else, then A.string is the same as B.string. So:

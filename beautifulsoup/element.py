@@ -170,7 +170,7 @@ class PageElement:
                     **kwargs):
         """Returns all items that match the given criteria and appear
         after this Tag in the document."""
-        return self._find_all(name, attrs, text, limit, self.nextGenerator,
+        return self._find_all(name, attrs, text, limit, self.next_elements,
                              **kwargs)
 
     def findNextSibling(self, name=None, attrs={}, text=None, **kwargs):
@@ -184,7 +184,7 @@ class PageElement:
         """Returns the siblings of this Tag that match the given
         criteria and appear after this Tag in the document."""
         return self._find_all(name, attrs, text, limit,
-                             self.nextSiblingGenerator, **kwargs)
+                             self.next_siblings, **kwargs)
     fetchNextSiblings = findNextSiblings # Compatibility with pre-3.x
 
     def findPrevious(self, name=None, attrs={}, text=None, **kwargs):
@@ -196,7 +196,7 @@ class PageElement:
                         **kwargs):
         """Returns all items that match the given criteria and appear
         before this Tag in the document."""
-        return self._find_all(name, attrs, text, limit, self.previousGenerator,
+        return self._find_all(name, attrs, text, limit, self.previous_elements,
                            **kwargs)
     fetchPrevious = find_allPrevious # Compatibility with pre-3.x
 
@@ -211,7 +211,7 @@ class PageElement:
         """Returns the siblings of this Tag that match the given
         criteria and appear before this Tag in the document."""
         return self._find_all(name, attrs, text, limit,
-                             self.previousSiblingGenerator, **kwargs)
+                             self.previous_siblings, **kwargs)
     fetchPreviousSiblings = findPreviousSiblings # Compatibility with pre-3.x
 
     def findParent(self, name=None, attrs={}, **kwargs):
@@ -229,7 +229,7 @@ class PageElement:
         """Returns the parents of this Tag that match the given
         criteria."""
 
-        return self._find_all(name, attrs, None, limit, self.parentGenerator,
+        return self._find_all(name, attrs, None, limit, self.parents,
                              **kwargs)
     fetchParents = findParents # Compatibility with pre-3.x
 
@@ -251,10 +251,9 @@ class PageElement:
             # Build a SoupStrainer
             strainer = SoupStrainer(name, attrs, text, **kwargs)
         results = ResultSet(strainer)
-        g = generator()
         while True:
             try:
-                i = g.next()
+                i = generator.next()
             except StopIteration:
                 break
             if i:
@@ -265,37 +264,59 @@ class PageElement:
                         break
         return results
 
-    #These Generators can be used to navigate starting from both
+    #These generators can be used to navigate starting from both
     #NavigableStrings and Tags.
-    def nextGenerator(self):
+    @property
+    def next_elements(self):
         i = self
         while i:
             i = i.next
             yield i
 
-    def nextSiblingGenerator(self):
+    @property
+    def next_siblings(self):
         i = self
         while i:
             i = i.nextSibling
             yield i
 
-    def previousGenerator(self):
+    @property
+    def previous_elements(self):
         i = self
         while i:
             i = i.previous
             yield i
 
-    def previousSiblingGenerator(self):
+    @property
+    def previous_siblings(self):
         i = self
         while i:
             i = i.previousSibling
             yield i
 
-    def parentGenerator(self):
+    @property
+    def parents(self):
         i = self
         while i:
             i = i.parent
             yield i
+
+    # Old non-property versions of the generators, for backwards
+    # compatibility.
+    def nextGenerator(self):
+        return self.next_elements
+
+    def nextSiblingGenerator(self):
+        return self.next_siblings
+
+    def previousGenerator(self):
+        return self.previous_elements
+
+    def previousSiblingGenerator(self):
+        return self.previous_siblings
+
+    def parentGenerator(self):
+        return self.parents
 
     # Utility methods
     def substituteEncoding(self, str, encoding=None):
@@ -712,6 +733,7 @@ class Tag(PageElement, Entities):
             yield self.contents[i]
         raise StopIteration
 
+    @property
     def recursive_children(self):
         if not len(self.contents):
             raise StopIteration
@@ -721,7 +743,8 @@ class Tag(PageElement, Entities):
             yield current
             current = current.next
     # Old name for backwards compatibility
-    recursiveChildGenerator = recursive_children
+    def recursiveChildGenerator(self):
+        return self.recursive_children
 
 
 # Next, a couple classes to represent queries and their results.
