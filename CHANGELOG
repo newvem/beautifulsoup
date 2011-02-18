@@ -28,6 +28,8 @@ You can write this:
  for parent in tag.parents:
      ...
 
+(But the old code will still work.)
+
 == tag.string is recursive ==
 
 tag.string now operates recursively. If tag A contains a single tag B

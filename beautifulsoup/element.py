@@ -709,7 +709,7 @@ class Tag(PageElement, Entities):
         same is true of the tag name."""
         generator = self.recursive_children
         if not recursive:
-            generator = self.childGenerator
+            generator = self.children
         return self._find_all(name, attrs, text, limit, generator, **kwargs)
 
     # Old names for backwards compatibility.
@@ -728,7 +728,8 @@ class Tag(PageElement, Entities):
         return self.attrMap
 
     #Generator methods
-    def childGenerator(self):
+    @property
+    def children(self):
         for i in range(0, len(self.contents)):
             yield self.contents[i]
         raise StopIteration
@@ -742,7 +743,11 @@ class Tag(PageElement, Entities):
         while current is not stopNode:
             yield current
             current = current.next
-    # Old name for backwards compatibility
+
+    # Old names for backwards compatibility
+    def childGenerator(self):
+        return self.children
+
     def recursiveChildGenerator(self):
         return self.recursive_children
 
