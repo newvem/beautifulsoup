@@ -3,23 +3,24 @@
 This class forces XML data into a standard format (usually to UTF-8 or
 Unicode).  It is heavily based on code from Mark Pilgrim's Universal
 Feed Parser. It does not rewrite the XML or HTML to reflect a new
-encoding; that's Beautiful Soup's job.
+encoding; that's the tree builder's job.
 """
 
 import codecs
 import re
 import types
 
-# Autodetects character encodings.
+# Autodetects character encodings. Very useful.
 # Download from http://chardet.feedparser.org/
+#  or 'apt-get install python-chardet'
+#  or 'easy_install chardet'
 try:
     import chardet
-#    import chardet.constants
-#    chardet.constants._debug = 1
+    #import chardet.constants
+    #chardet.constants._debug = 1
 except ImportError:
     chardet = None
 
-# cjkcodecs and iconv_codec make Python know about more character encodings.
 # Both are available from http://cjkpython.i18n.org/
 # They're built in if you use Python 2.4.
 try:
@@ -79,12 +80,13 @@ class UnicodeDammit:
         if not u:
             for proposed_encoding in ("utf-8", "windows-1252"):
                 u = self._convert_from(proposed_encoding)
-                if u: break
+                if u:
+                    break
 
         self.unicode = u
         if not u: self.original_encoding = None
 
-    def _subMSChar(self, match):
+    def _sub_ms_char(self, match):
         """Changes a MS smart quote character to an XML or HTML
         entity."""
         orig = match.group(1)
@@ -111,11 +113,11 @@ class UnicodeDammit:
             and proposed.lower() in self.ENCODINGS_WITH_SMART_QUOTES):
             smart_quotes_re = "([\x80-\x9f])"
             smart_quotes_compiled = re.compile(smart_quotes_re)
-            markup = smart_quotes_compiled.sub(self._subMSChar, markup)
+            markup = smart_quotes_compiled.sub(self._sub_ms_char, markup)
 
         try:
             # print "Trying to convert document to %s" % proposed
-            u = self._toUnicode(markup, proposed)
+            u = self._to_unicode(markup, proposed)
             self.markup = u
             self.original_encoding = proposed
         except Exception, e:
@@ -125,7 +127,7 @@ class UnicodeDammit:
         #print "Correct encoding: %s" % proposed
         return self.markup
 
-    def _toUnicode(self, data, encoding):
+    def _to_unicode(self, data, encoding):
         '''Given a string and its encoding, decodes the string into Unicode.
         %encoding is a string recognized by encodings.aliases'''
 
