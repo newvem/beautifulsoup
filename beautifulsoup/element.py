@@ -164,15 +164,16 @@ class PageElement:
     def find_next(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the first item that matches the given criteria and
         appears after this Tag in the document."""
-        return self._findOne(self.find_allNext, name, attrs, text, **kwargs)
+        return self._findOne(self.find_all_next, name, attrs, text, **kwargs)
     findNext = find_next # Compatibility with BS3.
 
-    def find_allNext(self, name=None, attrs={}, text=None, limit=None,
+    def find_all_next(self, name=None, attrs={}, text=None, limit=None,
                     **kwargs):
         """Returns all items that match the given criteria and appear
         after this Tag in the document."""
         return self._find_all(name, attrs, text, limit, self.next_elements,
                              **kwargs)
+    findAllNext = find_all_next # Compatibility with BS3.
 
     def find_nextSibling(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the closest sibling to this Tag that matches the

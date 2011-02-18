@@ -318,8 +318,8 @@ class TestNextOperations(ProximityTest):
         self.assertEquals(self.tree.next, None)
 
     def test_find_all_next(self):
-        self.assertSelects(self.start.find_allNext('b'), ["Two", "Three"])
-        self.assertSelects(self.start.find_allNext(id=3), ["Three"])
+        self.assertSelects(self.start.find_all_next('b'), ["Two", "Three"])
+        self.assertSelects(self.start.find_all_next(id=3), ["Three"])
 
     def test_find_next(self):
         self.assertEquals(self.start.find_next('b')['id'], '2')
@@ -328,7 +328,7 @@ class TestNextOperations(ProximityTest):
     def test_find_next_for_text_element(self):
         text = self.tree.find(text="One")
         self.assertEquals(text.find_next("b").string, "Two")
-        self.assertSelects(text.find_allNext("b"), ["Two", "Three"])
+        self.assertSelects(text.find_all_next("b"), ["Two", "Three"])
 
     def test_next_generator(self):
         start = self.tree.find(text="Two")
