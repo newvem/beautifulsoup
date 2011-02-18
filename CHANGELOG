@@ -1,5 +1,8 @@
 = 4.0 =
 
+Methods have been renamed for comply with PEP 8. findAll is now
+find_all, and so on. Old names still work.
+
 tag.string now operates recursively. If tag A contains a single tag B
 and nothing else, then A.string is the same as B.string. So:
 

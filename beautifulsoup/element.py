@@ -164,13 +164,13 @@ class PageElement:
     def findNext(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the first item that matches the given criteria and
         appears after this Tag in the document."""
-        return self._findOne(self.findAllNext, name, attrs, text, **kwargs)
+        return self._findOne(self.find_allNext, name, attrs, text, **kwargs)
 
-    def findAllNext(self, name=None, attrs={}, text=None, limit=None,
+    def find_allNext(self, name=None, attrs={}, text=None, limit=None,
                     **kwargs):
         """Returns all items that match the given criteria and appear
         after this Tag in the document."""
-        return self._findAll(name, attrs, text, limit, self.nextGenerator,
+        return self._find_all(name, attrs, text, limit, self.nextGenerator,
                              **kwargs)
 
     def findNextSibling(self, name=None, attrs={}, text=None, **kwargs):
@@ -183,22 +183,22 @@ class PageElement:
                          **kwargs):
         """Returns the siblings of this Tag that match the given
         criteria and appear after this Tag in the document."""
-        return self._findAll(name, attrs, text, limit,
+        return self._find_all(name, attrs, text, limit,
                              self.nextSiblingGenerator, **kwargs)
     fetchNextSiblings = findNextSiblings # Compatibility with pre-3.x
 
     def findPrevious(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the first item that matches the given criteria and
         appears before this Tag in the document."""
-        return self._findOne(self.findAllPrevious, name, attrs, text, **kwargs)
+        return self._findOne(self.find_allPrevious, name, attrs, text, **kwargs)
 
-    def findAllPrevious(self, name=None, attrs={}, text=None, limit=None,
+    def find_allPrevious(self, name=None, attrs={}, text=None, limit=None,
                         **kwargs):
         """Returns all items that match the given criteria and appear
         before this Tag in the document."""
-        return self._findAll(name, attrs, text, limit, self.previousGenerator,
+        return self._find_all(name, attrs, text, limit, self.previousGenerator,
                            **kwargs)
-    fetchPrevious = findAllPrevious # Compatibility with pre-3.x
+    fetchPrevious = find_allPrevious # Compatibility with pre-3.x
 
     def findPreviousSibling(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the closest sibling to this Tag that matches the
@@ -210,7 +210,7 @@ class PageElement:
                              limit=None, **kwargs):
         """Returns the siblings of this Tag that match the given
         criteria and appear before this Tag in the document."""
-        return self._findAll(name, attrs, text, limit,
+        return self._find_all(name, attrs, text, limit,
                              self.previousSiblingGenerator, **kwargs)
     fetchPreviousSiblings = findPreviousSiblings # Compatibility with pre-3.x
 
@@ -229,7 +229,7 @@ class PageElement:
         """Returns the parents of this Tag that match the given
         criteria."""
 
-        return self._findAll(name, attrs, None, limit, self.parentGenerator,
+        return self._find_all(name, attrs, None, limit, self.parentGenerator,
                              **kwargs)
     fetchParents = findParents # Compatibility with pre-3.x
 
@@ -242,7 +242,7 @@ class PageElement:
             r = l[0]
         return r
 
-    def _findAll(self, name, attrs, text, limit, generator, **kwargs):
+    def _find_all(self, name, attrs, text, limit, generator, **kwargs):
         "Iterates over a generator looking for things that match."
 
         if isinstance(name, SoupStrainer):
@@ -394,7 +394,7 @@ class Tag(PageElement, Entities):
         "Basic constructor."
 
         # We don't actually store the parser object: that lets extracted
-        # chunks be garbage-collected
+        # chunks be garbage-collected.
         self.parserClass = parser.__class__
         self.name = name
         self.isSelfClosing = builder.isSelfClosingTag(name)
@@ -407,7 +407,6 @@ class Tag(PageElement, Entities):
         self.setup(parent, previous)
         self.hidden = False
         self.containsSubstitutions = False
-        self.escapeUnrecognizedEntities = parser.escapeUnrecognizedEntities
 
         if isinstance(attrs, types.DictType):
             self.attrs = [kv for kv in attrs.items()]
@@ -487,9 +486,9 @@ class Tag(PageElement, Entities):
 
     def __call__(self, *args, **kwargs):
         """Calling a tag like a function is the same as calling its
-        findAll() method. Eg. tag('a') returns a list of all the A tags
+        find_all() method. Eg. tag('a') returns a list of all the A tags
         found within this tag."""
-        return apply(self.findAll, args, kwargs)
+        return apply(self.find_all, args, kwargs)
 
     def __getattr__(self, tag):
         #print "Getattr %s.%s" % (self.__class__, tag)
@@ -670,14 +669,14 @@ class Tag(PageElement, Entities):
         """Return only the first child of this Tag matching the given
         criteria."""
         r = None
-        l = self.findAll(name, attrs, recursive, text, 1, **kwargs)
+        l = self.find_all(name, attrs, recursive, text, 1, **kwargs)
         if l:
             r = l[0]
         return r
     findChild = find
 
-    def findAll(self, name=None, attrs={}, recursive=True, text=None,
-                limit=None, **kwargs):
+    def find_all(self, name=None, attrs={}, recursive=True, text=None,
+                 limit=None, **kwargs):
         """Extracts a list of Tag objects that match the given
         criteria.  You can specify the name of the Tag and any
         attributes you want the Tag to have.
@@ -690,8 +689,11 @@ class Tag(PageElement, Entities):
         generator = self.recursiveChildGenerator
         if not recursive:
             generator = self.childGenerator
-        return self._findAll(name, attrs, text, limit, generator, **kwargs)
-    findChildren = findAll
+        return self._find_all(name, attrs, text, limit, generator, **kwargs)
+
+    # Old names for backwards compatibility.
+    find_all = find_all
+    findChildren = find_all
 
     #Private methods
 
