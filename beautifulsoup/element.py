@@ -389,7 +389,7 @@ class Tag(PageElement, Entities):
 
     """Represents a found HTML tag with its attributes and contents."""
 
-    def _convertEntities(self, builder, match):
+    def _convertEntities(self, match):
         """Used in a call to re.sub to replace HTML, XML, and numeric
         entities with the appropriate Unicode characters. If HTML
         entities are being converted, any unrecognized entities are
@@ -432,7 +432,7 @@ class Tag(PageElement, Entities):
         self.escapeUnrecognizedEntities = parser.escapeUnrecognizedEntities
 
         # Convert any HTML, XML, or numeric entities in the attribute values.
-        convert_one = lambda x: self._convertEntities(parser.builder, x)
+        convert_one = lambda x: self._convertEntities(x)
         def convert(kval):
             k, val = kval
             if val is None:
