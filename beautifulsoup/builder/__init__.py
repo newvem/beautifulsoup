@@ -107,8 +107,6 @@ class HTMLTreeBuilder(TreeBuilder):
         if tag.name != 'meta':
             return False
 
-        httpEquiv = None
-        contentType = None
         http_equiv = tag.get('http-equiv')
         content = tag.get('content')
 
@@ -127,15 +125,15 @@ class HTMLTreeBuilder(TreeBuilder):
                     # explicitly and it worked. Rewrite the meta tag.
                     def rewrite(match):
                         return match.group(1) + "%SOUP-ENCODING%"
-                    newAttr = self.CHARSET_RE.sub(rewrite, content)
-                    tag['content'] = newAttr
+                    tag['content'] = self.CHARSET_RE.sub(rewrite, content)
                     return True
                 else:
                     # This is our first pass through the document.
                     # Go through it again with the encoding information.
-                    newCharset = match.group(3)
-                    if newCharset and newCharset != self.soup.originalEncoding:
-                        self.soup.declaredHTMLEncoding = newCharset
+                    new_charset = match.group(3)
+                    if (new_charset is not None
+                        and new_charset != self.soup.originalEncoding):
+                        self.soup.declaredHTMLEncoding = new_charset
                         self.soup._feed(self.soup.declaredHTMLEncoding)
                         raise StopParsing
                     pass

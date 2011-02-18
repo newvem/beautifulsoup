@@ -9,7 +9,7 @@ from util import isString, isList
 
 DEFAULT_OUTPUT_ENCODING = "utf-8"
 
-class Entities:
+class Entities(object):
     """A mixin class that knows about XML entities."""
 
     HTML_ENTITIES = "html"
@@ -31,7 +31,7 @@ class Entities:
 
     XML_SPECIAL_CHARS_TO_ENTITIES = _invert(XML_ENTITIES_TO_SPECIAL_CHARS)
 
-class PageElement:
+class PageElement(object):
     """Contains the navigational information for some part of the page
     (either a tag or a piece of text)"""
 
@@ -765,7 +765,7 @@ class Tag(PageElement, Entities):
 
 
 # Next, a couple classes to represent queries and their results.
-class SoupStrainer:
+class SoupStrainer(object):
     """Encapsulates a number of ways of matching a markup element (tag or
     text)."""
 
