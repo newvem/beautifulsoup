@@ -131,14 +131,56 @@ class TestHTML5BuilderInvalidMarkup(TestLXMLBuilderInvalidMarkup):
         self.assertEquals(comment, 'b <p')
         self.assertEquals(str2, 'c')
 
-    def test_foo(self):
-        isolatin = """<html><meta http-equiv="Content-type" content="text/html; charset=ISO-Latin-1" />Sacr\xe9 bleu!</html>"""
-        soup = self.soup(isolatin)
+    def test_document_starts_with_bogus_declaration(self):
+        soup = self.soup('<! Foo >a')
+        # 'Foo' becomes a comment that appears before the HTML.
+        comment = soup.contents[0]
+        self.assertTrue(isinstance(comment, Comment))
+        self.assertEquals(comment, 'Foo')
 
-        utf8 = isolatin.replace("ISO-Latin-1".encode(), "utf-8".encode())
-        utf8 = utf8.replace("\xe9", "\xc3\xa9")
+        self.assertEquals(self.find(text="a") == "a")
 
-        #print soup
+    def test_attribute_value_was_closed_by_subsequent_tag(self):
+        markup = """<a href="foo</a>, </a><a href="bar">baz</a>"""
+        soup = self.soup(markup)
+        # The string between the first and second quotes was interpreted
+        # as the value of the 'href' attribute.
+        self.assertEquals(soup.a['href'], 'foo</a>, </a><a href=')
+
+        #The string after the second quote (bar"), was treated as an
+        #empty attribute called bar".
+        self.assertEquals(soup.a['bar"'], '')
+        self.assertEquals(soup.a.string, "baz")
+
+    def test_document_starts_with_bogus_declaration(self):
+        soup = self.soup('<! Foo ><p>a</p>')
+        # The declaration becomes a comment.
+        comment = soup.contents[0]
+        self.assertTrue(isinstance(comment, Comment))
+        self.assertEquals(comment, ' Foo ')
+        self.assertEquals(soup.p.string, 'a')
+
+    def test_document_ends_with_incomplete_declaration(self):
+        soup = self.soup('<p>a<!b')
+        # This becomes a string 'a'. The incomplete declaration is ignored.
+        # Compare html5lib, which turns it into a comment.
+        s, comment = soup.p.contents
+        self.assertEquals(s, 'a')
+        self.assertTrue(isinstance(comment, Comment))
+        self.assertEquals(comment, 'b')
+
+    def test_entity_was_not_finished(self):
+        soup = self.soup("<p>&lt;Hello&gt")
+        # Compare html5lib, which completes the entity.
+        self.assertEquals(soup.p.string, "<Hello>")
+
+    def test_nonexistent_entity(self):
+        soup = self.soup("<p>foo&#bar;baz</p>")
+        self.assertEquals(soup.p.string, "foo&#bar;baz")
+
+        # Compare a real entity.
+        soup = self.soup("<p>foo&#100;baz</p>")
+        self.assertEquals(soup.p.string, "foodbaz")
 
 
 class TestHTML5LibEncodingConversion(TestLXMLBuilderEncodingConversion):
