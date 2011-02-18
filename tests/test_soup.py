@@ -27,7 +27,7 @@ class TestUnicodeDammit(unittest.TestCase):
 
     def test_smart_quotes_to_html_entities(self):
         markup = "<foo>\x91\x92\x93\x94</foo>"
-        dammit = UnicodeDammit(markup, smartQuotesTo="html")
+        dammit = UnicodeDammit(markup, smart_quotes_to="html")
         self.assertEquals(
             dammit.unicode, "<foo>&lsquo;&rsquo;&ldquo;&rdquo;</foo>")
 

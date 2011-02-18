@@ -120,7 +120,7 @@ class HTMLTreeBuilder(TreeBuilder):
             # This is an interesting meta tag.
             match = self.CHARSET_RE.search(content)
             if match:
-                if (self.soup.declaredHTMLEncoding is not None or
+                if (self.soup.declared_html_encoding is not None or
                     self.soup.originalEncoding == self.soup.fromEncoding):
                     # An HTML encoding was sniffed while converting
                     # the document to Unicode, or an HTML encoding was
@@ -137,8 +137,8 @@ class HTMLTreeBuilder(TreeBuilder):
                     new_charset = match.group(3)
                     if (new_charset is not None
                         and new_charset != self.soup.originalEncoding):
-                        self.soup.declaredHTMLEncoding = new_charset
-                        self.soup._feed(self.soup.declaredHTMLEncoding)
+                        self.soup.declared_html_encoding = new_charset
+                        self.soup._feed(self.soup.declared_html_encoding)
                         raise StopParsing
                     pass
         return False

@@ -45,12 +45,12 @@ class UnicodeDammit:
     CHARSET_ALIASES = { "macintosh" : "mac-roman",
                         "x-sjis" : "shift-jis" }
 
-    def __init__(self, markup, overrideEncodings=[],
-                 smartQuotesTo='xml', isHTML=False):
-        self.declaredHTMLEncoding = None
+    def __init__(self, markup, override_encodings=[],
+                 smart_quotes_to='xml', isHTML=False):
+        self.declared_html_encoding = None
         self.markup, documentEncoding, sniffedEncoding = \
                      self._detectEncoding(markup, isHTML)
-        self.smartQuotesTo = smartQuotesTo
+        self.smart_quotes_to = smart_quotes_to
         self.triedEncodings = []
         if markup == '' or isinstance(markup, unicode):
             self.originalEncoding = None
@@ -59,7 +59,7 @@ class UnicodeDammit:
 
         u = None
         for proposedEncoding in (
-            overrideEncodings + [documentEncoding, sniffedEncoding]):
+            override_encodings + [documentEncoding, sniffedEncoding]):
             if proposedEncoding is not None:
                 u = self._convertFrom(proposedEncoding)
                 if u:
@@ -84,7 +84,7 @@ class UnicodeDammit:
         orig = match.group(1)
         sub = self.MS_CHARS.get(orig)
         if type(sub) == types.TupleType:
-            if self.smartQuotesTo == 'xml':
+            if self.smart_quotes_to == 'xml':
                 sub = '&#x'.encode() + sub[1].encode() + ';'.encode()
             else:
                 sub = '&'.encode() + sub[0].encode() + ';'.encode()
@@ -101,7 +101,7 @@ class UnicodeDammit:
 
         # Convert smart quotes to HTML if coming from an encoding
         # that might have them.
-        if self.smartQuotesTo and proposed.lower() in("windows-1252",
+        if self.smart_quotes_to and proposed.lower() in("windows-1252",
                                                       "iso-8859-1",
                                                       "iso-8859-2"):
             smart_quotes_re = "([\x80-\x9f])"
@@ -205,7 +205,7 @@ class UnicodeDammit:
             xml_encoding = xml_encoding_match.groups()[0].decode(
                 'ascii').lower()
             if isHTML:
-                self.declaredHTMLEncoding = xml_encoding
+                self.declared_html_encoding = xml_encoding
             if sniffed_xml_encoding and \
                (xml_encoding in ('iso-10646-ucs-2', 'ucs-2', 'csunicode',
                                  'iso-10646-ucs-4', 'ucs-4', 'csucs4',
