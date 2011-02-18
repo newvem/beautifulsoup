@@ -149,7 +149,7 @@ class BeautifulStoneSoup(Tag):
 
         if hasattr(markup, 'read'):        # It's a file-type object.
             markup = markup.read()
-        self.markup, self.originalEncoding, self.declaredHTMLEncoding = (
+        self.markup, self.original_encoding, self.declared_html_encoding = (
             self.builder.prepare_markup(markup, fromEncoding))
 
         try:

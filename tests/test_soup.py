@@ -19,15 +19,21 @@ class TestSelectiveParsing(SoupTest):
 class TestUnicodeDammit(unittest.TestCase):
     """Standalone tests of Unicode, Dammit."""
 
-    def test_smart_quotes_to_xml_entities(self):
+    def test_smart_quotes_to_unicode(self):
         markup = "<foo>\x91\x92\x93\x94</foo>"
         dammit = UnicodeDammit(markup)
+        self.assertEquals(
+            dammit.unicode, u"<foo>\u2018\u2019\u201c\u201d</foo>")
+
+    def test_smart_quotes_to_xml_entities(self):
+        markup = "<foo>\x91\x92\x93\x94</foo>"
+        dammit = UnicodeDammit(markup, smart_quotes_to="xml")
         self.assertEquals(
             dammit.unicode, "<foo>&#x2018;&#x2019;&#x201C;&#x201D;</foo>")
 
     def test_smart_quotes_to_html_entities(self):
         markup = "<foo>\x91\x92\x93\x94</foo>"
-        dammit = UnicodeDammit(markup, smartQuotesTo="html")
+        dammit = UnicodeDammit(markup, smart_quotes_to="html")
         self.assertEquals(
             dammit.unicode, "<foo>&lsquo;&rsquo;&ldquo;&rdquo;</foo>")
 
@@ -35,27 +41,27 @@ class TestUnicodeDammit(unittest.TestCase):
         utf8 = "\xc3\xa9"
         dammit = UnicodeDammit(utf8)
         self.assertEquals(dammit.unicode, u'\xe9')
-        self.assertEquals(dammit.originalEncoding, 'utf-8')
+        self.assertEquals(dammit.original_encoding, 'utf-8')
 
     def test_convert_hebrew(self):
         hebrew = "\xed\xe5\xec\xf9"
         dammit = UnicodeDammit(hebrew, ["iso-8859-8"])
-        self.assertEquals(dammit.originalEncoding, 'iso-8859-8')
+        self.assertEquals(dammit.original_encoding, 'iso-8859-8')
         self.assertEquals(dammit.unicode, u'\u05dd\u05d5\u05dc\u05e9')
 
     def test_dont_see_smart_quotes_where_there_are_none(self):
         utf_8 = "\343\202\261\343\203\274\343\202\277\343\202\244 Watch"
         dammit = UnicodeDammit(utf_8)
-        self.assertEquals(dammit.originalEncoding, 'utf-8')
+        self.assertEquals(dammit.original_encoding, 'utf-8')
         self.assertEquals(dammit.unicode.encode("utf-8"), utf_8)
 
     def test_ignore_inappropriate_codecs(self):
         utf8_data = u"Räksmörgås".encode("utf-8")
         dammit = UnicodeDammit(utf8_data, ["iso-8859-8"])
-        self.assertEquals(dammit.originalEncoding, 'utf-8')
+        self.assertEquals(dammit.original_encoding, 'utf-8')
 
     def test_ignore_invalid_codecs(self):
         utf8_data = u"Räksmörgås".encode("utf-8")
         for bad_encoding in ['.utf8', '...', 'utF---16.!']:
             dammit = UnicodeDammit(utf8_data, [bad_encoding])
-            self.assertEquals(dammit.originalEncoding, 'utf-8')
+            self.assertEquals(dammit.original_encoding, 'utf-8')

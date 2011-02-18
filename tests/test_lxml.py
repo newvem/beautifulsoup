@@ -376,6 +376,59 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
         markup = "<div><![CDATA[foo]]>"
         self.assertSoupEquals(markup, "<div></div>")
 
+    def test_attribute_value_never_got_closed(self):
+        markup = '<a href="http://foo.com/</a> and blah and blah'
+        soup = self.soup(markup)
+        self.assertEquals(
+            soup.a['href'], "http://foo.com/</a> and blah and blah")
+
+    def test_attribute_value_was_closed_by_subsequent_tag(self):
+        markup = """<a href="foo</a>, </a><a href="bar">baz</a>"""
+        soup = self.soup(markup)
+        # The string between the first and second quotes was interpreted
+        # as the value of the 'href' attribute.
+        self.assertEquals(soup.a['href'], 'foo</a>, </a><a href=')
+
+        #The string after the second quote (bar"), was treated as an
+        #empty attribute called bar.
+        self.assertEquals(soup.a['bar'], '')
+        self.assertEquals(soup.a.string, "baz")
+
+    def test_attribute_value_with_embedded_brackets(self):
+        soup = self.soup('<a b="<a>">')
+        self.assertEquals(soup.a['b'], '<a>')
+
+    def test_nonexistent_entity(self):
+        soup = self.soup("<p>foo&#bar;baz</p>")
+        self.assertEquals(soup.p.string, "foobar;baz")
+
+        # Compare a real entity.
+        soup = self.soup("<p>foo&#100;baz</p>")
+        self.assertEquals(soup.p.string, "foodbaz")
+
+        # Also compare html5lib, which preserves the &# before the
+        # entity name.
+
+    def test_entity_was_not_finished(self):
+        soup = self.soup("<p>&lt;Hello&gt")
+        # Compare html5lib, which completes the entity.
+        self.assertEquals(soup.p.string, "<Hello&gt")
+
+    def test_document_ends_with_incomplete_declaration(self):
+        soup = self.soup('<p>a<!b')
+        # This becomes a string 'a'. The incomplete declaration is ignored.
+        # Compare html5lib, which turns it into a comment.
+        self.assertEquals(soup.p.contents, ['a'])
+
+    def test_document_starts_with_bogus_declaration(self):
+        soup = self.soup('<! Foo ><p>a</p>')
+        # The declaration is ignored altogether.
+        self.assertEquals(soup.encode(), "<html><body><p>a</p></body></html>")
+
+    def test_tag_name_contains_unicode(self):
+        # Unicode characters in tag names are stripped.
+        tag_name = u"<our\N{SNOWMAN}>Joe</our\N{SNOWMAN}>"
+        self.assertSoupEquals("<our>Joe</our>")
 
 class TestLXMLBuilderEncodingConversion(SoupTest):
     # Test Beautiful Soup's ability to decode and encode from various
@@ -391,25 +444,25 @@ class TestLXMLBuilderEncodingConversion(SoupTest):
             "<html><head></head><body><foo>Sacr\xc3\xa9 bleu!</foo></body></html>")
 
     def test_ascii_in_unicode_out(self):
-        # ASCII input is converted to Unicode. The originalEncoding
+        # ASCII input is converted to Unicode. The original_encoding
         # attribute is set.
         ascii = "<foo>a</foo>"
         soup_from_ascii = self.soup(ascii)
         unicode_output = soup_from_ascii.decode()
         self.assertTrue(isinstance(unicode_output, unicode))
         self.assertEquals(unicode_output, self.document_for(ascii))
-        self.assertEquals(soup_from_ascii.originalEncoding, "ascii")
+        self.assertEquals(soup_from_ascii.original_encoding, "ascii")
 
     def test_unicode_in_unicode_out(self):
-        # Unicode input is left alone. The originalEncoding attribute
+        # Unicode input is left alone. The original_encoding attribute
         # is not set.
         soup_from_unicode = self.soup(self.unicode_data)
         self.assertEquals(soup_from_unicode.decode(), self.unicode_data)
         self.assertEquals(soup_from_unicode.foo.string, u'Sacr\xe9 bleu!')
-        self.assertEquals(soup_from_unicode.originalEncoding, None)
+        self.assertEquals(soup_from_unicode.original_encoding, None)
 
     def test_utf8_in_unicode_out(self):
-        # UTF-8 input is converted to Unicode. The originalEncoding
+        # UTF-8 input is converted to Unicode. The original_encoding
         # attribute is set.
         soup_from_utf8 = self.soup(self.utf8_data)
         self.assertEquals(soup_from_utf8.decode(), self.unicode_data)
@@ -427,7 +480,7 @@ class TestLXMLBuilderEncodingConversion(SoupTest):
         # Hebrew encoding) to UTF-8.
         soup = self.soup(self.HEBREW_DOCUMENT,
                          fromEncoding="iso-8859-8")
-        self.assertEquals(soup.originalEncoding, 'iso-8859-8')
+        self.assertEquals(soup.original_encoding, 'iso-8859-8')
         self.assertEquals(
             soup.encode('utf-8'),
             self.HEBREW_DOCUMENT.decode("iso-8859-8").encode("utf-8"))

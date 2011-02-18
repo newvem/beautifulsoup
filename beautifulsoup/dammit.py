@@ -3,23 +3,24 @@
 This class forces XML data into a standard format (usually to UTF-8 or
 Unicode).  It is heavily based on code from Mark Pilgrim's Universal
 Feed Parser. It does not rewrite the XML or HTML to reflect a new
-encoding; that's Beautiful Soup's job.
+encoding; that's the tree builder's job.
 """
 
 import codecs
 import re
 import types
 
-# Autodetects character encodings.
+# Autodetects character encodings. Very useful.
 # Download from http://chardet.feedparser.org/
+#  or 'apt-get install python-chardet'
+#  or 'easy_install chardet'
 try:
     import chardet
-#    import chardet.constants
-#    chardet.constants._debug = 1
+    #import chardet.constants
+    #chardet.constants._debug = 1
 except ImportError:
     chardet = None
 
-# cjkcodecs and iconv_codec make Python know about more character encodings.
 # Both are available from http://cjkpython.i18n.org/
 # They're built in if you use Python 2.4.
 try:
@@ -45,46 +46,53 @@ class UnicodeDammit:
     CHARSET_ALIASES = { "macintosh" : "mac-roman",
                         "x-sjis" : "shift-jis" }
 
-    def __init__(self, markup, overrideEncodings=[],
-                 smartQuotesTo='xml', isHTML=False):
-        self.declaredHTMLEncoding = None
-        self.markup, documentEncoding, sniffedEncoding = \
+    ENCODINGS_WITH_SMART_QUOTES = [
+        "windows-1252",
+        "iso-8859-1",
+        "iso-8859-2",
+        ]
+
+    def __init__(self, markup, override_encodings=[],
+                 smart_quotes_to=None, isHTML=False):
+        self.declared_html_encoding = None
+        self.markup, document_encoding, sniffed_encoding = \
                      self._detectEncoding(markup, isHTML)
-        self.smartQuotesTo = smartQuotesTo
-        self.triedEncodings = []
+        self.smart_quotes_to = smart_quotes_to
+        self.tried_encodings = []
         if markup == '' or isinstance(markup, unicode):
-            self.originalEncoding = None
+            self.original_encoding = None
             self.unicode = unicode(markup)
             return
 
         u = None
-        for proposedEncoding in (
-            overrideEncodings + [documentEncoding, sniffedEncoding]):
-            if proposedEncoding is not None:
-                u = self._convertFrom(proposedEncoding)
+        for proposed_encoding in (
+            override_encodings + [document_encoding, sniffed_encoding]):
+            if proposed_encoding is not None:
+                u = self._convert_from(proposed_encoding)
                 if u:
                     break
 
         # If no luck and we have auto-detection library, try that:
         if not u and chardet and not isinstance(self.markup, unicode):
-            u = self._convertFrom(chardet.detect(self.markup)['encoding'])
+            u = self._convert_from(chardet.detect(self.markup)['encoding'])
 
         # As a last resort, try utf-8 and windows-1252:
         if not u:
             for proposed_encoding in ("utf-8", "windows-1252"):
-                u = self._convertFrom(proposed_encoding)
-                if u: break
+                u = self._convert_from(proposed_encoding)
+                if u:
+                    break
 
         self.unicode = u
-        if not u: self.originalEncoding = None
+        if not u: self.original_encoding = None
 
-    def _subMSChar(self, match):
+    def _sub_ms_char(self, match):
         """Changes a MS smart quote character to an XML or HTML
         entity."""
         orig = match.group(1)
         sub = self.MS_CHARS.get(orig)
         if type(sub) == types.TupleType:
-            if self.smartQuotesTo == 'xml':
+            if self.smart_quotes_to == 'xml':
                 sub = '&#x'.encode() + sub[1].encode() + ';'.encode()
             else:
                 sub = '&'.encode() + sub[0].encode() + ';'.encode()
@@ -92,27 +100,26 @@ class UnicodeDammit:
             sub = sub.encode()
         return sub
 
-    def _convertFrom(self, proposed):
+    def _convert_from(self, proposed):
         proposed = self.find_codec(proposed)
-        if not proposed or proposed in self.triedEncodings:
+        if not proposed or proposed in self.tried_encodings:
             return None
-        self.triedEncodings.append(proposed)
+        self.tried_encodings.append(proposed)
         markup = self.markup
 
         # Convert smart quotes to HTML if coming from an encoding
         # that might have them.
-        if self.smartQuotesTo and proposed.lower() in("windows-1252",
-                                                      "iso-8859-1",
-                                                      "iso-8859-2"):
+        if (self.smart_quotes_to is not None
+            and proposed.lower() in self.ENCODINGS_WITH_SMART_QUOTES):
             smart_quotes_re = "([\x80-\x9f])"
             smart_quotes_compiled = re.compile(smart_quotes_re)
-            markup = smart_quotes_compiled.sub(self._subMSChar, markup)
+            markup = smart_quotes_compiled.sub(self._sub_ms_char, markup)
 
         try:
             # print "Trying to convert document to %s" % proposed
-            u = self._toUnicode(markup, proposed)
+            u = self._to_unicode(markup, proposed)
             self.markup = u
-            self.originalEncoding = proposed
+            self.original_encoding = proposed
         except Exception, e:
             # print "That didn't work!"
             # print e
@@ -120,7 +127,7 @@ class UnicodeDammit:
         #print "Correct encoding: %s" % proposed
         return self.markup
 
-    def _toUnicode(self, data, encoding):
+    def _to_unicode(self, data, encoding):
         '''Given a string and its encoding, decodes the string into Unicode.
         %encoding is a string recognized by encodings.aliases'''
 
@@ -205,7 +212,7 @@ class UnicodeDammit:
             xml_encoding = xml_encoding_match.groups()[0].decode(
                 'ascii').lower()
             if isHTML:
-                self.declaredHTMLEncoding = xml_encoding
+                self.declared_html_encoding = xml_encoding
             if sniffed_xml_encoding and \
                (xml_encoding in ('iso-10646-ucs-2', 'ucs-2', 'csunicode',
                                  'iso-10646-ucs-4', 'ucs-4', 'csucs4',

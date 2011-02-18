@@ -23,7 +23,7 @@ class LXMLTreeBuilder(HTMLTreeBuilder):
 
         try_encodings = [user_specified_encoding, document_declared_encoding]
         dammit = UnicodeDammit(markup, try_encodings, isHTML=True)
-        return dammit.markup, dammit.originalEncoding, dammit.declaredHTMLEncoding
+        return dammit.markup, dammit.original_encoding, dammit.declared_html_encoding
 
 
     def feed(self, markup):
