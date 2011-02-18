@@ -1,3 +1,4 @@
+import re
 from beautifulsoup.element import Entities
 
 __all__ = [
@@ -36,6 +37,9 @@ class TreeBuilder(Entities):
         This method should not be used outside of tests.
         """
         return fragment
+
+    def set_up_substitutions(self, tag):
+        pass
 
 
 class SAXTreeBuilder(TreeBuilder):
@@ -96,3 +100,41 @@ class HTMLTreeBuilder(TreeBuilder):
     self_closing_tags = set(['br' , 'hr', 'input', 'img', 'meta',
                             'spacer', 'link', 'frame', 'base'])
 
+    # Used by set_up_substitutions to detect the charset in a META tag
+    CHARSET_RE = re.compile("((^|;)\s*charset=)([^;]*)", re.M)
+
+    def set_up_substitutions(self, tag):
+        if tag.name != 'meta':
+            return False
+
+        http_equiv = tag.get('http-equiv')
+        content = tag.get('content')
+
+        if (http_equiv is not None
+            and content is not None
+            and http_equiv.lower() == 'content-type'):
+            # This is an interesting meta tag.
+            match = self.CHARSET_RE.search(content)
+            if match:
+                if (self.soup.declaredHTMLEncoding is not None or
+                    self.soup.originalEncoding == self.soup.fromEncoding):
+                    # An HTML encoding was sniffed while converting
+                    # the document to Unicode, or an HTML encoding was
+                    # sniffed during a previous pass through the
+                    # document, or an encoding was specified
+                    # explicitly and it worked. Rewrite the meta tag.
+                    def rewrite(match):
+                        return match.group(1) + "%SOUP-ENCODING%"
+                    tag['content'] = self.CHARSET_RE.sub(rewrite, content)
+                    return True
+                else:
+                    # This is our first pass through the document.
+                    # Go through it again with the encoding information.
+                    new_charset = match.group(3)
+                    if (new_charset is not None
+                        and new_charset != self.soup.originalEncoding):
+                        self.soup.declaredHTMLEncoding = new_charset
+                        self.soup._feed(self.soup.declaredHTMLEncoding)
+                        raise StopParsing
+                    pass
+        return False

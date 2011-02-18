@@ -9,7 +9,7 @@ from util import isString, isList
 
 DEFAULT_OUTPUT_ENCODING = "utf-8"
 
-class Entities:
+class Entities(object):
     """A mixin class that knows about XML entities."""
 
     HTML_ENTITIES = "html"
@@ -31,7 +31,7 @@ class Entities:
 
     XML_SPECIAL_CHARS_TO_ENTITIES = _invert(XML_ENTITIES_TO_SPECIAL_CHARS)
 
-class PageElement:
+class PageElement(object):
     """Contains the navigational information for some part of the page
     (either a tag or a piece of text)"""
 
@@ -438,12 +438,15 @@ class Tag(PageElement, Entities):
         self.contents = []
         self.setup(parent, previous)
         self.hidden = False
-        self.containsSubstitutions = False
 
         if isinstance(attrs, types.DictType):
             self.attrs = [kv for kv in attrs.items()]
         else:
             self.attrs = list(attrs)
+
+        # Set up any substitutions, such as the charset in a META tag.
+        self.contains_substitutions = builder.set_up_substitutions(self)
+
 
     @property
     def string(self):
@@ -581,7 +584,7 @@ class Tag(PageElement, Entities):
             for key, val in self.attrs:
                 fmt = '%s="%s"'
                 if isString(val):
-                    if (self.containsSubstitutions
+                    if (self.contains_substitutions
                         and eventualEncoding is not None
                         and '%SOUP-ENCODING%' in val):
                         val = self.substituteEncoding(val, eventualEncoding)
@@ -762,7 +765,7 @@ class Tag(PageElement, Entities):
 
 
 # Next, a couple classes to represent queries and their results.
-class SoupStrainer:
+class SoupStrainer(object):
     """Encapsulates a number of ways of matching a markup element (tag or
     text)."""
 
@@ -881,6 +884,7 @@ class SoupStrainer:
             if not result:
                 result = matchAgainst == markup
         return result
+
 
 class ResultSet(list):
     """A ResultSet is just a list that keeps track of the SoupStrainer
