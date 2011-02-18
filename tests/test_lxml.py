@@ -421,11 +421,14 @@ class TestLXMLBuilderEncodingConversion(SoupTest):
         soup_from_unicode = self.soup(self.unicode_data)
         self.assertEquals(soup_from_unicode.encode('utf-8'), self.utf8_data)
 
+    HEBREW_DOCUMENT = '<html><head><title>Hebrew (ISO 8859-8) in Visual Directionality</title></head><body><h1>Hebrew (ISO 8859-8) in Visual Directionality</h1>\xed\xe5\xec\xf9</body></html>'
+
     def test_real_hebrew_document(self):
         # A real-world test to make sure we can convert ISO-8859-9 (a
         # Hebrew encoding) to UTF-8.
-        iso_8859_8= '<HTML><HEAD><TITLE>Hebrew (ISO 8859-8) in Visual Directionality</TITLE></HEAD><BODY><H1>Hebrew (ISO 8859-8) in Visual Directionality</H1>\xed\xe5\xec\xf9</BODY></HTML>'
-        utf8 = '<html><head><title>Hebrew (ISO 8859-8) in Visual Directionality</title></head><body><h1>Hebrew (ISO 8859-8) in Visual Directionality</h1>\xd7\x9d\xd7\x95\xd7\x9c\xd7\xa9</body></html>'
-        soup = self.soup(iso_8859_8, fromEncoding="iso-8859-8")
+        soup = self.soup(self.HEBREW_DOCUMENT,
+                         fromEncoding="iso-8859-8")
         self.assertEquals(soup.originalEncoding, 'iso-8859-8')
-        self.assertEquals(soup.encode('utf-8'), utf8)
+        self.assertEquals(
+            soup.encode('utf-8'),
+            self.HEBREW_DOCUMENT.decode("iso-8859-8").encode("utf-8"))
