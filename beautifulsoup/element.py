@@ -313,7 +313,7 @@ class PageElement:
             yield i
 
     # Old non-property versions of the generators, for backwards
-    # compatibility.
+    # compatibility with BS3.
     def nextGenerator(self):
         return self.next_elements
 

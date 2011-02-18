@@ -286,7 +286,7 @@ class TestParentOperations(TreeTest):
         self.assertEquals(text.find_parent('ul')['id'], 'bottom')
 
     def test_parent_generator(self):
-        parents = [parent['id'] for parent in self.start.parentGenerator()
+        parents = [parent['id'] for parent in self.start.parents
                    if parent is not None and parent.has_key('id')]
         self.assertEquals(parents, ['bottom', 'middle', 'top'])
 
@@ -332,7 +332,7 @@ class TestNextOperations(ProximityTest):
 
     def test_next_generator(self):
         start = self.tree.find(text="Two")
-        successors = [node for node in start.nextGenerator()]
+        successors = [node for node in start.next_elements]
         # There are two successors: the final <b> tag and its text contents.
         # Then we go off the end.
         tag, contents, none = successors
@@ -340,7 +340,7 @@ class TestNextOperations(ProximityTest):
         self.assertEquals(contents, "Three")
         self.assertEquals(none, None)
 
-        # XXX Should nextGenerator really return None? Seems like it
+        # XXX Should next_elements really return None? Seems like it
         # should just stop.
 
 
@@ -373,18 +373,18 @@ class TestPreviousOperations(ProximityTest):
         self.assertSelects(self.end.find_all_previous(id=1), ["One"])
 
     def test_find_previous(self):
-        self.assertEquals(self.end.findPrevious('b')['id'], '3')
-        self.assertEquals(self.end.findPrevious(text="One"), "One")
+        self.assertEquals(self.end.find_previous('b')['id'], '3')
+        self.assertEquals(self.end.find_previous(text="One"), "One")
 
     def test_find_previous_for_text_element(self):
         text = self.tree.find(text="Three")
-        self.assertEquals(text.findPrevious("b").string, "Three")
+        self.assertEquals(text.find_previous("b").string, "Three")
         self.assertSelects(
             text.find_all_previous("b"), ["Three", "Two", "One"])
 
     def test_previous_generator(self):
         start = self.tree.find(text="One")
-        predecessors = [node for node in start.previousGenerator()]
+        predecessors = [node for node in start.previous_elements]
 
         # There are four predecessors: the <b> tag containing "One"
         # the <body> tag, the <head> tag, and the <html> tag. Then we
