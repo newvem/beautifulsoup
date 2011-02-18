@@ -121,7 +121,7 @@ class HTMLTreeBuilder(TreeBuilder):
             match = self.CHARSET_RE.search(content)
             if match:
                 if (self.soup.declared_html_encoding is not None or
-                    self.soup.originalEncoding == self.soup.fromEncoding):
+                    self.soup.original_encoding == self.soup.fromEncoding):
                     # An HTML encoding was sniffed while converting
                     # the document to Unicode, or an HTML encoding was
                     # sniffed during a previous pass through the
@@ -136,7 +136,7 @@ class HTMLTreeBuilder(TreeBuilder):
                     # Go through it again with the encoding information.
                     new_charset = match.group(3)
                     if (new_charset is not None
-                        and new_charset != self.soup.originalEncoding):
+                        and new_charset != self.soup.original_encoding):
                         self.soup.declared_html_encoding = new_charset
                         self.soup._feed(self.soup.declared_html_encoding)
                         raise StopParsing

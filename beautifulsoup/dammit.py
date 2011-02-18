@@ -45,38 +45,44 @@ class UnicodeDammit:
     CHARSET_ALIASES = { "macintosh" : "mac-roman",
                         "x-sjis" : "shift-jis" }
 
+    ENCODINGS_WITH_SMART_QUOTES = [
+        "windows-1252",
+        "iso-8859-1",
+        "iso-8859-2",
+        ]
+
     def __init__(self, markup, override_encodings=[],
                  smart_quotes_to='xml', isHTML=False):
         self.declared_html_encoding = None
-        self.markup, documentEncoding, sniffedEncoding = \
+        self.markup, document_encoding, sniffed_encoding = \
                      self._detectEncoding(markup, isHTML)
         self.smart_quotes_to = smart_quotes_to
-        self.triedEncodings = []
+        self.tried_encodings = []
         if markup == '' or isinstance(markup, unicode):
-            self.originalEncoding = None
+            self.original_encoding = None
             self.unicode = unicode(markup)
             return
 
         u = None
-        for proposedEncoding in (
-            override_encodings + [documentEncoding, sniffedEncoding]):
-            if proposedEncoding is not None:
-                u = self._convertFrom(proposedEncoding)
+        for proposed_encoding in (
+            override_encodings + [document_encoding, sniffed_encoding]):
+            if proposed_encoding is not None:
+                u = self._convert_from(proposed_encoding)
                 if u:
                     break
 
         # If no luck and we have auto-detection library, try that:
         if not u and chardet and not isinstance(self.markup, unicode):
-            u = self._convertFrom(chardet.detect(self.markup)['encoding'])
+            u = self._convert_from(chardet.detect(self.markup)['encoding'])
 
         # As a last resort, try utf-8 and windows-1252:
         if not u:
             for proposed_encoding in ("utf-8", "windows-1252"):
-                u = self._convertFrom(proposed_encoding)
+                u = self._convert_from(proposed_encoding)
                 if u: break
 
         self.unicode = u
-        if not u: self.originalEncoding = None
+        if not u: self.original_encoding = None
 
     def _subMSChar(self, match):
         """Changes a MS smart quote character to an XML or HTML
@@ -92,18 +98,17 @@ class UnicodeDammit:
             sub = sub.encode()
         return sub
 
-    def _convertFrom(self, proposed):
+    def _convert_from(self, proposed):
         proposed = self.find_codec(proposed)
-        if not proposed or proposed in self.triedEncodings:
+        if not proposed or proposed in self.tried_encodings:
             return None
-        self.triedEncodings.append(proposed)
+        self.tried_encodings.append(proposed)
         markup = self.markup
 
         # Convert smart quotes to HTML if coming from an encoding
         # that might have them.
-        if self.smart_quotes_to and proposed.lower() in("windows-1252",
-                                                      "iso-8859-1",
-                                                      "iso-8859-2"):
+        if (self.smart_quotes_to is not None
+            and proposed.lower() in self.ENCODINGS_WITH_SMART_QUOTES):
             smart_quotes_re = "([\x80-\x9f])"
             smart_quotes_compiled = re.compile(smart_quotes_re)
             markup = smart_quotes_compiled.sub(self._subMSChar, markup)
@@ -112,7 +117,7 @@ class UnicodeDammit:
             # print "Trying to convert document to %s" % proposed
             u = self._toUnicode(markup, proposed)
             self.markup = u
-            self.originalEncoding = proposed
+            self.original_encoding = proposed
         except Exception, e:
             # print "That didn't work!"
             # print e

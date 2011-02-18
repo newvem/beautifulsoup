@@ -151,7 +151,7 @@ class TestHTML5LibEncodingConversion(TestLXMLBuilderEncodingConversion):
         # Hebrew encoding) to UTF-8.
         soup = self.soup(self.HEBREW_DOCUMENT,
                          fromEncoding="iso-8859-8")
-        self.assertEquals(soup.originalEncoding, 'iso8859-8')
+        self.assertEquals(soup.original_encoding, 'iso8859-8')
         self.assertEquals(
             soup.encode('utf-8'),
             self.HEBREW_DOCUMENT.decode("iso-8859-8").encode("utf-8"))
