@@ -383,13 +383,12 @@ class TestLXMLBuilderEncodingConversion(SoupTest):
 
     def setUp(self):
         super(TestLXMLBuilderEncodingConversion, self).setUp()
-        self.unicode_data = u"<html><head></head><body><foo>\N{LATIN SMALL LETTER E WITH ACUTE}</foo></body></html>"
+        self.unicode_data = u"<html><head></head><body><foo>Sacr\N{LATIN SMALL LETTER E WITH ACUTE} bleu!</foo></body></html>"
         self.utf8_data = self.unicode_data.encode("utf-8")
-
         # Just so you know what it looks like.
         self.assertEqual(
             self.utf8_data,
-            "<html><head></head><body><foo>\xc3\xa9</foo></body></html>")
+            "<html><head></head><body><foo>Sacr\xc3\xa9 bleu!</foo></body></html>")
 
     def test_ascii_in_unicode_out(self):
         # ASCII input is converted to Unicode. The originalEncoding
@@ -406,7 +405,7 @@ class TestLXMLBuilderEncodingConversion(SoupTest):
         # is not set.
         soup_from_unicode = self.soup(self.unicode_data)
         self.assertEquals(soup_from_unicode.decode(), self.unicode_data)
-        self.assertEquals(soup_from_unicode.foo.string, u'\xe9')
+        self.assertEquals(soup_from_unicode.foo.string, u'Sacr\xe9 bleu!')
         self.assertEquals(soup_from_unicode.originalEncoding, None)
 
     def test_utf8_in_unicode_out(self):
@@ -414,7 +413,7 @@ class TestLXMLBuilderEncodingConversion(SoupTest):
         # attribute is set.
         soup_from_utf8 = self.soup(self.utf8_data)
         self.assertEquals(soup_from_utf8.decode(), self.unicode_data)
-        self.assertEquals(soup_from_utf8.foo.string, u'\xe9')
+        self.assertEquals(soup_from_utf8.foo.string, u'Sacr\xe9 bleu!')
 
     def test_utf8_out(self):
         # The internal data structures can be encoded as UTF-8.

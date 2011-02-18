@@ -58,13 +58,12 @@ class UnicodeDammit:
             return
 
         u = None
-        for proposedEncoding in overrideEncodings:
-            u = self._convertFrom(proposedEncoding)
-            if u: break
-        if not u:
-            for proposedEncoding in (documentEncoding, sniffedEncoding):
+        for proposedEncoding in (
+            overrideEncodings + [documentEncoding, sniffedEncoding]):
+            if proposedEncoding is not None:
                 u = self._convertFrom(proposedEncoding)
-                if u: break
+                if u:
+                    break
 
         # If no luck and we have auto-detection library, try that:
         if not u and chardet and not isinstance(self.markup, unicode):
