@@ -2,15 +2,28 @@ from lxml import etree
 from beautifulsoup.element import Comment, Doctype
 from beautifulsoup.builder import TreeBuilder, HTMLTreeBuilder
 from beautifulsoup.dammit import UnicodeDammit
+import types
 
 class LXMLTreeBuilderForXML(TreeBuilder):
     DEFAULT_PARSER_CLASS = etree.XMLParser
 
-    def __init__(self, parser_class=None):
-        # strip_cdata only has an effect on XMLParser. HTMLParser's
-        # constructor accepts strip_cdata but ignores it.
-        parser_class = parser_class or self.DEFAULT_PARSER_CLASS
-        self.parser = parser_class(target=self, strip_cdata=False)
+    preserve_whitespace_tags = set()
+    self_closing_tags = set()
+
+    @property
+    def default_parser(self):
+        # This can either return a parser object or a class, which
+        # will be instantiated with default arguments.
+        return etree.XMLParser
+
+    def __init__(self, parser=None):
+        if parser is None:
+            # Use the default parser.
+            parser = self.default_parser
+        if callable(parser):
+            # Instantiate the parser with default arguments
+            parser = parser(target=self, strip_cdata=False)
+        self.parser = parser
         self.soup = None
 
     def prepare_markup(self, markup, user_specified_encoding=None,
@@ -38,6 +51,11 @@ class LXMLTreeBuilderForXML(TreeBuilder):
         self.soup.handle_starttag(name, attrs)
 
     def end(self, name):
+        self.soup.endData()
+        completed_tag = self.soup.tagStack[-1]
+        if len(completed_tag.contents) == 0:
+            completed_tag.isSelfClosing = True
+
         self.soup.handle_endtag(name)
 
     def pi(self, target, data):
@@ -62,6 +80,11 @@ class LXMLTreeBuilderForXML(TreeBuilder):
         return u'<html><body>%s</body></html>' % fragment
 
 
-class LXMLTreeBuilder(LXMLTreeBuilderForXML, HTMLTreeBuilder):
+class LXMLTreeBuilder(HTMLTreeBuilder, LXMLTreeBuilderForXML):
 
-    DEFAULT_PARSER_CLASS = etree.HTMLParser
+    @property
+    def default_parser(self):
+        return etree.HTMLParser
+
+    def end(self, name):
+        self.soup.handle_endtag(name)
