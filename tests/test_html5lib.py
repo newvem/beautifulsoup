@@ -1,5 +1,5 @@
-from beautifulsoup.builder.html5lib_builder import HTML5TreeBuilder
-from beautifulsoup.element import Comment
+from beautifulsoup.builder import HTML5TreeBuilder
+from beautifulsoup.element import Comment, SoupStrainer
 from test_lxml import (
     TestLXMLBuilder,
     TestLXMLBuilderInvalidMarkup,
@@ -12,6 +12,15 @@ class TestHTML5Builder(TestLXMLBuilder):
     @property
     def default_builder(self):
         return HTML5TreeBuilder()
+
+    def test_soupstrainer(self):
+        # The html5lib tree builder does not support SoupStrainers.
+        strainer = SoupStrainer("b")
+        markup = "<p>A <b>bold</b> statement.</p>"
+        soup = self.soup(markup,
+                         parseOnlyThese=strainer)
+        self.assertEquals(
+            soup.decode(), self.document_for(markup))
 
     def test_bare_string(self):
         # A bare string is turned into some kind of HTML document or

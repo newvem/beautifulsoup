@@ -524,14 +524,15 @@ class TestTreeModification(SoupTest):
 
     def test_new_tag_creation(self):
         builder = BeautifulSoup.default_builder()
-        soup = self.soup("", builder=builder)
+        soup = self.soup("<body></body>", builder=builder)
         a = Tag(soup, builder, 'a')
         ol = Tag(soup, builder, 'ol')
         a['href'] = 'http://foo.com/'
-        soup.insert(0, a)
-        soup.insert(1, ol)
+        soup.body.insert(0, a)
+        soup.body.insert(1, ol)
         self.assertEqual(
-            soup.decode(), '<a href="http://foo.com/"></a><ol></ol>')
+            soup.body.encode(),
+            '<body><a href="http://foo.com/"></a><ol></ol></body>')
 
     def test_append_to_contents_moves_tag(self):
        doc = """<p id="1">Don't leave me <b>here</b>.</p>

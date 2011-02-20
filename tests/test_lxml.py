@@ -3,8 +3,8 @@
 import re
 
 from beautifulsoup import BeautifulSoup
-from beautifulsoup.builder.lxml_builder import LXMLTreeBuilder
-from beautifulsoup.element import Comment, Doctype
+from beautifulsoup.builder import LXMLTreeBuilder, LXMLTreeBuilderForXML
+from beautifulsoup.element import Comment, Doctype, SoupStrainer
 from beautifulsoup.testing import SoupTest
 
 
@@ -320,6 +320,12 @@ class TestLXMLBuilder(SoupTest):
         self.assertFalse(soup.p.is_empty_element)
         self.assertEquals(str(soup.p), "<p></p>")
 
+    def test_soupstrainer(self):
+        strainer = SoupStrainer("b")
+        soup = self.soup("A <b>bold</b> <meta /> <i>statement</i>",
+                         parseOnlyThese=strainer)
+        self.assertEquals(soup.decode(), "<b>bold</b>")
+
 
 class TestLXMLBuilderInvalidMarkup(SoupTest):
     """Tests of invalid markup for the LXML tree builder.
@@ -505,7 +511,6 @@ class TestLXMLBuilderEncodingConversion(SoupTest):
             self.HEBREW_DOCUMENT.decode("iso-8859-8").encode("utf-8"))
 
 
-from beautifulsoup.builder.lxml_builder import LXMLTreeBuilderForXML
 class TestLXMLXMLBuilder(SoupTest):
     """Test XML-specific parsing behavior.
 

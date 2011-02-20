@@ -121,10 +121,10 @@ class BeautifulSoup(Tag):
     @classmethod
     def default_builder(self):
         try:
-            from builder.html5_builder import HTML5TreeBuilder
+            from builder import HTML5TreeBuilder
             return HTML5TreeBuilder()
         except ImportError:
-            from builder.lxml_builder import LXMLTreeBuilder
+            from builder import LXMLTreeBuilder
             return LXMLTreeBuilder()
 
     def __init__(self, markup="", builder=None, parseOnlyThese=None,
@@ -258,11 +258,14 @@ class BeautifulSoup(Tag):
 
         tag = Tag(self, self.builder, name, attrs, self.currentTag,
                   self.previous)
+        if tag is None:
+            return tag
         if self.previous:
             self.previous.next = tag
         self.previous = tag
         self.pushTag(tag)
         return tag
+
 
     def handle_endtag(self, name):
         #print "End tag: " + name

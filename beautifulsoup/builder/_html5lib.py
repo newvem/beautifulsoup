@@ -1,3 +1,7 @@
+__all__ = [
+    'HTML5TreeBuilder',
+    ]
+
 from beautifulsoup.builder import HTMLTreeBuilder, SAXTreeBuilder
 import html5lib
 from html5lib.constants import DataLossWarning
@@ -217,6 +221,6 @@ class TextNode(Element):
         html5lib.treebuilders._base.Node.__init__(self, None)
         self.element = element
         self.soup = soup
-    
+
     def cloneNode(self):
         raise NotImplementedError

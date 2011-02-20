@@ -7,7 +7,6 @@ __all__ = [
     'TreeBuilder',
     ]
 
-
 class TreeBuilder(Entities):
     """Turn a document into a Beautiful Soup object tree."""
 
@@ -163,3 +162,6 @@ class HTMLTreeBuilder(TreeBuilder):
                         raise StopParsing
                     pass
         return False
+
+from _lxml import *
+from _html5lib import *
