@@ -11,7 +11,7 @@ class LXMLTreeBuilderForXML(TreeBuilder):
     def default_parser(self):
         # This can either return a parser object or a class, which
         # will be instantiated with default arguments.
-        return etree.XMLParser
+        return etree.XMLParser(target=self, strip_cdata=False, recover=True)
 
     def __init__(self, parser=None, empty_element_tags=None):
         if empty_element_tags is not None:
@@ -71,10 +71,6 @@ class LXMLTreeBuilderForXML(TreeBuilder):
         self.soup.handle_data(content)
         self.soup.endData(Comment)
 
-    def test_fragment_to_document(self, fragment):
-        """See `TreeBuilder`."""
-        return u'<html><body>%s</body></html>' % fragment
-
 
 class LXMLTreeBuilder(HTMLTreeBuilder, LXMLTreeBuilderForXML):
 
@@ -82,5 +78,6 @@ class LXMLTreeBuilder(HTMLTreeBuilder, LXMLTreeBuilderForXML):
     def default_parser(self):
         return etree.HTMLParser
 
-    def end(self, name):
-        self.soup.handle_endtag(name)
+    def test_fragment_to_document(self, fragment):
+        """See `TreeBuilder`."""
+        return u'<html><body>%s</body></html>' % fragment

@@ -74,6 +74,25 @@ Unicode character. There are no longer any smartQuotesTo or
 convert_entities arguments. (Unicode Dammit still has smart_quotes_to,
 but the default is now to turn smart quotes into Unicode.)
 
+== CDATA sections are normal text, if they're understood at all. ==
+
+Currently, both HTML parsers ignore CDATA sections in markup:
+
+ <p><![CDATA[foo]]></p> => <p></p>
+
+A future version of html5lib will turn CDATA sections into text nodes,
+but only within tags like <svg> and <math>:
+
+ <svg><![CDATA[foo]]></svg> => <p>foo</p>
+
+The default XML parser (which uses lxml behind the scenes) turns CDATA
+sections into ordinary text elements:
+
+ <p><![CDATA[foo]]></p> => <p>foo</p>
+
+In theory it's possible to preserve the CDATA sections when using the
+XML parser, but I don't see how to get it to work in practice.
+
 = 3.1.0 =
 
 A hybrid version that supports 2.4 and can be automatically converted
