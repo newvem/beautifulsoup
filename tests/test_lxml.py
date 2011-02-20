@@ -131,7 +131,7 @@ class TestLXMLBuilder(SoupTest):
         # But, both lxml and html5lib do their best to parse the
         # contents of a <textarea> as HTML.
         text = '<textarea>Junk like <b> tags and <&<&amp;</textarea>'
-        soup = BeautifulSoup(text)
+        soup = self.soup(text)
         self.assertEquals(len(soup.textarea.contents), 2)
         self.assertEquals(soup.textarea.contents[0], u"Junk like ")
         self.assertEquals(soup.textarea.contents[1].name, 'b')
@@ -141,7 +141,7 @@ class TestLXMLBuilder(SoupTest):
         # The contents of a <script> tag are treated as a literal string,
         # even if that string contains HTML.
         javascript = 'if (i < 2) { alert("<b>foo</b>"); }'
-        soup = BeautifulSoup('<script>%s</script>' % javascript)
+        soup = self.soup('<script>%s</script>' % javascript)
         self.assertEquals(soup.script.string, javascript)
 
     def test_naked_ampersands(self):
@@ -300,7 +300,7 @@ class TestLXMLBuilder(SoupTest):
     def test_entities_converted_on_the_way_out(self):
         text = "<p>&lt;&lt;sacr&eacute;&#32;bleu!&gt;&gt;</p>"
         expected = u"&lt;&lt;sacr\N{LATIN SMALL LETTER E WITH ACUTE} bleu!&gt;&gt;".encode("utf-8")
-        soup = BeautifulSoup(text)
+        soup = self.soup(text)
         str = soup.p.string
         #self.assertEquals(str.encode("utf-8"), expected)
 

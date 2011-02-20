@@ -13,7 +13,8 @@ class SoupTest(unittest.TestCase):
 
     def soup(self, markup, **kwargs):
         """Build a Beautiful Soup object from markup."""
-        return BeautifulSoup(markup, builder=self.default_builder, **kwargs)
+        builder = kwargs.pop('builder', self.default_builder)
+        return BeautifulSoup(markup, builder=builder, **kwargs)
 
     def document_for(self, markup):
         """Turn an HTML fragment into a document.
