@@ -28,12 +28,12 @@ class TreeBuilder(Entities):
         The final markup may or may not actually present this tag as
         self-closing.
 
-        For instance: an HTML builder does not consider a <p> tag to
-        be an empty-element tag (it's not in empty_element_tags). This
-        means an empty <p> tag will be presented as "<p></p>", not
-        "<p />".
+        For instance: an HTMLBuilder does not consider a <p> tag to be
+        an empty-element tag (it's not in
+        HTMLBuilder.empty_element_tags). This means an empty <p> tag
+        will be presented as "<p></p>", not "<p />".
 
-        The default builder has no opinion about which tags are
+        The default implementation has no opinion about which tags are
         empty-element tags, so a tag will be presented as an
         empty-element tag if and only if it has no contents.
         "<foo></foo>" will become "<foo />", and "<foo>bar</foo>" will

@@ -518,6 +518,9 @@ class TestLXMLXMLBuilder(SoupTest):
     def default_builder(self):
         return LXMLTreeBuilderForXML()
 
+    def test_can_handle_invalid_xml(self):
+        self.assertSoupEquals("<a><b>", "<a><b /></a>")
+
     def test_empty_element_tag(self):
         soup = self.soup("<p><iamselfclosing /></p>")
         self.assertTrue(soup.iamselfclosing.is_empty_element)
