@@ -3,7 +3,7 @@
 import unittest
 from beautifulsoup import BeautifulSoup
 from beautifulsoup.element import Comment, SoupStrainer
-from beautifulsoup.builder.lxml_builder import LXMLTreeBuilder
+from beautifulsoup.builder import LXMLTreeBuilder
 
 class SoupTest(unittest.TestCase):
 

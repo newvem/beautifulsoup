@@ -1,3 +1,8 @@
+__all__ = [
+    'LXMLTreeBuilderForXML',
+    'LXMLTreeBuilder',
+    ]
+
 from lxml import etree
 from beautifulsoup.element import Comment, Doctype
 from beautifulsoup.builder import TreeBuilder, HTMLTreeBuilder
