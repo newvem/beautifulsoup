@@ -866,7 +866,6 @@ class TestSubstitutions(SoupTest):
         self.assertEquals(soup.contents[0].name, 'pre')
 
 
-
 class TestEncoding(SoupTest):
     """Test the ability to encode objects into strings."""
 
@@ -884,7 +883,6 @@ class TestEncoding(SoupTest):
 
 
 class TestNavigableStringSubclasses(SoupTest):
-
 
     def test_cdata(self):
         # None of the current builders turn CDATA sections into CData
