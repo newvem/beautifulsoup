@@ -492,15 +492,14 @@ class TestLXMLXMLBuilder(SoupTest):
     def default_builder(self):
         return LXMLTreeBuilderForXML()
 
-    def test_self_closing_tag(self):
+    def test_empty_element_tag(self):
         soup = self.soup("<p><iamselfclosing /></p>")
-        self.assertTrue(soup.iamselfclosing.isSelfClosing)
+        self.assertTrue(soup.iamselfclosing.is_empty_element)
 
-    def test_self_empty_tag_treated_as_self_closing(self):
+    def test_self_empty_tag_treated_as_empty_element(self):
         soup = self.soup("<p><iamclosed></iamclosed></p>")
-        self.assertTrue(soup.iamclosed.isSelfClosing)
+        self.assertTrue(soup.iamclosed.is_empty_element)
 
-    def test_self_nonempty_tag_is_not_self_closing(self):
+    def test_self_nonempty_tag_is_not_empty_element(self):
         soup = self.soup("<p><ihavecontents>contents</ihavecontents></p>")
-        self.assertFalse(soup.ihavecontents.isSelfClosing)
-
+        self.assertFalse(soup.ihavecontents.is_empty_element)

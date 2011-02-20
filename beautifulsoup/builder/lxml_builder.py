@@ -7,9 +7,6 @@ import types
 class LXMLTreeBuilderForXML(TreeBuilder):
     DEFAULT_PARSER_CLASS = etree.XMLParser
 
-    preserve_whitespace_tags = set()
-    self_closing_tags = set()
-
     @property
     def default_parser(self):
         # This can either return a parser object or a class, which
@@ -55,9 +52,6 @@ class LXMLTreeBuilderForXML(TreeBuilder):
     def end(self, name):
         self.soup.endData()
         completed_tag = self.soup.tagStack[-1]
-        if len(completed_tag.contents) == 0:
-            completed_tag.isSelfClosing = True
-
         self.soup.handle_endtag(name)
 
     def pi(self, target, data):
