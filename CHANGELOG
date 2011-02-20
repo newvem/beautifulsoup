@@ -59,9 +59,9 @@ The value of a.string used to be None, and now it's "foo".
 
 Beautiful Soup's handling of empty-element tags (aka self-closing
 tags) has been improved, especially when parsing XML. Previously you
-had to explicitly specify a list of empty-element tags. You can still
-do that, but if you don't, Beautiful Soup now considers any empty tag
-to be an empty-element tag.
+had to explicitly specify a list of empty-element tags when parsing
+XML. You can still do that, but if you don't, Beautiful Soup now
+considers any empty tag to be an empty-element tag.
 
 The determination of empty-element-ness is now made at runtime rather
 than parse time. If you add a child to an empty-element tag, it stops

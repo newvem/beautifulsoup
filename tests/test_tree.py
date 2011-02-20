@@ -620,6 +620,15 @@ class TestTreeModification(SoupTest):
         self.assertEqual(the.next, c_tag)
         self.assertEqual(c_tag.previous, the)
 
+    def test_insert_works_on_empty_element_tag(self):
+        # This is a little strange, since most HTML parsers don't allow
+        # markup like this to come through. But in general, we don't
+        # know what the parser would or wouldn't have allowed, so
+        # I'm letting this succeed for now.
+        soup = self.soup("<br />")
+        soup.br.insert(1, "Contents")
+        self.assertEquals(str(soup.br), "<br>Contents</br>")
+
     def test_replace_with(self):
         soup = self.soup(
                 "<p>There's <b>no</b> business like <b>show</b> business</p>")
