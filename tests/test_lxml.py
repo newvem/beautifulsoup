@@ -33,13 +33,18 @@ class TestLXMLBuilder(SoupTest):
             "<a><B><Cd><EFG></efg></CD></b></A>",
             "<a><b><cd><efg></efg></cd></b></a>")
 
-    def test_self_closing(self):
-        # HTML's self-closing tags are recognized as such.
+    def test_empty_element(self):
+        # HTML's empty-element tags are recognized as such.
         self.assertSoupEquals(
             "<p>A <meta> tag</p>", "<p>A <meta /> tag</p>")
 
         self.assertSoupEquals(
             "<p>Foo<br/>bar</p>", "<p>Foo<br />bar</p>")
+
+    def test_empty_tag_thats_not_an_empty_element_tag(self):
+        # A tag that is empty but not an HTML empty-element tag
+        # is not presented as an empty-element tag.
+        self.assertSoupEquals("<p>", "<p></p>")
 
     def test_comment(self):
         # Comments are represented as Comment objects.
@@ -350,6 +355,9 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
         self.assertSoupEquals(
             '<table><tr><table><tr id="nested">',
             '<table><tr><table><tr id="nested"></tr></table></tr></table>')
+
+    def test_empty_element_tag_with_contents(self):
+        self.assertSoupEquals("<br>foo</br>", "<br />foo")
 
     def test_doctype_in_body(self):
         markup = "<p>one<!DOCTYPE foobar>two</p>"

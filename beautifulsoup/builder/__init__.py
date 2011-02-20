@@ -116,7 +116,7 @@ class SAXTreeBuilder(TreeBuilder):
 class HTMLTreeBuilder(TreeBuilder):
     """This TreeBuilder knows facts about HTML.
 
-    Such as which tags are self-closing tags.
+    Such as which tags are empty-element tags.
     """
 
     assume_html = True
