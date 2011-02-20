@@ -446,7 +446,7 @@ class Tag(PageElement, Entities):
         # Set up any substitutions, such as the charset in a META tag.
         self.contains_substitutions = builder.set_up_substitutions(self)
 
-        self.can_be_empty_element = (builder.can_be_empty_element(name))
+        self.can_be_empty_element = builder.can_be_empty_element(name)
 
     @property
     def is_empty_element(self):

@@ -495,6 +495,12 @@ class TestLXMLBuilderEncodingConversion(SoupTest):
 
 from beautifulsoup.builder.lxml_builder import LXMLTreeBuilderForXML
 class TestLXMLXMLBuilder(SoupTest):
+    """Test XML-specific parsing behavior.
+
+    Most of the tests use HTML as an example, since Beautiful Soup is
+    mainly an HTML parser. This test suite is a base for XML-specific
+    tree builders.
+    """
 
     @property
     def default_builder(self):
@@ -511,3 +517,22 @@ class TestLXMLXMLBuilder(SoupTest):
     def test_self_nonempty_tag_is_not_empty_element(self):
         soup = self.soup("<p><ihavecontents>contents</ihavecontents></p>")
         self.assertFalse(soup.ihavecontents.is_empty_element)
+
+    def test_designated_empty_element_tags(self):
+        # A constructor argument allows you to say which empty tags
+        # should be presented as empty-element tags.
+        builder = LXMLTreeBuilderForXML(empty_element_tags=['bar'])
+
+        soup = BeautifulSoup(builder=builder, markup="<foo />")
+        self.assertEquals(str(soup), "<foo></foo>")
+
+        soup = BeautifulSoup(builder=builder, markup="<bar></bar>")
+        self.assertEquals(str(soup), "<bar />")
+
+    def test_designated_empty_element_tag_does_not_change_parser_behavior(self):
+        # The designated list of empty-element tags only affects how
+        # empty tags are presented. It does not affect how tags are
+        # parsed--that's the parser's job.
+        builder = LXMLTreeBuilderForXML(empty_element_tags=['bar'])
+        soup = BeautifulSoup(builder=builder, markup="<bar>contents</bar>")
+        self.assertEquals(soup.encode(), "<bar>contents</bar>")
