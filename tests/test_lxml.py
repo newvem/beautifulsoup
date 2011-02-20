@@ -308,6 +308,18 @@ class TestLXMLBuilder(SoupTest):
         str = soup.p.string
         #self.assertEquals(str.encode("utf-8"), expected)
 
+    def test_br_tag_is_empty_element(self):
+        """A <br> tag is designated as an empty-element tag."""
+        soup = self.soup("<br></br>")
+        self.assertTrue(soup.br.is_empty_element)
+        self.assertEquals(str(soup.br), "<br />")
+
+    def test_p_tag_is_not_empty_element(self):
+        """A <p> tag is not designated as an empty-element tag."""
+        soup = self.soup("<p />")
+        self.assertFalse(soup.p.is_empty_element)
+        self.assertEquals(str(soup.p), "<p></p>")
+
 
 class TestLXMLBuilderInvalidMarkup(SoupTest):
     """Tests of invalid markup for the LXML tree builder.
@@ -518,19 +530,18 @@ class TestLXMLXMLBuilder(SoupTest):
         soup = self.soup("<p><ihavecontents>contents</ihavecontents></p>")
         self.assertFalse(soup.ihavecontents.is_empty_element)
 
+    def test_empty_tag_that_stops_being_empty_gets_a_closing_tag(self):
+        soup = self.soup("<bar />")
+        self.assertTrue(soup.bar.is_empty_element)
+        soup.bar.insert(1, "Contents")
+        self.assertFalse(soup.bar.is_empty_element)
+        self.assertEquals(str(soup), "<bar>Contents</bar>")
+
     def test_designated_empty_element_tag_has_no_closing_tag(self):
         builder = LXMLTreeBuilderForXML(empty_element_tags=['bar'])
         soup = BeautifulSoup(builder=builder, markup="<bar></bar>")
         self.assertTrue(soup.bar.is_empty_element)
         self.assertEquals(str(soup), "<bar />")
-
-    def test_empty_tag_that_stops_being_empty_gets_a_closing_tag(self):
-        builder = LXMLTreeBuilderForXML(empty_element_tags=['bar'])
-        soup = BeautifulSoup(builder=builder, markup="<bar />")
-        self.assertTrue(soup.bar.is_empty_element)
-        soup.bar.insert(1, "Contents")
-        self.assertFalse(soup.bar.is_empty_element)
-        self.assertEquals(str(soup), "<bar>Contents</bar>")
 
     def test_empty_tag_not_in_empty_element_tag_list_has_closing_tag(self):
         builder = LXMLTreeBuilderForXML(empty_element_tags=['bar'])

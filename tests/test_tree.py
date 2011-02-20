@@ -872,3 +872,11 @@ class TestEncoding(SoupTest):
         soup = self.soup(html)
         self.assertEquals(
             soup.b.encode("utf-8"), html.encode("utf-8"))
+
+
+class TestEmptyElementTags(SoupTest):
+
+    @property
+    def default_builder(self):
+        return LXMLTreeBuilderForXML()
+
