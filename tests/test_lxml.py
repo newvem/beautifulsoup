@@ -498,7 +498,7 @@ class TestLXMLXMLBuilder(SoupTest):
 
     def test_self_empty_tag_treated_as_self_closing(self):
         soup = self.soup("<p><iamclosed></iamclosed></p>")
-        self.assertFalse(soup.iamclosed.isSelfClosing)
+        self.assertTrue(soup.iamclosed.isSelfClosing)
 
     def test_self_nonempty_tag_is_not_self_closing(self):
         soup = self.soup("<p><ihavecontents>contents</ihavecontents></p>")

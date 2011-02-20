@@ -16,7 +16,9 @@ class LXMLTreeBuilderForXML(TreeBuilder):
         # will be instantiated with default arguments.
         return etree.XMLParser
 
-    def __init__(self, parser=None):
+    def __init__(self, parser=None, self_closing_tags=None):
+        if self_closing_tags is not None:
+            self.self_closing_tags = set(self_closing_tags)
         if parser is None:
             # Use the default parser.
             parser = self.default_parser
