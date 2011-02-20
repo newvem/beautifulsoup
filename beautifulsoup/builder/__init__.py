@@ -165,7 +165,7 @@ class HTMLTreeBuilder(TreeBuilder):
         return False
 
 
-def register_builders_from(module, add_to_all)
+def register_builders_from(module):
     # I'm fairly sure this is not the best way to do this.
 
     # Copy everything mentioned in the builder module's __all__ into
@@ -174,10 +174,11 @@ def register_builders_from(module, add_to_all)
     for name in module.__all__:
         setattr(this_module, name, getattr(module, name))
 
-    # Add all names from the builder module's __all__ to these names.
-    add_to_all += module.__all__
+    # Add all names from the builder module's __all__ to this module's
+    # __all__.
+    this_module.__all__ += module.__all__
 
 import _lxml
-register_builders_from(_lxml, __all__)
-import html5lib
-register_builders_from(_html5lib, __all__)
+register_builders_from(_lxml)
+import _html5lib
+register_builders_from(_html5lib)
