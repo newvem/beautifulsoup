@@ -9,14 +9,16 @@ from beautifulsoup.testing import SoupTest
 
 
 class TestLXMLBuilder(SoupTest):
-    """A smoke test for the LXML tree builders.
+    """A smoke test for the LXML tree builder.
 
-    Subclass this to test some other tree builder. Subclasses of this
-    test ensure that all of Beautiful Soup's tree builders generate
-    more or less the same trees. It's okay for trees to differ--just
-    override the appropriate test method to demonstrate how one tree
-    builder differs from the LXML builder. But in general, all tree
-    builders should generate trees that make most of these tests pass.
+    Subclass this to test some other HTML tree builder. Subclasses of
+    this test ensure that all of Beautiful Soup's tree builders
+    generate more or less the same trees.
+
+    It's okay for trees to differ--just override the appropriate test
+    method to demonstrate how one tree builder differs from the LXML
+    builder. But in general, all HTML tree builders should generate
+    trees that make most of these tests pass.
     """
 
     def test_bare_string(self):
