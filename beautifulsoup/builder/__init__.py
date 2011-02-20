@@ -8,6 +8,14 @@ __all__ = [
     'TreeBuilder',
     ]
 
+# Some useful keywords.
+FAST = 'fast'
+ACCURATE = 'accurate'
+XML = 'xml'
+HTML = 'html'
+
+builders_for_tag = {}
+
 class TreeBuilder(Entities):
     """Turn a document into a Beautiful Soup object tree."""
 
@@ -166,19 +174,26 @@ class HTMLTreeBuilder(TreeBuilder):
 
 
 def register_builders_from(module):
+    """Copy everything in __all___ from the given module into this module."""
     # I'm fairly sure this is not the best way to do this.
-
-    # Copy everything mentioned in the builder module's __all__ into
-    # this module.
     this_module = sys.modules[__package__]
     for name in module.__all__:
-        setattr(this_module, name, getattr(module, name))
+        obj = getattr(module, name)
+        setattr(this_module, name, obj)
+        this_module.__all__.append(name)
 
-    # Add all names from the builder module's __all__ to this module's
-    # __all__.
-    this_module.__all__ += module.__all__
-
-import _lxml
-register_builders_from(_lxml)
-import _html5lib
-register_builders_from(_html5lib)
+# Builders are registered in reverse order of priority, so that custom
+# builder registrations will take precedence. In general, we want
+# html5lib to take precedence over lxml, because it's more reliable.
+try:
+    import _lxml
+    register_builders_from(_lxml)
+except ImportError:
+    # They don't have lxml installed.
+    pass
+try:
+    import _html5lib
+    register_builders_from(_html5lib)
+except ImportError:
+    # They don't have html5lib installed.
+    pass

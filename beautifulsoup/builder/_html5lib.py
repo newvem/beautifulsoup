@@ -2,7 +2,11 @@ __all__ = [
     'HTML5TreeBuilder',
     ]
 
-from beautifulsoup.builder import HTMLTreeBuilder, SAXTreeBuilder
+from beautifulsoup.builder import (
+    ACCURATE,
+    HTML,
+    HTMLTreeBuilder,
+    )
 import html5lib
 from html5lib.constants import DataLossWarning
 import warnings
@@ -13,9 +17,10 @@ from beautifulsoup.element import (
     Tag,
     )
 
-
 class HTML5TreeBuilder(HTMLTreeBuilder):
     """Use html5lib to build a tree."""
+
+    tags = [ACCURATE, HTML]
 
     def prepare_markup(self, markup, user_specified_encoding):
         # Store the user-specified encoding for use later on.
