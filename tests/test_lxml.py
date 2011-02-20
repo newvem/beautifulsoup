@@ -518,16 +518,26 @@ class TestLXMLXMLBuilder(SoupTest):
         soup = self.soup("<p><ihavecontents>contents</ihavecontents></p>")
         self.assertFalse(soup.ihavecontents.is_empty_element)
 
-    def test_designated_empty_element_tags(self):
-        # A constructor argument allows you to say which empty tags
-        # should be presented as empty-element tags.
+    def test_designated_empty_element_tag_has_no_closing_tag(self):
+        builder = LXMLTreeBuilderForXML(empty_element_tags=['bar'])
+        soup = BeautifulSoup(builder=builder, markup="<bar></bar>")
+        self.assertTrue(soup.bar.is_empty_element)
+        self.assertEquals(str(soup), "<bar />")
+
+    def test_empty_tag_that_stops_being_empty_gets_a_closing_tag(self):
+        builder = LXMLTreeBuilderForXML(empty_element_tags=['bar'])
+        soup = BeautifulSoup(builder=builder, markup="<bar />")
+        self.assertTrue(soup.bar.is_empty_element)
+        soup.bar.insert(1, "Contents")
+        self.assertFalse(soup.bar.is_empty_element)
+        self.assertEquals(str(soup), "<bar>Contents</bar>")
+
+    def test_empty_tag_not_in_empty_element_tag_list_has_closing_tag(self):
         builder = LXMLTreeBuilderForXML(empty_element_tags=['bar'])
 
         soup = BeautifulSoup(builder=builder, markup="<foo />")
+        self.assertFalse(soup.foo.is_empty_element)
         self.assertEquals(str(soup), "<foo></foo>")
-
-        soup = BeautifulSoup(builder=builder, markup="<bar></bar>")
-        self.assertEquals(str(soup), "<bar />")
 
     def test_designated_empty_element_tag_does_not_change_parser_behavior(self):
         # The designated list of empty-element tags only affects how
@@ -535,4 +545,4 @@ class TestLXMLXMLBuilder(SoupTest):
         # parsed--that's the parser's job.
         builder = LXMLTreeBuilderForXML(empty_element_tags=['bar'])
         soup = BeautifulSoup(builder=builder, markup="<bar>contents</bar>")
-        self.assertEquals(soup.encode(), "<bar>contents</bar>")
+        self.assertEquals(str(soup), "<bar>contents</bar>")

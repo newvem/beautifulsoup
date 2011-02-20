@@ -17,6 +17,10 @@ work. Here are the renames:
  * findPreviousSibling -> find_previous_sibling
  * findPreviousSiblings -> find_previous_siblings
 
+Some attributes have also been renamed:
+
+ * Tag.isSelfClosing -> Tag.is_empty_element
+
 == Generators are now properties ==
 
 The generators have been given more sensible (and PEP 8-compliant)
@@ -50,6 +54,18 @@ and nothing else, then A.string is the same as B.string. So:
 <a><b>foo</b></a>
 
 The value of a.string used to be None, and now it's "foo".
+
+== Empty-element tags ==
+
+Beautiful Soup's handling of empty-element tags (aka self-closing
+tags) has been improved, especially when parsing XML. Previously you
+had to explicitly specify a list of empty-element tags. You can still
+do that, but if you don't, Beautiful Soup now considers any empty tag
+to be an empty-element tag.
+
+The determination of empty-element-ness is now made at runtime rather
+than parse time. If you add a child to an empty-element tag, it stops
+being an empty-element tag.
 
 == Entities are always converted to Unicode ==
 
