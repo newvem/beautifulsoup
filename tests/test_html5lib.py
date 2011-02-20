@@ -40,6 +40,12 @@ class TestHTML5Builder(TestLXMLBuilder):
             "<tbody><tr><td>Bar</td></tr></tbody>"
             "<tfoot><tr><td>Baz</td></tr></tfoot></table>")
 
+    def test_literal_in_textarea(self):
+        markup = '<textarea>Junk like <b> tags and <&<&amp;</textarea>'
+        soup = self.soup(markup)
+        self.assertEquals(
+            soup.textarea.contents, ["Junk like <b> tags and <&<&"])
+
     def test_collapsed_whitespace(self):
         """Whitespace is preserved even in tags that don't require it."""
         self.assertSoupEquals("<p>   </p>")

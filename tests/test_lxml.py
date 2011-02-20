@@ -126,10 +126,9 @@ class TestLXMLBuilder(SoupTest):
 
     def test_literal_in_textarea(self):
         # Anything inside a <textarea> is supposed to be treated as
-        # the literal value of the field, (XXX citation needed).
-        #
-        # But, both lxml and html5lib do their best to parse the
-        # contents of a <textarea> as HTML.
+        # the literal value of the field, (XXX citation
+        # needed). html5lib does this correctly. But, lxml does its
+        # best to parse the contents of a <textarea> as HTML.
         text = '<textarea>Junk like <b> tags and <&<&amp;</textarea>'
         soup = self.soup(text)
         self.assertEquals(len(soup.textarea.contents), 2)
