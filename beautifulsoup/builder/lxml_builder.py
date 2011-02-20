@@ -2,15 +2,23 @@ from lxml import etree
 from beautifulsoup.element import Comment, Doctype
 from beautifulsoup.builder import TreeBuilder, HTMLTreeBuilder
 from beautifulsoup.dammit import UnicodeDammit
+import types
 
 class LXMLTreeBuilderForXML(TreeBuilder):
     DEFAULT_PARSER_CLASS = etree.XMLParser
 
-    def __init__(self, parser_class=None):
-        # strip_cdata only has an effect on XMLParser. HTMLParser's
-        # constructor accepts strip_cdata but ignores it.
-        parser_class = parser_class or self.DEFAULT_PARSER_CLASS
-        self.parser = parser_class(target=self, strip_cdata=False)
+    @property
+    def default_parser(self):
+        return etree.XMLParser
+
+    def __init__(self, parser=None):
+        if parser is None:
+            # Use the default parser.
+            parser = self.default_parser
+        if callable(parser):
+            # Instantiate it with default arguments
+            parser = parser(target=self, strip_cdata=False)
+        self.parser = parser
         self.soup = None
 
     def prepare_markup(self, markup, user_specified_encoding=None,
@@ -64,4 +72,6 @@ class LXMLTreeBuilderForXML(TreeBuilder):
 
 class LXMLTreeBuilder(LXMLTreeBuilderForXML, HTMLTreeBuilder):
 
-    DEFAULT_PARSER_CLASS = etree.HTMLParser
+    @property
+    def default_parser(self):
+        return etree.HTMLParser
