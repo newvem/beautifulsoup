@@ -33,13 +33,18 @@ class TestLXMLBuilder(SoupTest):
             "<a><B><Cd><EFG></efg></CD></b></A>",
             "<a><b><cd><efg></efg></cd></b></a>")
 
-    def test_self_closing(self):
-        # HTML's self-closing tags are recognized as such.
+    def test_empty_element(self):
+        # HTML's empty-element tags are recognized as such.
         self.assertSoupEquals(
             "<p>A <meta> tag</p>", "<p>A <meta /> tag</p>")
 
         self.assertSoupEquals(
             "<p>Foo<br/>bar</p>", "<p>Foo<br />bar</p>")
+
+    def test_empty_tag_thats_not_an_empty_element_tag(self):
+        # A tag that is empty but not an HTML empty-element tag
+        # is not presented as an empty-element tag.
+        self.assertSoupEquals("<p>", "<p></p>")
 
     def test_comment(self):
         # Comments are represented as Comment objects.
@@ -303,6 +308,18 @@ class TestLXMLBuilder(SoupTest):
         str = soup.p.string
         #self.assertEquals(str.encode("utf-8"), expected)
 
+    def test_br_tag_is_empty_element(self):
+        """A <br> tag is designated as an empty-element tag."""
+        soup = self.soup("<br></br>")
+        self.assertTrue(soup.br.is_empty_element)
+        self.assertEquals(str(soup.br), "<br />")
+
+    def test_p_tag_is_not_empty_element(self):
+        """A <p> tag is not designated as an empty-element tag."""
+        soup = self.soup("<p />")
+        self.assertFalse(soup.p.is_empty_element)
+        self.assertEquals(str(soup.p), "<p></p>")
+
 
 class TestLXMLBuilderInvalidMarkup(SoupTest):
     """Tests of invalid markup for the LXML tree builder.
@@ -350,6 +367,9 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
         self.assertSoupEquals(
             '<table><tr><table><tr id="nested">',
             '<table><tr><table><tr id="nested"></tr></table></tr></table>')
+
+    def test_empty_element_tag_with_contents(self):
+        self.assertSoupEquals("<br>foo</br>", "<br />foo")
 
     def test_doctype_in_body(self):
         markup = "<p>one<!DOCTYPE foobar>two</p>"
@@ -487,20 +507,53 @@ class TestLXMLBuilderEncodingConversion(SoupTest):
 
 from beautifulsoup.builder.lxml_builder import LXMLTreeBuilderForXML
 class TestLXMLXMLBuilder(SoupTest):
+    """Test XML-specific parsing behavior.
+
+    Most of the tests use HTML as an example, since Beautiful Soup is
+    mainly an HTML parser. This test suite is a base for XML-specific
+    tree builders.
+    """
 
     @property
     def default_builder(self):
         return LXMLTreeBuilderForXML()
 
-    def test_self_closing_tag(self):
+    def test_empty_element_tag(self):
         soup = self.soup("<p><iamselfclosing /></p>")
-        self.assertTrue(soup.iamselfclosing.isSelfClosing)
+        self.assertTrue(soup.iamselfclosing.is_empty_element)
 
-    def test_self_empty_tag_treated_as_self_closing(self):
+    def test_self_empty_tag_treated_as_empty_element(self):
         soup = self.soup("<p><iamclosed></iamclosed></p>")
-        self.assertFalse(soup.iamclosed.isSelfClosing)
+        self.assertTrue(soup.iamclosed.is_empty_element)
 
-    def test_self_nonempty_tag_is_not_self_closing(self):
+    def test_self_nonempty_tag_is_not_empty_element(self):
         soup = self.soup("<p><ihavecontents>contents</ihavecontents></p>")
-        self.assertFalse(soup.ihavecontents.isSelfClosing)
+        self.assertFalse(soup.ihavecontents.is_empty_element)
 
+    def test_empty_tag_that_stops_being_empty_gets_a_closing_tag(self):
+        soup = self.soup("<bar />")
+        self.assertTrue(soup.bar.is_empty_element)
+        soup.bar.insert(1, "Contents")
+        self.assertFalse(soup.bar.is_empty_element)
+        self.assertEquals(str(soup), "<bar>Contents</bar>")
+
+    def test_designated_empty_element_tag_has_no_closing_tag(self):
+        builder = LXMLTreeBuilderForXML(empty_element_tags=['bar'])
+        soup = BeautifulSoup(builder=builder, markup="<bar></bar>")
+        self.assertTrue(soup.bar.is_empty_element)
+        self.assertEquals(str(soup), "<bar />")
+
+    def test_empty_tag_not_in_empty_element_tag_list_has_closing_tag(self):
+        builder = LXMLTreeBuilderForXML(empty_element_tags=['bar'])
+
+        soup = BeautifulSoup(builder=builder, markup="<foo />")
+        self.assertFalse(soup.foo.is_empty_element)
+        self.assertEquals(str(soup), "<foo></foo>")
+
+    def test_designated_empty_element_tag_does_not_change_parser_behavior(self):
+        # The designated list of empty-element tags only affects how
+        # empty tags are presented. It does not affect how tags are
+        # parsed--that's the parser's job.
+        builder = LXMLTreeBuilderForXML(empty_element_tags=['bar'])
+        soup = BeautifulSoup(builder=builder, markup="<bar>contents</bar>")
+        self.assertEquals(str(soup), "<bar>contents</bar>")

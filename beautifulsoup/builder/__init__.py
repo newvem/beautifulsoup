@@ -12,15 +12,36 @@ class TreeBuilder(Entities):
     """Turn a document into a Beautiful Soup object tree."""
 
     assume_html = False
+    preserve_whitespace_tags = set()
+    empty_element_tags = None # A tag will be considered an empty-element
+                              # tag when and only when it has no contents.
 
     def __init__(self):
         self.soup = None
 
-    def isSelfClosingTag(self, name):
-        return name in self.self_closing_tags
-
     def reset(self):
         pass
+
+    def can_be_empty_element(self, tag_name):
+        """Might a tag with this name be an empty-element tag?
+
+        The final markup may or may not actually present this tag as
+        self-closing.
+
+        For instance: an HTML builder does not consider a <p> tag to
+        be an empty-element tag (it's not in empty_element_tags). This
+        means an empty <p> tag will be presented as "<p></p>", not
+        "<p />".
+
+        The default builder has no opinion about which tags are
+        empty-element tags, so a tag will be presented as an
+        empty-element tag if and only if it has no contents.
+        "<foo></foo>" will become "<foo />", and "<foo>bar</foo>" will
+        be left alone.
+        """
+        if self.empty_element_tags is None:
+            return True
+        return tag_name in self.empty_element_tags
 
     def feed(self, markup):
         raise NotImplementedError()
@@ -95,14 +116,14 @@ class SAXTreeBuilder(TreeBuilder):
 class HTMLTreeBuilder(TreeBuilder):
     """This TreeBuilder knows facts about HTML.
 
-    Such as which tags are self-closing tags.
+    Such as which tags are empty-element tags.
     """
 
     assume_html = True
 
     preserve_whitespace_tags = set(['pre', 'textarea'])
-    self_closing_tags = set(['br' , 'hr', 'input', 'img', 'meta',
-                            'spacer', 'link', 'frame', 'base'])
+    empty_element_tags = set(['br' , 'hr', 'input', 'img', 'meta',
+                              'spacer', 'link', 'frame', 'base'])
 
     # Used by set_up_substitutions to detect the charset in a META tag
     CHARSET_RE = re.compile("((^|;)\s*charset=)([^;]*)", re.M)

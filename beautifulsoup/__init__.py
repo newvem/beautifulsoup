@@ -106,11 +106,9 @@ class BeautifulSoup(Tag):
     able to build a tree using 'start tag' events, 'end tag' events,
     'data' events, and "done with data" events.
 
-    If you encounter a self-closing tag, call handle_starttag and then
-    handle_endtag, but note that the tag will not be displayed as a
-    self-closing tag unless you also have your builder's
-    isSelfClosingTag() implementation return True when passed the tag
-    name.
+    If you encounter an empty-element tag (aka a self-closing tag,
+    like HTML's <br> tag), call handle_starttag and then
+    handle_endtag.
     """
     ROOT_TAG_NAME = u'[document]'
 
