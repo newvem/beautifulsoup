@@ -483,3 +483,24 @@ class TestLXMLBuilderEncodingConversion(SoupTest):
         self.assertEquals(
             soup.encode('utf-8'),
             self.HEBREW_DOCUMENT.decode("iso-8859-8").encode("utf-8"))
+
+
+from beautifulsoup.builder.lxml_builder import LXMLTreeBuilderForXML
+class TestLXMLXMLBuilder(SoupTest):
+
+    @property
+    def default_builder(self):
+        return LXMLTreeBuilderForXML()
+
+    def test_self_closing_tag(self):
+        soup = self.soup("<p><iamselfclosing /></p>")
+        self.assertTrue(soup.iamselfclosing.isSelfClosing)
+
+    def test_self_empty_tag_treated_as_self_closing(self):
+        soup = self.soup("<p><iamclosed></iamclosed></p>")
+        self.assertFalse(soup.iamclosed.isSelfClosing)
+
+    def test_self_nonempty_tag_is_not_self_closing(self):
+        soup = self.soup("<p><ihavecontents>contents</ihavecontents></p>")
+        self.assertFalse(soup.ihavecontents.isSelfClosing)
+

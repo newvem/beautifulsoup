@@ -7,8 +7,13 @@ import types
 class LXMLTreeBuilderForXML(TreeBuilder):
     DEFAULT_PARSER_CLASS = etree.XMLParser
 
+    preserve_whitespace_tags = set()
+    self_closing_tags = set()
+
     @property
     def default_parser(self):
+        # This can either return a parser object or a class, which
+        # will be instantiated with default arguments.
         return etree.XMLParser
 
     def __init__(self, parser=None):
@@ -16,7 +21,7 @@ class LXMLTreeBuilderForXML(TreeBuilder):
             # Use the default parser.
             parser = self.default_parser
         if callable(parser):
-            # Instantiate it with default arguments
+            # Instantiate the parser with default arguments
             parser = parser(target=self, strip_cdata=False)
         self.parser = parser
         self.soup = None
@@ -46,6 +51,11 @@ class LXMLTreeBuilderForXML(TreeBuilder):
         self.soup.handle_starttag(name, attrs)
 
     def end(self, name):
+        self.soup.endData()
+        completed_tag = self.soup.tagStack[-1]
+        if len(completed_tag.contents) == 0:
+            completed_tag.isSelfClosing = True
+
         self.soup.handle_endtag(name)
 
     def pi(self, target, data):
@@ -70,8 +80,11 @@ class LXMLTreeBuilderForXML(TreeBuilder):
         return u'<html><body>%s</body></html>' % fragment
 
 
-class LXMLTreeBuilder(LXMLTreeBuilderForXML, HTMLTreeBuilder):
+class LXMLTreeBuilder(HTMLTreeBuilder, LXMLTreeBuilderForXML):
 
     @property
     def default_parser(self):
         return etree.HTMLParser
+
+    def end(self, name):
+        self.soup.handle_endtag(name)
