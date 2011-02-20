@@ -76,16 +76,10 @@ from __future__ import generators
 
 __author__ = "Leonard Richardson (leonardr@segfault.org)"
 __version__ = "4.0.0"
-__copyright__ = "Copyright (c) 2004-2009 Leonard Richardson"
+__copyright__ = "Copyright (c) 2004-2011 Leonard Richardson"
 __license__ = "New-style BSD"
 
-__all__ = ['BeautifulSoup',
-
-           # Stuff imported from other packages
-           'Entities',
-
-           'BeautifulStoneSoup',
-           'ICantBelieveItsBeautifulSoup']
+__all__ = ['BeautifulSoup']
 
 import re
 
@@ -94,7 +88,7 @@ from dammit import UnicodeDammit
 from element import Entities, NavigableString, Tag
 
 
-class BeautifulStoneSoup(Tag):
+class BeautifulSoup(Tag):
     """
     This class defines the basic interface called by the tree builders.
 
@@ -128,9 +122,12 @@ class BeautifulStoneSoup(Tag):
 
     @classmethod
     def default_builder(self):
-        from lxml import etree
-        from builder.lxml_builder import LXMLTreeBuilder
-        return LXMLTreeBuilder(parser_class=etree.XMLParser)
+        try:
+            from builder.html5_builder import HTML5TreeBuilder
+            return HTML5TreeBuilder()
+        except ImportError:
+            from builder.lxml_builder import LXMLTreeBuilder
+            return LXMLTreeBuilder()
 
     def __init__(self, markup="", builder=None, parseOnlyThese=None,
                  fromEncoding=None):
@@ -276,19 +273,6 @@ class BeautifulStoneSoup(Tag):
 
     def handle_data(self, data):
         self.currentData.append(data)
-
-
-class BeautifulSoup(BeautifulStoneSoup):
-    """A convenience class for parsing HTML without creating a builder."""
-
-    @classmethod
-    def default_builder(self):
-        try:
-            from builder.html5_builder import HTML5TreeBuilder
-            return HTML5TreeBuilder()
-        except ImportError:
-            from builder.lxml_builder import LXMLTreeBuilder
-            return LXMLTreeBuilder()
 
 
 class StopParsing(Exception):

@@ -524,7 +524,7 @@ class TestTreeModification(SoupTest):
 
     def test_new_tag_creation(self):
         builder = BeautifulSoup.default_builder()
-        soup = BeautifulSoup("", builder=builder)
+        soup = self.soup("", builder=builder)
         a = Tag(soup, builder, 'a')
         ol = Tag(soup, builder, 'ol')
         a['href'] = 'http://foo.com/'
@@ -553,7 +553,7 @@ class TestTreeModification(SoupTest):
 
     def test_replace_tag_with_itself(self):
         text = "<a><b></b><c>Foo<d></d></c></a><a><e></e></a>"
-        soup = BeautifulSoup(text)
+        soup = self.soup(text)
         c = soup.c
         soup.c.replaceWith(c)
         self.assertEquals(soup.decode(), self.document_for(text))
@@ -592,7 +592,7 @@ class TestTreeModification(SoupTest):
 
     def test_insert_tag(self):
         builder = self.default_builder
-        soup = BeautifulSoup(
+        soup = self.soup(
             "<a><b>Find</b><c>lady!</c><d></d></a>", builder=builder)
         magic_tag = Tag(soup, builder, 'magictag')
         magic_tag.insert(0, "the")
@@ -636,7 +636,7 @@ class TestTreeModification(SoupTest):
         self.assertEquals(no.nextSibling, " business")
 
     def test_nested_tag_replace_with(self):
-        soup = BeautifulSoup(
+        soup = self.soup(
             """<a>We<b>reserve<c>the</c><d>right</d></b></a><e>to<f>refuse</f><g>service</g></e>""")
 
         # Replace the entire <b> tag and its contents ("reserve the
@@ -853,7 +853,7 @@ class TestSubstitutions(SoupTest):
         # meta tag got filtered out by the strainer. This test makes
         # sure that doesn't happen.
         strainer = SoupStrainer('pre')
-        soup = BeautifulSoup(markup, parseOnlyThese=strainer)
+        soup = self.soup(markup, parseOnlyThese=strainer)
         self.assertEquals(soup.contents[0].name, 'pre')
 
 

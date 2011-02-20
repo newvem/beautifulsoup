@@ -1,15 +1,16 @@
 from lxml import etree
 from beautifulsoup.element import Comment, Doctype
-from beautifulsoup.builder import HTMLTreeBuilder
+from beautifulsoup.builder import TreeBuilder, HTMLTreeBuilder
 from beautifulsoup.dammit import UnicodeDammit
 
-class LXMLTreeBuilder(HTMLTreeBuilder):
+class LXMLTreeBuilderForXML(TreeBuilder):
+    DEFAULT_PARSER_CLASS = etree.XMLParser
 
-    def __init__(self, parser_class=etree.HTMLParser):
-        # etree.HTMLParser's constructor has an argument strip_cdata,
-        # but it does nothing. CDATA sections are always stripped when
-        # passed through HTMLParser.
-        self.parser = parser_class(target=self)
+    def __init__(self, parser_class=None):
+        # strip_cdata only has an effect on XMLParser. HTMLParser's
+        # constructor accepts strip_cdata but ignores it.
+        parser_class = parser_class or self.DEFAULT_PARSER_CLASS
+        self.parser = parser_class(target=self, strip_cdata=False)
         self.soup = None
 
     def prepare_markup(self, markup, user_specified_encoding=None,
@@ -23,8 +24,8 @@ class LXMLTreeBuilder(HTMLTreeBuilder):
 
         try_encodings = [user_specified_encoding, document_declared_encoding]
         dammit = UnicodeDammit(markup, try_encodings, isHTML=True)
-        return dammit.markup, dammit.original_encoding, dammit.declared_html_encoding
-
+        return (dammit.markup, dammit.original_encoding,
+                dammit.declared_html_encoding)
 
     def feed(self, markup):
         self.parser.feed(markup)
@@ -60,3 +61,7 @@ class LXMLTreeBuilder(HTMLTreeBuilder):
         """See `TreeBuilder`."""
         return u'<html><body>%s</body></html>' % fragment
 
+
+class LXMLTreeBuilder(LXMLTreeBuilderForXML, HTMLTreeBuilder):
+
+    DEFAULT_PARSER_CLASS = etree.HTMLParser
