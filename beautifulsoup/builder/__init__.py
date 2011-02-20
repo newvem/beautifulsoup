@@ -1,3 +1,4 @@
+from collections import defaultdict
 import re
 import sys
 from beautifulsoup.element import Entities
@@ -8,16 +9,19 @@ __all__ = [
     'TreeBuilder',
     ]
 
-# Some useful keywords.
+# Some useful features for a TreeBuilder to have.
 FAST = 'fast'
-ACCURATE = 'accurate'
+PERMISSIVE = 'permissive'
 XML = 'xml'
 HTML = 'html'
 
-builders_for_tag = {}
+# Which builders have a given feature?
+treebuilders_for_feature = defaultdict(list)
 
 class TreeBuilder(Entities):
     """Turn a document into a Beautiful Soup object tree."""
+
+    features = []
 
     assume_html = False
     preserve_whitespace_tags = set()
@@ -173,27 +177,38 @@ class HTMLTreeBuilder(TreeBuilder):
         return False
 
 
-def register_builders_from(module):
-    """Copy everything in __all___ from the given module into this module."""
+def register_treebuilder(treebuilder_class):
+    """Register a treebuilder based on its advertised features."""
+    for feature in treebuilder_class.features:
+        treebuilders_for_feature[feature].append(treebuilder_class)
+
+
+def register_treebuilders_from(module):
+    """Copy TreeBuilder subclasses from the given module into this module."""
     # I'm fairly sure this is not the best way to do this.
     this_module = sys.modules[__package__]
     for name in module.__all__:
         obj = getattr(module, name)
-        setattr(this_module, name, obj)
-        this_module.__all__.append(name)
+
+        if issubclass(obj, TreeBuilder):
+            setattr(this_module, name, obj)
+            this_module.__all__.append(name)
+            register_treebuilder(obj)
 
 # Builders are registered in reverse order of priority, so that custom
 # builder registrations will take precedence. In general, we want
 # html5lib to take precedence over lxml, because it's more reliable.
 try:
     import _lxml
-    register_builders_from(_lxml)
+    register_treebuilders_from(_lxml)
 except ImportError:
     # They don't have lxml installed.
     pass
 try:
     import _html5lib
-    register_builders_from(_html5lib)
+    register_treebuilders_from(_html5lib)
 except ImportError:
     # They don't have html5lib installed.
     pass
+
+print treebuilders_for_feature

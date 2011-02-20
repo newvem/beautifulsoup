@@ -5,12 +5,19 @@ __all__ = [
 
 from lxml import etree
 from beautifulsoup.element import Comment, Doctype
-from beautifulsoup.builder import TreeBuilder, HTMLTreeBuilder
+from beautifulsoup.builder import (
+    FAST,
+    HTML,
+    HTMLTreeBuilder,
+    TreeBuilder,
+    XML)
 from beautifulsoup.dammit import UnicodeDammit
 import types
 
 class LXMLTreeBuilderForXML(TreeBuilder):
     DEFAULT_PARSER_CLASS = etree.XMLParser
+
+    features = [FAST, XML]
 
     @property
     def default_parser(self):
@@ -78,6 +85,8 @@ class LXMLTreeBuilderForXML(TreeBuilder):
 
 
 class LXMLTreeBuilder(HTMLTreeBuilder, LXMLTreeBuilderForXML):
+
+    features = [FAST, HTML]
 
     @property
     def default_parser(self):
