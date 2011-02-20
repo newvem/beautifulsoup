@@ -163,5 +163,12 @@ class HTMLTreeBuilder(TreeBuilder):
                     pass
         return False
 
+
+def register_builders_from(module, add_to_all):
+    __import__(module.__name__, module.__all__)
+    add_to_all += module.__all__
+
 from _lxml import *
+register_builders_from(_lxml, __all__)
 from _html5lib import *
+register_builders_from(_html5lib, __all__)
