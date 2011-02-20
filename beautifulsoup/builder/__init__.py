@@ -1,4 +1,5 @@
 import re
+import sys
 from beautifulsoup.element import Entities
 
 __all__ = [
@@ -164,11 +165,28 @@ class HTMLTreeBuilder(TreeBuilder):
         return False
 
 
-def register_builders_from(module, add_to_all):
-    __import__(module.__name__, module.__all__)
+def register_builders_from(module_name, add_to_all,
+                           local_to_this_package=False):
+    # I'm sure this is not the best way to do this.
+
+    # Import the module beautifulsoup.builder.foo or some.other.builder.foo
+    if local_to_this_package:
+        fqn = __package__ + '.' + module_name
+    else:
+        fqn = module_name
+    __import__(fqn)
+
+    # Look up the module by its fully-qualified name.
+    module = sys.modules[fqn]
+
+    # Copy everything mentioned in the builder module's __all__ into
+    # this module.
+    this_module = sys.modules[__package__]
+    for name in module.__all__:
+        setattr(this_module, name, getattr(module, name))
+
+    # Add all names from the builder module's __all__ to these names.
     add_to_all += module.__all__
 
-from _lxml import *
-register_builders_from(_lxml, __all__)
-from _html5lib import *
-register_builders_from(_html5lib, __all__)
+register_builders_from('_lxml', __all__, True)
+register_builders_from('_html5lib', __all__, True)
