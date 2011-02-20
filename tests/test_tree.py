@@ -13,7 +13,7 @@ import copy
 import cPickle as pickle
 import re
 from beautifulsoup import BeautifulSoup
-from beautifulsoup.element import SoupStrainer, Tag
+from beautifulsoup.element import CData, SoupStrainer, Tag
 from beautifulsoup.testing import SoupTest
 
 class TreeTest(SoupTest):
@@ -883,9 +883,15 @@ class TestEncoding(SoupTest):
             soup.b.encode("utf-8"), html.encode("utf-8"))
 
 
-class TestEmptyElementTags(SoupTest):
+class TestNavigableStringSubclasses(SoupTest):
 
-    @property
-    def default_builder(self):
-        return LXMLTreeBuilderForXML()
 
+    def test_cdata(self):
+        # None of the current builders turn CDATA sections into CData
+        # objects, but you can create them manually.
+        soup = self.soup("")
+        cdata = CData("foo")
+        soup.insert(1, cdata)
+        self.assertEquals(str(soup), "<![CDATA[foo]]>")
+        self.assertEquals(soup.find(text="foo"), "foo")
+        self.assertEquals(soup.contents[0], "foo")

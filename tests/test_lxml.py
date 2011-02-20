@@ -518,6 +518,17 @@ class TestLXMLXMLBuilder(SoupTest):
     def default_builder(self):
         return LXMLTreeBuilderForXML()
 
+    def test_cdata_becomes_text(self):
+        # LXML sends CData sections as 'data' events, so we can't
+        # create special CData objects for them. We have to use
+        # NavigableString. I would like to fix this, but it's not a
+        # very high priority.
+        markup = "<foo><![CDATA[iamcdata]]></foo>"
+        soup = self.soup(markup)
+        cdata = soup.foo.contents[0]
+        self.assertEquals(cdata.__class__.__name__, 'NavigableString')
+
+
     def test_can_handle_invalid_xml(self):
         self.assertSoupEquals("<a><b>", "<a><b /></a>")
 
