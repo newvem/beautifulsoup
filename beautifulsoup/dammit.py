@@ -56,15 +56,6 @@ class EntitySubstitution(object):
                                            "&(?!#\d+;|#x[0-9a-fA-F]+;|\w+;)"
                                            ")")
 
-    @classmethod
-    def _initialize_lookup(cls):
-        if cls.CHARACTER_TO_HTML_ENTITY is not None:
-            return
-
-    def __init__(self):
-        # Initialize the class variables if not already initialized
-        self._initialize_lookup()
-
     def _substitute_html_entity(self, matchobj):
         entity = self.CHARACTER_TO_HTML_ENTITY.get(matchobj.group(0))
         return "&%s;" % entity
