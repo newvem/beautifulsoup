@@ -9,15 +9,19 @@ from beautifulsoup.builder import (
     FAST,
     HTML,
     HTMLTreeBuilder,
+    PERMISSIVE,
     TreeBuilder,
     XML)
 from beautifulsoup.dammit import UnicodeDammit
 import types
 
+LXML = 'lxml'
+
 class LXMLTreeBuilderForXML(TreeBuilder):
     DEFAULT_PARSER_CLASS = etree.XMLParser
 
-    features = [FAST, XML]
+    # Well, it's permissive by XML parser standards.
+    features = [LXML, XML, FAST, PERMISSIVE]
 
     @property
     def default_parser(self):
@@ -86,7 +90,7 @@ class LXMLTreeBuilderForXML(TreeBuilder):
 
 class LXMLTreeBuilder(HTMLTreeBuilder, LXMLTreeBuilderForXML):
 
-    features = [FAST, HTML]
+    features = [LXML, HTML, FAST]
 
     @property
     def default_parser(self):
