@@ -358,28 +358,28 @@ class NavigableString(unicode, PageElement):
         else:
             raise AttributeError, "'%s' object has no attribute '%s'" % (self.__class__.__name__, attr)
 
-    def decodeGivenEventualEncoding(self, eventualEncoding):
+    def decodeGivenEventualEncoding(self, eventual_encoding):
         return self
 
 class CData(NavigableString):
 
-    def decodeGivenEventualEncoding(self, eventualEncoding):
+    def decodeGivenEventualEncoding(self, eventual_encoding):
         return u'<![CDATA[' + self + u']]>'
 
 class ProcessingInstruction(NavigableString):
 
-    def decodeGivenEventualEncoding(self, eventualEncoding):
+    def decodeGivenEventualEncoding(self, eventual_encoding):
         output = self
         if u'%SOUP-ENCODING%' in output:
-            output = self.substituteEncoding(output, eventualEncoding)
+            output = self.substituteEncoding(output, eventual_encoding)
         return u'<?' + output + u'?>'
 
 class Comment(NavigableString):
-    def decodeGivenEventualEncoding(self, eventualEncoding):
+    def decodeGivenEventualEncoding(self, eventual_encoding):
         return u'<!--' + self + u'-->'
 
 class Declaration(NavigableString):
-    def decodeGivenEventualEncoding(self, eventualEncoding):
+    def decodeGivenEventualEncoding(self, eventual_encoding):
         return u'<!' + self + u'>'
 
 class Doctype(NavigableString):
@@ -394,7 +394,7 @@ class Doctype(NavigableString):
 
         return Doctype(value)
 
-    def decodeGivenEventualEncoding(self, eventualEncoding):
+    def decodeGivenEventualEncoding(self, eventual_encoding):
         return u'<!DOCTYPE ' + self + u'>'
 
 class Tag(PageElement, EntitySubstitution):
@@ -552,7 +552,7 @@ class Tag(PageElement, EntitySubstitution):
 
     def __repr__(self, encoding=DEFAULT_OUTPUT_ENCODING):
         """Renders this tag as a string."""
-        return self.decode(eventualEncoding=encoding)
+        return self.decode(eventual_encoding=encoding)
 
     def __unicode__(self):
         return self.decode()
@@ -561,11 +561,11 @@ class Tag(PageElement, EntitySubstitution):
         return self.encode()
 
     def encode(self, encoding=DEFAULT_OUTPUT_ENCODING,
-               pretty_print=False, indentLevel=0):
-        return self.decode(pretty_print, indentLevel, encoding).encode(encoding)
+               pretty_print=False, indent_level=0):
+        return self.decode(pretty_print, indent_level, encoding).encode(encoding)
 
-    def decode(self, pretty_print=False, indentLevel=0,
-               eventualEncoding=DEFAULT_OUTPUT_ENCODING):
+    def decode(self, pretty_print=False, indent_level=0,
+               eventual_encoding=DEFAULT_OUTPUT_ENCODING):
         """Returns a string or Unicode representation of this tag and
         its contents. To get Unicode, pass None for encoding."""
 
@@ -578,9 +578,9 @@ class Tag(PageElement, EntitySubstitution):
                     if not isinstance(val, basestring):
                         val = str(val)
                     if (self.contains_substitutions
-                        and eventualEncoding is not None
+                        and eventual_encoding is not None
                         and '%SOUP-ENCODING%' in val):
-                        val = self.substituteEncoding(val, eventualEncoding)
+                        val = self.substituteEncoding(val, eventual_encoding)
 
                     # XXX: Set destination_is_xml based on... something!
                     decoded = key + '=' + self.substitute_xml(val, True, False)
@@ -594,11 +594,11 @@ class Tag(PageElement, EntitySubstitution):
 
         indentTag, indentContents = 0, 0
         if pretty_print:
-            indentTag = indentLevel
+            indentTag = indent_level
             space = (' ' * (indentTag-1))
             indentContents = indentTag + 1
         contents = self.decodeContents(pretty_print, indentContents,
-                                       eventualEncoding)
+                                       eventual_encoding)
         if self.hidden:
             s = contents
         else:
@@ -636,25 +636,25 @@ class Tag(PageElement, EntitySubstitution):
         return self.encode(encoding, True)
 
     def encodeContents(self, encoding=DEFAULT_OUTPUT_ENCODING,
-                       pretty_print=False, indentLevel=0):
-        return self.decodeContents(pretty_print, indentLevel).encode(encoding)
+                       pretty_print=False, indent_level=0):
+        return self.decodeContents(pretty_print, indent_level).encode(encoding)
 
-    def decodeContents(self, pretty_print=False, indentLevel=0,
-                       eventualEncoding=DEFAULT_OUTPUT_ENCODING):
+    def decodeContents(self, pretty_print=False, indent_level=0,
+                       eventual_encoding=DEFAULT_OUTPUT_ENCODING):
         """Renders the contents of this tag as a string in the given
         encoding. If encoding is None, returns a Unicode string.."""
         s=[]
         for c in self:
             text = None
             if isinstance(c, NavigableString):
-                text = c.decodeGivenEventualEncoding(eventualEncoding)
+                text = c.decodeGivenEventualEncoding(eventual_encoding)
             elif isinstance(c, Tag):
-                s.append(c.decode(pretty_print, indentLevel, eventualEncoding))
+                s.append(c.decode(pretty_print, indent_level, eventual_encoding))
             if text and pretty_print:
                 text = text.strip()
             if text:
                 if pretty_print:
-                    s.append(" " * (indentLevel-1))
+                    s.append(" " * (indent_level-1))
                 s.append(text)
                 if pretty_print:
                     s.append("\n")
