@@ -18,7 +18,7 @@ class TestHTML5Builder(TestLXMLBuilder):
         strainer = SoupStrainer("b")
         markup = "<p>A <b>bold</b> statement.</p>"
         soup = self.soup(markup,
-                         parseOnlyThese=strainer)
+                         parse_only=strainer)
         self.assertEquals(
             soup.decode(), self.document_for(markup))
 
@@ -210,7 +210,7 @@ class TestHTML5LibEncodingConversion(TestLXMLBuilderEncodingConversion):
         # A real-world test to make sure we can convert ISO-8859-9 (a
         # Hebrew encoding) to UTF-8.
         soup = self.soup(self.HEBREW_DOCUMENT,
-                         fromEncoding="iso-8859-8")
+                         from_encoding="iso-8859-8")
         self.assertEquals(soup.original_encoding, 'iso8859-8')
         self.assertEquals(
             soup.encode('utf-8'),

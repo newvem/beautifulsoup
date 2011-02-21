@@ -12,7 +12,7 @@ class TestSelectiveParsing(SoupTest):
     def test_parse_with_soupstrainer(self):
         markup = "No<b>Yes</b><a>No<b>Yes <c>Yes</c></b>"
         strainer = SoupStrainer("b")
-        soup = self.soup(markup, parseOnlyThese=strainer)
+        soup = self.soup(markup, parse_only=strainer)
         self.assertEquals(soup.encode(), "<b>Yes</b><b>Yes <c>Yes</c></b>")
 
 

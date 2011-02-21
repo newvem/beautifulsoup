@@ -208,7 +208,7 @@ class HTMLTreeBuilder(TreeBuilder):
             match = self.CHARSET_RE.search(content)
             if match:
                 if (self.soup.declared_html_encoding is not None or
-                    self.soup.original_encoding == self.soup.fromEncoding):
+                    self.soup.original_encoding == self.soup.from_encoding):
                     # An HTML encoding was sniffed while converting
                     # the document to Unicode, or an HTML encoding was
                     # sniffed during a previous pass through the

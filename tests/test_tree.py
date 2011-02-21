@@ -863,7 +863,7 @@ class TestSubstitutions(SoupTest):
         # meta tag got filtered out by the strainer. This test makes
         # sure that doesn't happen.
         strainer = SoupStrainer('pre')
-        soup = self.soup(markup, parseOnlyThese=strainer)
+        soup = self.soup(markup, parse_only=strainer)
         self.assertEquals(soup.contents[0].name, 'pre')
 
 
