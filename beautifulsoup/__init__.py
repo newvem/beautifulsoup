@@ -103,21 +103,24 @@ class BeautifulSoup(Tag):
     # alone.
     STRIP_ASCII_SPACES = { 9: None, 10: None, 12: None, 13: None, 32: None, }
 
-    def __init__(self, markup="", parse_only=None, from_encoding=None,
-                 builder=None, *features):
+    def __init__(self, markup="", features=None, builder=None,
+                 parse_only=None, from_encoding=None):
         """The Soup object is initialized as the 'root tag', and the
         provided markup (which can be a string or a file-like object)
         is fed into the underlying parser."""
 
         if builder is None:
+            if isinstance(features, basestring):
+                features = [features]
             if len(features) == 0:
                 features = self.DEFAULT_BUILDER_FEATURES
-            builder = builder_registry.lookup(*features)
-            if builder is None:
+            builder_class = builder_registry.lookup(*features)
+            if builder_class is None:
                 raise ValueError(
                     "Couldn't find a tree builder with the features you "
                     "requested: %s. Do you need to install a parser library?"
                     % ",".join(features))
+            builder = builder_class()
         self.builder = builder
         self.builder.soup = self
 
