@@ -561,10 +561,10 @@ class Tag(PageElement, EntitySubstitution):
         return self.encode()
 
     def encode(self, encoding=DEFAULT_OUTPUT_ENCODING,
-               prettyPrint=False, indentLevel=0):
-        return self.decode(prettyPrint, indentLevel, encoding).encode(encoding)
+               pretty_print=False, indentLevel=0):
+        return self.decode(pretty_print, indentLevel, encoding).encode(encoding)
 
-    def decode(self, prettyPrint=False, indentLevel=0,
+    def decode(self, pretty_print=False, indentLevel=0,
                eventualEncoding=DEFAULT_OUTPUT_ENCODING):
         """Returns a string or Unicode representation of this tag and
         its contents. To get Unicode, pass None for encoding."""
@@ -593,11 +593,11 @@ class Tag(PageElement, EntitySubstitution):
             closeTag = '</%s>' % self.name
 
         indentTag, indentContents = 0, 0
-        if prettyPrint:
+        if pretty_print:
             indentTag = indentLevel
             space = (' ' * (indentTag-1))
             indentContents = indentTag + 1
-        contents = self.decodeContents(prettyPrint, indentContents,
+        contents = self.decodeContents(pretty_print, indentContents,
                                        eventualEncoding)
         if self.hidden:
             s = contents
@@ -606,18 +606,18 @@ class Tag(PageElement, EntitySubstitution):
             attributeString = ''
             if attrs:
                 attributeString = ' ' + ' '.join(attrs)
-            if prettyPrint:
+            if pretty_print:
                 s.append(space)
             s.append('<%s%s%s>' % (self.name, attributeString, close))
-            if prettyPrint:
+            if pretty_print:
                 s.append("\n")
             s.append(contents)
-            if prettyPrint and contents and contents[-1] != "\n":
+            if pretty_print and contents and contents[-1] != "\n":
                 s.append("\n")
-            if prettyPrint and closeTag:
+            if pretty_print and closeTag:
                 s.append(space)
             s.append(closeTag)
-            if prettyPrint and closeTag and self.nextSibling:
+            if pretty_print and closeTag and self.nextSibling:
                 s.append("\n")
             s = ''.join(s)
         return s
@@ -636,10 +636,10 @@ class Tag(PageElement, EntitySubstitution):
         return self.encode(encoding, True)
 
     def encodeContents(self, encoding=DEFAULT_OUTPUT_ENCODING,
-                       prettyPrint=False, indentLevel=0):
-        return self.decodeContents(prettyPrint, indentLevel).encode(encoding)
+                       pretty_print=False, indentLevel=0):
+        return self.decodeContents(pretty_print, indentLevel).encode(encoding)
 
-    def decodeContents(self, prettyPrint=False, indentLevel=0,
+    def decodeContents(self, pretty_print=False, indentLevel=0,
                        eventualEncoding=DEFAULT_OUTPUT_ENCODING):
         """Renders the contents of this tag as a string in the given
         encoding. If encoding is None, returns a Unicode string.."""
@@ -649,14 +649,14 @@ class Tag(PageElement, EntitySubstitution):
             if isinstance(c, NavigableString):
                 text = c.decodeGivenEventualEncoding(eventualEncoding)
             elif isinstance(c, Tag):
-                s.append(c.decode(prettyPrint, indentLevel, eventualEncoding))
-            if text and prettyPrint:
+                s.append(c.decode(pretty_print, indentLevel, eventualEncoding))
+            if text and pretty_print:
                 text = text.strip()
             if text:
-                if prettyPrint:
+                if pretty_print:
                     s.append(" " * (indentLevel-1))
                 s.append(text)
-                if prettyPrint:
+                if pretty_print:
                     s.append("\n")
         return ''.join(s)
 

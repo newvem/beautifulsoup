@@ -25,6 +25,7 @@ So have some arguments to popular methods:
 
  * BeautifulSoup(parseOnlyThese=...) -> BeautifulSoup(parse_only=...)
  * BeautifulSoup(fromEncoding=...) -> BeautifulSoup(from_encoding=...)
+ * Tag.encode(prettyPrint=...) -> Tag.encode(pretty_print=...)
 
 == Generators are now properties ==
 
