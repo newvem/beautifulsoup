@@ -9,16 +9,8 @@ except NameError:
 def isList(l):
     """Convenience method that works with all 2.x versions of Python
     to determine whether or not something is listlike."""
-    return ((hasattr(l, '__iter__') and not isString(l))
+    return ((hasattr(l, '__iter__') and not isinstance(l, basestring))
             or (type(l) in (types.ListType, types.TupleType)))
-
-def isString(s):
-    """Convenience method that works with all 2.x versions of Python
-    to determine whether or not something is stringlike."""
-    try:
-        return isinstance(s, unicode) or isinstance(s, basestring)
-    except NameError:
-        return isinstance(s, str)
 
 def buildSet(args=None):
     """Turns a list or a string into a set."""

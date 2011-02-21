@@ -63,10 +63,10 @@ __all__ = ['BeautifulSoup']
 
 import re
 
-from util import isList, isString, buildSet
+from util import isList, buildSet
 from builder import builder_registry
 from dammit import UnicodeDammit
-from element import Entities, NavigableString, Tag
+from element import NavigableString, Tag
 
 
 class BeautifulSoup(Tag):

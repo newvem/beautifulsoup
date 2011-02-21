@@ -1,7 +1,6 @@
 from collections import defaultdict
 import re
 import sys
-from beautifulsoup.element import Entities
 
 __all__ = [
     'HTMLTreeBuilder',
@@ -73,7 +72,7 @@ class TreeBuilderRegistry(object):
 builder_registry = TreeBuilderRegistry()
 
 
-class TreeBuilder(Entities):
+class TreeBuilder(object):
     """Turn a document into a Beautiful Soup object tree."""
 
     features = []

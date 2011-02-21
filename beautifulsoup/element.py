@@ -4,32 +4,12 @@ try:
     from htmlentitydefs import name2codepoint
 except ImportError:
     name2codepoint = {}
+from beautifulsoup.dammit import EntitySubstitution
 
-from util import isString, isList
+from util import isList
 
 DEFAULT_OUTPUT_ENCODING = "utf-8"
 
-class Entities(object):
-    """A mixin class that knows about XML entities."""
-
-    HTML_ENTITIES = "html"
-    XML_ENTITIES = "xml"
-    XHTML_ENTITIES = "xhtml"
-
-    def _invert(h):
-        "Cheap function to invert a hash."
-        i = {}
-        for k,v in h.items():
-            i[v] = k
-        return i
-
-    XML_ENTITIES_TO_SPECIAL_CHARS = { "apos" : "'",
-                                      "quot" : '"',
-                                      "amp" : "&",
-                                      "lt" : "<",
-                                      "gt" : ">" }
-
-    XML_SPECIAL_CHARS_TO_ENTITIES = _invert(XML_ENTITIES_TO_SPECIAL_CHARS)
 
 class PageElement(object):
     """Contains the navigational information for some part of the page
@@ -378,28 +358,28 @@ class NavigableString(unicode, PageElement):
         else:
             raise AttributeError, "'%s' object has no attribute '%s'" % (self.__class__.__name__, attr)
 
-    def decodeGivenEventualEncoding(self, eventualEncoding):
+    def decodeGivenEventualEncoding(self, eventual_encoding):
         return self
 
 class CData(NavigableString):
 
-    def decodeGivenEventualEncoding(self, eventualEncoding):
+    def decodeGivenEventualEncoding(self, eventual_encoding):
         return u'<![CDATA[' + self + u']]>'
 
 class ProcessingInstruction(NavigableString):
 
-    def decodeGivenEventualEncoding(self, eventualEncoding):
+    def decodeGivenEventualEncoding(self, eventual_encoding):
         output = self
         if u'%SOUP-ENCODING%' in output:
-            output = self.substituteEncoding(output, eventualEncoding)
+            output = self.substituteEncoding(output, eventual_encoding)
         return u'<?' + output + u'?>'
 
 class Comment(NavigableString):
-    def decodeGivenEventualEncoding(self, eventualEncoding):
+    def decodeGivenEventualEncoding(self, eventual_encoding):
         return u'<!--' + self + u'-->'
 
 class Declaration(NavigableString):
-    def decodeGivenEventualEncoding(self, eventualEncoding):
+    def decodeGivenEventualEncoding(self, eventual_encoding):
         return u'<!' + self + u'>'
 
 class Doctype(NavigableString):
@@ -414,10 +394,10 @@ class Doctype(NavigableString):
 
         return Doctype(value)
 
-    def decodeGivenEventualEncoding(self, eventualEncoding):
+    def decodeGivenEventualEncoding(self, eventual_encoding):
         return u'<!DOCTYPE ' + self + u'>'
 
-class Tag(PageElement, Entities):
+class Tag(PageElement, EntitySubstitution):
 
     """Represents a found HTML tag with its attributes and contents."""
 
@@ -556,7 +536,7 @@ class Tag(PageElement, Entities):
         """Returns true iff this tag has the same name, the same attributes,
         and the same contents (recursively) as the given tag.
 
-        NOTE: right now this will return false if two tags have the
+        XXX: right now this will return false if two tags have the
         same attributes in a different order. Should this be fixed?"""
         if not hasattr(other, 'name') or not hasattr(other, 'attrs') or not hasattr(other, 'contents') or self.name != other.name or self.attrs != other.attrs or len(self) != len(other):
             return False
@@ -572,16 +552,7 @@ class Tag(PageElement, Entities):
 
     def __repr__(self, encoding=DEFAULT_OUTPUT_ENCODING):
         """Renders this tag as a string."""
-        return self.decode(eventualEncoding=encoding)
-
-    BARE_AMPERSAND_OR_BRACKET = re.compile("([<>]|"
-                                           + "&(?!#\d+;|#x[0-9a-fA-F]+;|\w+;)"
-                                           + ")")
-
-    def _sub_entity(self, x):
-        """Used with a regular expression to substitute the
-        appropriate XML entity for an XML special character."""
-        return "&" + self.XML_SPECIAL_CHARS_TO_ENTITIES[x.group(0)[0]] + ";"
+        return self.decode(eventual_encoding=encoding)
 
     def __unicode__(self):
         return self.decode()
@@ -590,56 +561,29 @@ class Tag(PageElement, Entities):
         return self.encode()
 
     def encode(self, encoding=DEFAULT_OUTPUT_ENCODING,
-               prettyPrint=False, indentLevel=0):
-        return self.decode(prettyPrint, indentLevel, encoding).encode(encoding)
+               pretty_print=False, indent_level=0):
+        return self.decode(pretty_print, indent_level, encoding).encode(encoding)
 
-    def decode(self, prettyPrint=False, indentLevel=0,
-               eventualEncoding=DEFAULT_OUTPUT_ENCODING):
+    def decode(self, pretty_print=False, indent_level=0,
+               eventual_encoding=DEFAULT_OUTPUT_ENCODING):
         """Returns a string or Unicode representation of this tag and
         its contents. To get Unicode, pass None for encoding."""
 
         attrs = []
         if self.attrs:
             for key, val in self.attrs:
-                fmt = '%s="%s"'
-                if isString(val):
-                    if (self.contains_substitutions
-                        and eventualEncoding is not None
-                        and '%SOUP-ENCODING%' in val):
-                        val = self.substituteEncoding(val, eventualEncoding)
-
-                    # The attribute value either:
-                    #
-                    # * Contains no embedded double quotes or single quotes.
-                    #   No problem: we enclose it in double quotes.
-                    # * Contains embedded single quotes. No problem:
-                    #   double quotes work here too.
-                    # * Contains embedded double quotes. No problem:
-                    #   we enclose it in single quotes.
-                    # * Embeds both single _and_ double quotes. This
-                    #   can't happen naturally, but it can happen if
-                    #   you modify an attribute value after parsing
-                    #   the document. Now we have a bit of a
-                    #   problem. We solve it by enclosing the
-                    #   attribute in single quotes, and escaping any
-                    #   embedded single quotes to XML entities.
-                    if '"' in val:
-                        fmt = "%s='%s'"
-                        if "'" in val:
-                            # TODO: replace with apos when
-                            # appropriate.
-                            val = val.replace("'", "&squot;")
-
-                    # Now we're okay w/r/t quotes. But the attribute
-                    # value might also contain angle brackets, or
-                    # ampersands that aren't part of entities. We need
-                    # to escape those to XML entities too.
-                    val = self.BARE_AMPERSAND_OR_BRACKET.sub(self._sub_entity, val)
                 if val is None:
-                    # Handle boolean attributes.
                     decoded = key
                 else:
-                    decoded = fmt % (key, val)
+                    if not isinstance(val, basestring):
+                        val = str(val)
+                    if (self.contains_substitutions
+                        and eventual_encoding is not None
+                        and '%SOUP-ENCODING%' in val):
+                        val = self.substituteEncoding(val, eventual_encoding)
+
+                    # XXX: Set destination_is_xml based on... something!
+                    decoded = key + '=' + self.substitute_xml(val, True, False)
                 attrs.append(decoded)
         close = ''
         closeTag = ''
@@ -649,12 +593,12 @@ class Tag(PageElement, Entities):
             closeTag = '</%s>' % self.name
 
         indentTag, indentContents = 0, 0
-        if prettyPrint:
-            indentTag = indentLevel
+        if pretty_print:
+            indentTag = indent_level
             space = (' ' * (indentTag-1))
             indentContents = indentTag + 1
-        contents = self.decodeContents(prettyPrint, indentContents,
-                                       eventualEncoding)
+        contents = self.decodeContents(pretty_print, indentContents,
+                                       eventual_encoding)
         if self.hidden:
             s = contents
         else:
@@ -662,18 +606,18 @@ class Tag(PageElement, Entities):
             attributeString = ''
             if attrs:
                 attributeString = ' ' + ' '.join(attrs)
-            if prettyPrint:
+            if pretty_print:
                 s.append(space)
             s.append('<%s%s%s>' % (self.name, attributeString, close))
-            if prettyPrint:
+            if pretty_print:
                 s.append("\n")
             s.append(contents)
-            if prettyPrint and contents and contents[-1] != "\n":
+            if pretty_print and contents and contents[-1] != "\n":
                 s.append("\n")
-            if prettyPrint and closeTag:
+            if pretty_print and closeTag:
                 s.append(space)
             s.append(closeTag)
-            if prettyPrint and closeTag and self.nextSibling:
+            if pretty_print and closeTag and self.nextSibling:
                 s.append("\n")
             s = ''.join(s)
         return s
@@ -692,27 +636,27 @@ class Tag(PageElement, Entities):
         return self.encode(encoding, True)
 
     def encodeContents(self, encoding=DEFAULT_OUTPUT_ENCODING,
-                       prettyPrint=False, indentLevel=0):
-        return self.decodeContents(prettyPrint, indentLevel).encode(encoding)
+                       pretty_print=False, indent_level=0):
+        return self.decodeContents(pretty_print, indent_level).encode(encoding)
 
-    def decodeContents(self, prettyPrint=False, indentLevel=0,
-                       eventualEncoding=DEFAULT_OUTPUT_ENCODING):
+    def decodeContents(self, pretty_print=False, indent_level=0,
+                       eventual_encoding=DEFAULT_OUTPUT_ENCODING):
         """Renders the contents of this tag as a string in the given
         encoding. If encoding is None, returns a Unicode string.."""
         s=[]
         for c in self:
             text = None
             if isinstance(c, NavigableString):
-                text = c.decodeGivenEventualEncoding(eventualEncoding)
+                text = c.decodeGivenEventualEncoding(eventual_encoding)
             elif isinstance(c, Tag):
-                s.append(c.decode(prettyPrint, indentLevel, eventualEncoding))
-            if text and prettyPrint:
+                s.append(c.decode(pretty_print, indent_level, eventual_encoding))
+            if text and pretty_print:
                 text = text.strip()
             if text:
-                if prettyPrint:
-                    s.append(" " * (indentLevel-1))
+                if pretty_print:
+                    s.append(" " * (indent_level-1))
                 s.append(text)
-                if prettyPrint:
+                if pretty_print:
                     s.append("\n")
         return ''.join(s)
 
@@ -790,7 +734,7 @@ class SoupStrainer(object):
 
     def __init__(self, name=None, attrs={}, text=None, **kwargs):
         self.name = name
-        if isString(attrs):
+        if isinstance(attrs, basestring):
             kwargs['class'] = attrs
             attrs = None
         if kwargs:
@@ -863,7 +807,7 @@ class SoupStrainer(object):
                 found = self.searchTag(markup)
         # If it's text, make sure the text matches.
         elif isinstance(markup, NavigableString) or \
-                 isString(markup):
+                 isinstance(markup, basestring):
             if self._matches(markup, self.text):
                 found = markup
         else:
@@ -883,18 +827,19 @@ class SoupStrainer(object):
             #other ways of matching match the tag name as a string.
             if isinstance(markup, Tag):
                 markup = markup.name
-            if markup is not None and not isString(markup):
+            if markup is not None and not isinstance(markup, basestring):
                 markup = unicode(markup)
             #Now we know that chunk is either a string, or None.
             if hasattr(matchAgainst, 'match'):
                 # It's a regexp object.
                 result = markup and matchAgainst.search(markup)
             elif (isList(matchAgainst)
-                  and (markup is not None or not isString(matchAgainst))):
+                  and (markup is not None
+                       or not isinstance(matchAgainst, basestring))):
                 result = markup in matchAgainst
             elif hasattr(matchAgainst, 'items'):
                 result = markup.has_key(matchAgainst)
-            elif matchAgainst and isString(markup):
+            elif matchAgainst and isinstance(markup, basestring):
                 if isinstance(markup, unicode):
                     matchAgainst = unicode(matchAgainst)
                 else:

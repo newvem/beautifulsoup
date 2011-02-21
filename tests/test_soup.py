@@ -3,7 +3,7 @@
 
 import unittest
 from beautifulsoup.element import SoupStrainer
-from beautifulsoup.dammit import UnicodeDammit
+from beautifulsoup.dammit import EntitySubstitution, UnicodeDammit
 from beautifulsoup.testing import SoupTest
 
 
@@ -14,6 +14,71 @@ class TestSelectiveParsing(SoupTest):
         strainer = SoupStrainer("b")
         soup = self.soup(markup, parse_only=strainer)
         self.assertEquals(soup.encode(), "<b>Yes</b><b>Yes <c>Yes</c></b>")
+
+
+class TestEntitySubstitution(unittest.TestCase):
+    """Standalone tests of the EntitySubstitution class."""
+    def setUp(self):
+        self.sub = EntitySubstitution()
+
+    def test_simple_html_substitution(self):
+        # Unicode characters corresponding to named HTML entites
+        # are substituted, and no others.
+        s = u"foo\u2200\N{SNOWMAN}\u00f5bar"
+        self.assertEquals(self.sub.substitute_html(s),
+                          u"foo&forall;\N{SNOWMAN}&otilde;bar")
+
+    def test_smart_quote_substitution(self):
+        # MS smart quotes are a common source of frustration, so we
+        # give them a special test.
+        quotes = "\x91\x92foo\x93\x94"
+        dammit = UnicodeDammit(quotes)
+        self.assertEquals(self.sub.substitute_html(dammit.markup),
+                          "&lsquo;&rsquo;foo&ldquo;&rdquo;")
+
+    def test_xml_converstion_includes_no_quotes_if_make_quoted_attribute_is_false(self):
+        s = 'Welcome to "my bar"'
+        self.assertEquals(self.sub.substitute_xml(s, False), s)
+
+    def test_xml_attribute_quoting_normally_uses_double_quotes(self):
+        self.assertEquals(self.sub.substitute_xml("Welcome", True),
+                          '"Welcome"')
+        self.assertEquals(self.sub.substitute_xml("Bob's Bar", True),
+                          '"Bob\'s Bar"')
+
+    def test_xml_attribute_quoting_uses_single_quotes_when_value_contains_double_quotes(self):
+        s = 'Welcome to "my bar"'
+        self.assertEquals(self.sub.substitute_xml(s, True),
+                          "'Welcome to \"my bar\"'")
+
+    def test_xml_attribute_quoting_escapes_single_quotes_when_value_contains_both_single_and_double_quotes(self):
+        s = 'Welcome to "Bob\'s Bar"'
+        # This one is going into an HTML document.
+        self.assertEquals(
+            self.sub.substitute_xml(s, True),
+            "'Welcome to \"Bob&squot;s Bar\"'")
+
+        # This one is going into an XML document.
+        self.assertEquals(
+            self.sub.substitute_xml(s, True, destination_is_xml=True),
+            "'Welcome to \"Bob&apos;s Bar\"'")
+
+    def test_xml_quotes_arent_escaped_when_value_is_not_being_quoted(self):
+        quoted = 'Welcome to "Bob\'s Bar"'
+        self.assertEquals(self.sub.substitute_xml(quoted), quoted)
+
+    def test_xml_quoting_handles_angle_brackets(self):
+        self.assertEquals(
+            self.sub.substitute_xml("foo<bar>"),
+            "foo&lt;bar&gt;")
+
+    def test_xml_quoting_handles_ampersands(self):
+        self.assertEquals(self.sub.substitute_xml("AT&T"), "AT&amp;T")
+
+    def test_xml_quoting_ignores_ampersands_when_they_are_part_of_an_entity(self):
+        self.assertEquals(
+            self.sub.substitute_xml("&Aacute;T&T"),
+            "&Aacute;T&amp;T")
 
 
 class TestUnicodeDammit(unittest.TestCase):
