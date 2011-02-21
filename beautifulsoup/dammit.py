@@ -37,8 +37,20 @@ from htmlentitydefs import codepoint2name
 import re
 
 class EntitySubstitution(object):
-    CHARACTER_TO_HTML_ENTITY = None
-    CHARACTER_TO_HTML_ENTITY_RE = None
+
+    def _populate_class_variables():
+        lookup = {}
+        characters = []
+        for codepoint, name in codepoint2name.items():
+            character = unichr(codepoint)
+            characters.append(character)
+            lookup[character] = name
+        re_definition = "[%s]" % "".join(characters)
+        return lookup, re.compile(re_definition)
+
+    CHARACTER_TO_HTML_ENTITY, CHARACTER_TO_HTML_ENTITY_RE = (
+        _populate_class_variables())
+
 
     CHARACTER_TO_XML_ENTITY = {
         "'" : "apos",
@@ -56,15 +68,6 @@ class EntitySubstitution(object):
     def _initialize_lookup(cls):
         if cls.CHARACTER_TO_HTML_ENTITY is not None:
             return
-        lookup = {}
-        characters = []
-        for codepoint, name in codepoint2name.items():
-            character = unichr(codepoint)
-            characters.append(character)
-            lookup[character] = name
-        re_definition = "[%s]" % "".join(characters)
-        cls.CHARACTER_TO_HTML_ENTITY = lookup
-        cls.CHARACTER_TO_HTML_ENTITY_RE = re.compile(re_definition)
 
     def __init__(self):
         # Initialize the class variables if not already initialized

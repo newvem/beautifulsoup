@@ -4,6 +4,7 @@ try:
     from htmlentitydefs import name2codepoint
 except ImportError:
     name2codepoint = {}
+from beautifulsoup.dammit import EntitySubstitution
 
 from util import isString, isList
 
@@ -417,7 +418,7 @@ class Doctype(NavigableString):
     def decodeGivenEventualEncoding(self, eventualEncoding):
         return u'<!DOCTYPE ' + self + u'>'
 
-class Tag(PageElement, Entities):
+class Tag(PageElement, EntitySubstitution):
 
     """Represents a found HTML tag with its attributes and contents."""
 
@@ -574,15 +575,6 @@ class Tag(PageElement, Entities):
         """Renders this tag as a string."""
         return self.decode(eventualEncoding=encoding)
 
-    BARE_AMPERSAND_OR_BRACKET = re.compile("([<>]|"
-                                           + "&(?!#\d+;|#x[0-9a-fA-F]+;|\w+;)"
-                                           + ")")
-
-    def _sub_entity(self, x):
-        """Used with a regular expression to substitute the
-        appropriate XML entity for an XML special character."""
-        return "&" + self.XML_SPECIAL_CHARS_TO_ENTITIES[x.group(0)[0]] + ";"
-
     def __unicode__(self):
         return self.decode()
 
@@ -601,45 +593,18 @@ class Tag(PageElement, Entities):
         attrs = []
         if self.attrs:
             for key, val in self.attrs:
-                fmt = '%s="%s"'
-                if isString(val):
+                if val is None:
+                    decoded = key
+                else:
+                    if not isString(val):
+                        val = str(val)
                     if (self.contains_substitutions
                         and eventualEncoding is not None
                         and '%SOUP-ENCODING%' in val):
                         val = self.substituteEncoding(val, eventualEncoding)
 
-                    # The attribute value either:
-                    #
-                    # * Contains no embedded double quotes or single quotes.
-                    #   No problem: we enclose it in double quotes.
-                    # * Contains embedded single quotes. No problem:
-                    #   double quotes work here too.
-                    # * Contains embedded double quotes. No problem:
-                    #   we enclose it in single quotes.
-                    # * Embeds both single _and_ double quotes. This
-                    #   can't happen naturally, but it can happen if
-                    #   you modify an attribute value after parsing
-                    #   the document. Now we have a bit of a
-                    #   problem. We solve it by enclosing the
-                    #   attribute in single quotes, and escaping any
-                    #   embedded single quotes to XML entities.
-                    if '"' in val:
-                        fmt = "%s='%s'"
-                        if "'" in val:
-                            # TODO: replace with apos when
-                            # appropriate.
-                            val = val.replace("'", "&squot;")
-
-                    # Now we're okay w/r/t quotes. But the attribute
-                    # value might also contain angle brackets, or
-                    # ampersands that aren't part of entities. We need
-                    # to escape those to XML entities too.
-                    val = self.BARE_AMPERSAND_OR_BRACKET.sub(self._sub_entity, val)
-                if val is None:
-                    # Handle boolean attributes.
-                    decoded = key
-                else:
-                    decoded = fmt % (key, val)
+                    # Set destination_is_xml based on something...
+                    decoded = key + '=' + self.substitute_xml(val, True, False)
                 attrs.append(decoded)
         close = ''
         closeTag = ''
