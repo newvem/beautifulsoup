@@ -10,27 +10,6 @@ from util import isList
 
 DEFAULT_OUTPUT_ENCODING = "utf-8"
 
-class Entities(object):
-    """A mixin class that knows about XML entities."""
-
-    HTML_ENTITIES = "html"
-    XML_ENTITIES = "xml"
-    XHTML_ENTITIES = "xhtml"
-
-    def _invert(h):
-        "Cheap function to invert a hash."
-        i = {}
-        for k,v in h.items():
-            i[v] = k
-        return i
-
-    XML_ENTITIES_TO_SPECIAL_CHARS = { "apos" : "'",
-                                      "quot" : '"',
-                                      "amp" : "&",
-                                      "lt" : "<",
-                                      "gt" : ">" }
-
-    XML_SPECIAL_CHARS_TO_ENTITIES = _invert(XML_ENTITIES_TO_SPECIAL_CHARS)
 
 class PageElement(object):
     """Contains the navigational information for some part of the page
