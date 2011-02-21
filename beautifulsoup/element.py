@@ -6,7 +6,7 @@ except ImportError:
     name2codepoint = {}
 from beautifulsoup.dammit import EntitySubstitution
 
-from util import isString, isList
+from util import isList
 
 DEFAULT_OUTPUT_ENCODING = "utf-8"
 
@@ -557,7 +557,7 @@ class Tag(PageElement, EntitySubstitution):
         """Returns true iff this tag has the same name, the same attributes,
         and the same contents (recursively) as the given tag.
 
-        NOTE: right now this will return false if two tags have the
+        XXX: right now this will return false if two tags have the
         same attributes in a different order. Should this be fixed?"""
         if not hasattr(other, 'name') or not hasattr(other, 'attrs') or not hasattr(other, 'contents') or self.name != other.name or self.attrs != other.attrs or len(self) != len(other):
             return False
@@ -596,14 +596,14 @@ class Tag(PageElement, EntitySubstitution):
                 if val is None:
                     decoded = key
                 else:
-                    if not isString(val):
+                    if not isinstance(val, basestring):
                         val = str(val)
                     if (self.contains_substitutions
                         and eventualEncoding is not None
                         and '%SOUP-ENCODING%' in val):
                         val = self.substituteEncoding(val, eventualEncoding)
 
-                    # Set destination_is_xml based on something...
+                    # XXX: Set destination_is_xml based on... something!
                     decoded = key + '=' + self.substitute_xml(val, True, False)
                 attrs.append(decoded)
         close = ''
@@ -755,7 +755,7 @@ class SoupStrainer(object):
 
     def __init__(self, name=None, attrs={}, text=None, **kwargs):
         self.name = name
-        if isString(attrs):
+        if isinstance(attrs, basestring):
             kwargs['class'] = attrs
             attrs = None
         if kwargs:
@@ -828,7 +828,7 @@ class SoupStrainer(object):
                 found = self.searchTag(markup)
         # If it's text, make sure the text matches.
         elif isinstance(markup, NavigableString) or \
-                 isString(markup):
+                 isinstance(markup, basestring):
             if self._matches(markup, self.text):
                 found = markup
         else:
@@ -848,18 +848,19 @@ class SoupStrainer(object):
             #other ways of matching match the tag name as a string.
             if isinstance(markup, Tag):
                 markup = markup.name
-            if markup is not None and not isString(markup):
+            if markup is not None and not isinstance(markup, basestring):
                 markup = unicode(markup)
             #Now we know that chunk is either a string, or None.
             if hasattr(matchAgainst, 'match'):
                 # It's a regexp object.
                 result = markup and matchAgainst.search(markup)
             elif (isList(matchAgainst)
-                  and (markup is not None or not isString(matchAgainst))):
+                  and (markup is not None
+                       or not isinstance(matchAgainst, basestring))):
                 result = markup in matchAgainst
             elif hasattr(matchAgainst, 'items'):
                 result = markup.has_key(matchAgainst)
-            elif matchAgainst and isString(markup):
+            elif matchAgainst and isinstance(markup, basestring):
                 if isinstance(markup, unicode):
                     matchAgainst = unicode(matchAgainst)
                 else:
