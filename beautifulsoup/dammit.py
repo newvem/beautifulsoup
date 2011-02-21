@@ -7,6 +7,7 @@ encoding; that's the tree builder's job.
 """
 
 import codecs
+from htmlentitydefs import codepoint2name
 import re
 import types
 
@@ -21,20 +22,12 @@ try:
 except ImportError:
     chardet = None
 
-# Both are available from http://cjkpython.i18n.org/
-# They're built in if you use Python 2.4.
-try:
-    import cjkcodecs.aliases
-except ImportError:
-    pass
+# Available from http://cjkpython.i18n.org/.
 try:
     import iconv_codec
 except ImportError:
     pass
 
-
-from htmlentitydefs import codepoint2name
-import re
 
 class EntitySubstitution(object):
 
@@ -47,7 +40,6 @@ class EntitySubstitution(object):
             lookup[character] = name
         re_definition = "[%s]" % "".join(characters)
         return lookup, re.compile(re_definition)
-
     CHARACTER_TO_HTML_ENTITY, CHARACTER_TO_HTML_ENTITY_RE = (
         _populate_class_variables())
 
@@ -155,8 +147,6 @@ class EntitySubstitution(object):
         """
         return self.CHARACTER_TO_HTML_ENTITY_RE.sub(
             self._substitute_html_entity, s)
-
-
 
 
 class UnicodeDammit:
