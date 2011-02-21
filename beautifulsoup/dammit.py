@@ -33,6 +33,129 @@ except ImportError:
     pass
 
 
+from htmlentitydefs import codepoint2name
+import re
+
+class EntitySubstitution(object):
+    CHARACTER_TO_HTML_ENTITY = None
+    CHARACTER_TO_HTML_ENTITY_RE = None
+
+    CHARACTER_TO_XML_ENTITY = {
+        "'" : "apos",
+        '"' : "quot",
+        "&" : "amp",
+        "<" : "lt",
+        ">" : "gt",
+        }
+
+    BARE_AMPERSAND_OR_BRACKET = re.compile("([<>]|"
+                                           "&(?!#\d+;|#x[0-9a-fA-F]+;|\w+;)"
+                                           ")")
+
+    @classmethod
+    def _initialize_lookup(cls):
+        if cls.CHARACTER_TO_HTML_ENTITY is not None:
+            return
+        lookup = {}
+        characters = []
+        for codepoint, name in codepoint2name.items():
+            character = unichr(codepoint)
+            characters.append(character)
+            lookup[character] = name
+        re_definition = "[%s]" % "".join(characters)
+        cls.CHARACTER_TO_HTML_ENTITY = lookup
+        cls.CHARACTER_TO_HTML_ENTITY_RE = re.compile(re_definition)
+
+    def __init__(self):
+        # Initialize the class variables if not already initialized
+        self._initialize_lookup()
+
+    def _substitute_html_entity(self, matchobj):
+        entity = self.CHARACTER_TO_HTML_ENTITY.get(matchobj.group(0))
+        return "&%s;" % entity
+
+    def _substitute_xml_entity(self, matchobj):
+        """Used with a regular expression to substitute the
+        appropriate XML entity for an XML special character."""
+        entity = self.CHARACTER_TO_XML_ENTITY[matchobj.group(0)]
+        return "&%s;" % entity
+
+    def substitute_xml(self, value, make_quoted_attribute=False,
+                       destination_is_xml=False):
+        """Substitute XML entities for special XML characters.
+
+        :param value: A string to be substituted. The less-than sign will
+          become &lt;, the greater-than sign will become &gt;, and any
+          ampersands that are not part of an entity defition will
+          become &amp;.
+
+        :param make_quoted_attribute: If True, then the string will be
+         quoted, as befits an attribute value.
+
+         Ordinarily, the string will be quoted using double quotes.
+
+          Bob's Bar -> "Bob's Bar"
+
+         If the string contains double quotes, it will be quoted using
+         single quotes.
+
+          Welcome to "my bar" -> 'Welcome to "my bar"'
+
+         If the string contains both single and double quotes, the
+         single quotes will be escaped (see `destination_is_xml`), and
+         the string will be quoted using single quotes.
+
+          Welcome to "Bob's Bar" -> 'Welcome to "Bob&squot;s bar'
+                                              OR
+                                    'Welcome to "Bob&apos;s bar'
+          (depending on the value of `destination_is_xml`)
+
+         :param destination_is_xml: If destination_is_xml is True,
+          then when a single quote is escaped it will become
+          "&apos;". But &apos; is not a valid HTML 4 entity. If
+          destination_is_xml is False, then single quotes will be
+          turned into "&squot;".
+
+          The value of this argument is irrelevant unless
+          make_quoted_attribute is True.
+        """
+        quote_with = '"'
+        if make_quoted_attribute:
+            if '"' in value:
+                quote_with = "'"
+                if "'" in value:
+                    if destination_is_xml:
+                        replace_with = "&apos;"
+                    else:
+                        replace_with = "&squot;"
+                    value = value.replace("'", replace_with)
+
+        # Escape angle brackets, and ampersands that aren't part of
+        # entities.
+        value = self.BARE_AMPERSAND_OR_BRACKET.sub(
+            self._substitute_xml_entity, value)
+        if make_quoted_attribute:
+            return quote_with + value + quote_with
+        else:
+            return value
+
+    def substitute_html(self, s):
+        """Replace certain Unicode characters with named HTML entities.
+
+        This differs from data.encode(encoding, 'xmlcharrefreplace')
+        in that the goal is to make the result more readable (to those
+        with ASCII displays) rather than to recover from
+        errors. There's absolutely nothing wrong with a UTF-8 string
+        containg a LATIN SMALL LETTER E WITH ACUTE, but replacing that
+        character with "&eacute;" will make it more readable to some
+        people.
+        """
+        return self.CHARACTER_TO_HTML_ENTITY_RE.sub(
+            self._substitute_html_entity, s)
+
+
+
+
 class UnicodeDammit:
     """A class for detecting the encoding of a *ML document and
     converting it to a Unicode string. If the source encoding is
