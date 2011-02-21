@@ -13,7 +13,7 @@ import copy
 import cPickle as pickle
 import re
 from beautifulsoup import BeautifulSoup
-from beautifulsoup.builder import registry
+from beautifulsoup.builder import builder_registry
 from beautifulsoup.element import CData, SoupStrainer, Tag
 from beautifulsoup.testing import SoupTest
 
@@ -524,7 +524,7 @@ class TestTreeModification(SoupTest):
         self.assertEqual(soup.decode(), self.document_for('<a id2="foo"></a>'))
 
     def test_new_tag_creation(self):
-        builder = registry.lookup('html5lib')()
+        builder = builder_registry.lookup('html5lib')()
         soup = self.soup("<body></body>", builder=builder)
         a = Tag(soup, builder, 'a')
         ol = Tag(soup, builder, 'ol')

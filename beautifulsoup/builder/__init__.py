@@ -70,7 +70,7 @@ class TreeBuilderRegistry(object):
 
 # The BeautifulSoup class will take feature lists from developers and use them
 # to look up builders in this registry.
-registry = TreeBuilderRegistry()
+builder_registry = TreeBuilderRegistry()
 
 
 class TreeBuilder(Entities):
@@ -243,7 +243,7 @@ def register_treebuilders_from(module):
             setattr(this_module, name, obj)
             this_module.__all__.append(name)
             # Register the builder while we're at it.
-            this_module.registry.register(obj)
+            this_module.builder_registry.register(obj)
 
 # Builders are registered in reverse order of priority, so that custom
 # builder registrations will take precedence. In general, we want

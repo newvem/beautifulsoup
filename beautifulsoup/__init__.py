@@ -64,7 +64,7 @@ __all__ = ['BeautifulSoup']
 import re
 
 from util import isList, isString, buildSet
-from builder import registry
+from builder import builder_registry
 from dammit import UnicodeDammit
 from element import Entities, NavigableString, Tag
 
@@ -112,7 +112,7 @@ class BeautifulSoup(Tag):
         if builder is None:
             if len(features) == 0:
                 features = self.DEFAULT_BUILDER_FEATURES
-            builder = registry.lookup(*features)
+            builder = builder_registry.lookup(*features)
             if builder is None:
                 raise ValueError(
                     "Couldn't find a tree builder with the features you "
