@@ -64,6 +64,7 @@ __all__ = ['BeautifulSoup']
 import re
 
 from util import isList, isString, buildSet
+from builder import registry
 from dammit import UnicodeDammit
 from element import Entities, NavigableString, Tag
 
@@ -92,29 +93,31 @@ class BeautifulSoup(Tag):
     """
     ROOT_TAG_NAME = u'[document]'
 
+    # If the end-user gives no indication which tree builder they
+    # want, look for one with these features.
+    DEFAULT_BUILDER_FEATURES = ['html']
+
     # Used when determining whether a text node is all whitespace and
     # can be replaced with a single space. A text node that contains
     # fancy Unicode spaces (usually non-breaking) should be left
     # alone.
     STRIP_ASCII_SPACES = { 9: None, 10: None, 12: None, 13: None, 32: None, }
 
-    @classmethod
-    def default_builder(self):
-        try:
-            from builder import HTML5TreeBuilder
-            return HTML5TreeBuilder()
-        except ImportError:
-            from builder import LXMLTreeBuilder
-            return LXMLTreeBuilder()
-
-    def __init__(self, markup="", builder=None, parse_only=None,
-                 from_encoding=None):
+    def __init__(self, markup="", parse_only=None, from_encoding=None,
+                 builder=None, *features):
         """The Soup object is initialized as the 'root tag', and the
         provided markup (which can be a string or a file-like object)
         is fed into the underlying parser."""
 
         if builder is None:
-            builder = self.default_builder()
+            if len(features) == 0:
+                features = self.DEFAULT_BUILDER_FEATURES
+            builder = registry.lookup(*features)
+            if builder is None:
+                raise ValueError(
+                    "Couldn't find a tree builder with the features you "
+                    "requested: %s. Do you need to install a parser library?"
+                    % ",".join(features))
         self.builder = builder
         self.builder.soup = self
 

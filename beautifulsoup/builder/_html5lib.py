@@ -5,6 +5,7 @@ __all__ = [
 from beautifulsoup.builder import (
     PERMISSIVE,
     HTML,
+    HTML_5,
     HTMLTreeBuilder,
     )
 import html5lib
@@ -20,7 +21,7 @@ from beautifulsoup.element import (
 class HTML5TreeBuilder(HTMLTreeBuilder):
     """Use html5lib to build a tree."""
 
-    features = ['html5lib', PERMISSIVE, HTML]
+    features = ['html5lib', PERMISSIVE, HTML_5, HTML]
 
     def prepare_markup(self, markup, user_specified_encoding):
         # Store the user-specified encoding for use later on.

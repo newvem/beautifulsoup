@@ -15,6 +15,7 @@ FAST = 'fast'
 PERMISSIVE = 'permissive'
 XML = 'xml'
 HTML = 'html'
+HTML_5 = 'html5'
 
 
 class TreeBuilderRegistry(object):
