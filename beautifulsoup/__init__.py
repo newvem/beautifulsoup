@@ -3,34 +3,14 @@ Elixir and Tonic
 "The Screen-Scraper's Friend"
 http://www.crummy.com/software/BeautifulSoup/
 
-Beautiful Soup parses a (possibly invalid) XML or HTML document into a
-tree representation. It provides methods and Pythonic idioms that make
-it easy to navigate, search, and modify the tree.
+Beautiful Soup uses a plug-in parser to parse a (possibly invalid) XML
+or HTML document into a tree representation. The parser does the work
+of building a parse tree, and Beautiful Soup provides provides methods
+and Pythonic idioms that make it easy to navigate, search, and modify
+the parse tree.
 
-A well-formed XML/HTML document yields a well-formed data
-structure. An ill-formed XML/HTML document yields a correspondingly
-ill-formed data structure. If your document is only locally
-well-formed, you can use this library to find and process the
-well-formed part of it.
-
-Beautiful Soup works with Python 2.2 and up. It has no external
-dependencies, but you'll have more success at converting data to UTF-8
-if you also install these three packages:
-
-* chardet, for auto-detecting character encodings
-  http://chardet.feedparser.org/
-* cjkcodecs and iconv_codec, which add more encodings to the ones supported
-  by stock Python.
-  http://cjkpython.i18n.org/
-
-Beautiful Soup defines classes for two main parsing strategies:
-
- * BeautifulStoneSoup, for parsing XML, SGML, or your domain-specific
-   language that kind of looks like XML.
-
- * BeautifulSoup, for parsing run-of-the-mill HTML code, be it valid
-   or invalid. This class has web browser-like heuristics for
-   obtaining a sensible parse tree in the face of common HTML errors.
+Beautiful Soup works with Python 2.5 and up. To get it to work, you
+must install either lxml or html5lib.
 
 For more than you ever wanted to know about Beautiful Soup, see the
 documentation:
@@ -38,7 +18,7 @@ http://www.crummy.com/software/BeautifulSoup/documentation.html
 
 Here, have some legalese:
 
-Copyright (c) 2004-2009, Leonard Richardson
+Copyright (c) 2004-2011, Leonard Richardson
 
 All rights reserved.
 
@@ -84,6 +64,7 @@ __all__ = ['BeautifulSoup']
 import re
 
 from util import isList, isString, buildSet
+from builder import builder_registry
 from dammit import UnicodeDammit
 from element import Entities, NavigableString, Tag
 
@@ -112,40 +93,45 @@ class BeautifulSoup(Tag):
     """
     ROOT_TAG_NAME = u'[document]'
 
+    # If the end-user gives no indication which tree builder they
+    # want, look for one with these features.
+    DEFAULT_BUILDER_FEATURES = ['html']
+
     # Used when determining whether a text node is all whitespace and
     # can be replaced with a single space. A text node that contains
     # fancy Unicode spaces (usually non-breaking) should be left
     # alone.
     STRIP_ASCII_SPACES = { 9: None, 10: None, 12: None, 13: None, 32: None, }
 
-    @classmethod
-    def default_builder(self):
-        try:
-            from builder import HTML5TreeBuilder
-            return HTML5TreeBuilder()
-        except ImportError:
-            from builder import LXMLTreeBuilder
-            return LXMLTreeBuilder()
-
-    def __init__(self, markup="", builder=None, parseOnlyThese=None,
-                 fromEncoding=None):
+    def __init__(self, markup="", features=None, builder=None,
+                 parse_only=None, from_encoding=None):
         """The Soup object is initialized as the 'root tag', and the
         provided markup (which can be a string or a file-like object)
         is fed into the underlying parser."""
 
         if builder is None:
-            builder = self.default_builder()
+            if isinstance(features, basestring):
+                features = [features]
+            if len(features) == 0:
+                features = self.DEFAULT_BUILDER_FEATURES
+            builder_class = builder_registry.lookup(*features)
+            if builder_class is None:
+                raise ValueError(
+                    "Couldn't find a tree builder with the features you "
+                    "requested: %s. Do you need to install a parser library?"
+                    % ",".join(features))
+            builder = builder_class()
         self.builder = builder
         self.builder.soup = self
 
-        self.parseOnlyThese = parseOnlyThese
+        self.parse_only = parse_only
 
         self.reset()
 
         if hasattr(markup, 'read'):        # It's a file-type object.
             markup = markup.read()
         self.markup, self.original_encoding, self.declared_html_encoding = (
-            self.builder.prepare_markup(markup, fromEncoding))
+            self.builder.prepare_markup(markup, from_encoding))
 
         try:
             self._feed()
@@ -201,9 +187,9 @@ class BeautifulSoup(Tag):
                 else:
                     currentData = ' '
             self.currentData = []
-            if self.parseOnlyThese and len(self.tagStack) <= 1 and \
-                   (not self.parseOnlyThese.text or \
-                    not self.parseOnlyThese.search(currentData)):
+            if self.parse_only and len(self.tagStack) <= 1 and \
+                   (not self.parse_only.text or \
+                    not self.parse_only.search(currentData)):
                 return
             o = containerClass(currentData)
             self.object_was_parsed(o)
@@ -251,9 +237,9 @@ class BeautifulSoup(Tag):
         #print "Start tag %s: %s" % (name, attrs)
         self.endData()
 
-        if (self.parseOnlyThese and len(self.tagStack) <= 1
-            and (self.parseOnlyThese.text
-                 or not self.parseOnlyThese.searchTag(name, attrs))):
+        if (self.parse_only and len(self.tagStack) <= 1
+            and (self.parse_only.text
+                 or not self.parse_only.searchTag(name, attrs))):
             return None
 
         tag = Tag(self, self.builder, name, attrs, self.currentTag,

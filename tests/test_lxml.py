@@ -325,7 +325,7 @@ class TestLXMLBuilder(SoupTest):
     def test_soupstrainer(self):
         strainer = SoupStrainer("b")
         soup = self.soup("A <b>bold</b> <meta /> <i>statement</i>",
-                         parseOnlyThese=strainer)
+                         parse_only=strainer)
         self.assertEquals(soup.decode(), "<b>bold</b>")
 
 
@@ -506,7 +506,7 @@ class TestLXMLBuilderEncodingConversion(SoupTest):
         # A real-world test to make sure we can convert ISO-8859-9 (a
         # Hebrew encoding) to UTF-8.
         soup = self.soup(self.HEBREW_DOCUMENT,
-                         fromEncoding="iso-8859-8")
+                         from_encoding="iso-8859-8")
         self.assertEquals(soup.original_encoding, 'iso-8859-8')
         self.assertEquals(
             soup.encode('utf-8'),

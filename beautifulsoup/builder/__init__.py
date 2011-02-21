@@ -1,3 +1,4 @@
+from collections import defaultdict
 import re
 import sys
 from beautifulsoup.element import Entities
@@ -6,18 +7,76 @@ __all__ = [
     'HTMLTreeBuilder',
     'SAXTreeBuilder',
     'TreeBuilder',
+    'TreeBuilderRegistry',
     ]
 
-# Some useful keywords.
+# Some useful features for a TreeBuilder to have.
 FAST = 'fast'
-ACCURATE = 'accurate'
+PERMISSIVE = 'permissive'
 XML = 'xml'
 HTML = 'html'
+HTML_5 = 'html5'
 
-builders_for_tag = {}
+
+class TreeBuilderRegistry(object):
+
+    def __init__(self):
+        self.builders_for_feature = defaultdict(list)
+        self.builders = []
+
+    def register(self, treebuilder_class):
+        """Register a treebuilder based on its advertised features."""
+        for feature in treebuilder_class.features:
+            self.builders_for_feature[feature].insert(0, treebuilder_class)
+        self.builders.insert(0, treebuilder_class)
+
+    def lookup(self, *features):
+        if len(self.builders) == 0:
+            # There are no builders at all.
+            return None
+
+        if len(features) == 0:
+            # They didn't ask for any features. Give them the most
+            # recently registered builder.
+            return self.builders[0]
+
+        # Go down the list of features in order, and eliminate any builders
+        # that don't match every feature.
+        features = list(features)
+        features.reverse()
+        candidates = None
+        candidate_set = None
+        while len(features) > 0:
+            feature = features.pop()
+            we_have_the_feature = self.builders_for_feature.get(feature, [])
+            if len(we_have_the_feature) > 0:
+                if candidates is None:
+                    candidates = we_have_the_feature
+                    candidate_set = set(candidates)
+                else:
+                    # Eliminate any candidates that don't have this feature.
+                    candidate_set = candidate_set.intersection(
+                        set(we_have_the_feature))
+
+        # The only valid candidates are the ones in candidate_set.
+        # Go through the original list of candidates and pick the first one
+        # that's in candidate_set.
+        if candidate_set is None:
+            return None
+        for candidate in candidates:
+            if candidate in candidate_set:
+                return candidate
+        return None
+
+# The BeautifulSoup class will take feature lists from developers and use them
+# to look up builders in this registry.
+builder_registry = TreeBuilderRegistry()
+
 
 class TreeBuilder(Entities):
     """Turn a document into a Beautiful Soup object tree."""
+
+    features = []
 
     assume_html = False
     preserve_whitespace_tags = set()
@@ -150,7 +209,7 @@ class HTMLTreeBuilder(TreeBuilder):
             match = self.CHARSET_RE.search(content)
             if match:
                 if (self.soup.declared_html_encoding is not None or
-                    self.soup.original_encoding == self.soup.fromEncoding):
+                    self.soup.original_encoding == self.soup.from_encoding):
                     # An HTML encoding was sniffed while converting
                     # the document to Unicode, or an HTML encoding was
                     # sniffed during a previous pass through the
@@ -173,27 +232,31 @@ class HTMLTreeBuilder(TreeBuilder):
         return False
 
 
-def register_builders_from(module):
-    """Copy everything in __all___ from the given module into this module."""
+def register_treebuilders_from(module):
+    """Copy TreeBuilders from the given module into this module."""
     # I'm fairly sure this is not the best way to do this.
     this_module = sys.modules[__package__]
     for name in module.__all__:
         obj = getattr(module, name)
-        setattr(this_module, name, obj)
-        this_module.__all__.append(name)
+
+        if issubclass(obj, TreeBuilder):
+            setattr(this_module, name, obj)
+            this_module.__all__.append(name)
+            # Register the builder while we're at it.
+            this_module.builder_registry.register(obj)
 
 # Builders are registered in reverse order of priority, so that custom
 # builder registrations will take precedence. In general, we want
 # html5lib to take precedence over lxml, because it's more reliable.
 try:
     import _lxml
-    register_builders_from(_lxml)
+    register_treebuilders_from(_lxml)
 except ImportError:
     # They don't have lxml installed.
     pass
 try:
     import _html5lib
-    register_builders_from(_html5lib)
+    register_treebuilders_from(_html5lib)
 except ImportError:
     # They don't have html5lib installed.
     pass

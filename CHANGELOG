@@ -21,6 +21,11 @@ Some attributes have also been renamed:
 
  * Tag.isSelfClosing -> Tag.is_empty_element
 
+So have some arguments to popular methods:
+
+ * BeautifulSoup(parseOnlyThese=...) -> BeautifulSoup(parse_only=...)
+ * BeautifulSoup(fromEncoding=...) -> BeautifulSoup(from_encoding=...)
+
 == Generators are now properties ==
 
 The generators have been given more sensible (and PEP 8-compliant)

@@ -3,8 +3,9 @@ __all__ = [
     ]
 
 from beautifulsoup.builder import (
-    ACCURATE,
+    PERMISSIVE,
     HTML,
+    HTML_5,
     HTMLTreeBuilder,
     )
 import html5lib
@@ -20,7 +21,7 @@ from beautifulsoup.element import (
 class HTML5TreeBuilder(HTMLTreeBuilder):
     """Use html5lib to build a tree."""
 
-    tags = [ACCURATE, HTML]
+    features = ['html5lib', PERMISSIVE, HTML_5, HTML]
 
     def prepare_markup(self, markup, user_specified_encoding):
         # Store the user-specified encoding for use later on.
@@ -55,7 +56,8 @@ class TreeBuilderForHtml5lib(html5lib.treebuilders._base.TreeBuilder):
     def __init__(self, soup, namespaceHTMLElements):
         self.soup = soup
         if namespaceHTMLElements:
-            warnings.warn("namespaceHTMLElements not supported yet", DataLossWarning)
+            warnings.warn("namespaceHTMLElements not supported yet",
+                          DataLossWarning)
         super(TreeBuilderForHtml5lib, self).__init__(namespaceHTMLElements)
 
     def documentClass(self):

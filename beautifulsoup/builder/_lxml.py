@@ -5,12 +5,23 @@ __all__ = [
 
 from lxml import etree
 from beautifulsoup.element import Comment, Doctype
-from beautifulsoup.builder import TreeBuilder, HTMLTreeBuilder
+from beautifulsoup.builder import (
+    FAST,
+    HTML,
+    HTMLTreeBuilder,
+    PERMISSIVE,
+    TreeBuilder,
+    XML)
 from beautifulsoup.dammit import UnicodeDammit
 import types
 
+LXML = 'lxml'
+
 class LXMLTreeBuilderForXML(TreeBuilder):
     DEFAULT_PARSER_CLASS = etree.XMLParser
+
+    # Well, it's permissive by XML parser standards.
+    features = [LXML, XML, FAST, PERMISSIVE]
 
     @property
     def default_parser(self):
@@ -78,6 +89,8 @@ class LXMLTreeBuilderForXML(TreeBuilder):
 
 
 class LXMLTreeBuilder(HTMLTreeBuilder, LXMLTreeBuilderForXML):
+
+    features = [LXML, HTML, FAST]
 
     @property
     def default_parser(self):
