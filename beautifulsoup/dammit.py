@@ -35,6 +35,11 @@ class EntitySubstitution(object):
         lookup = {}
         characters = []
         for codepoint, name in codepoint2name.items():
+            if codepoint == 34:
+                # There's no point in turning the quotation mark into
+                # &quot; except in attribute values, which are handled
+                # separately.
+                continue;
             character = unichr(codepoint)
             characters.append(character)
             lookup[character] = name
