@@ -582,8 +582,7 @@ class Tag(PageElement, EntitySubstitution):
                         and '%SOUP-ENCODING%' in val):
                         val = self.substituteEncoding(val, eventual_encoding)
 
-                    # XXX: Set destination_is_xml based on... something!
-                    decoded = key + '=' + self.substitute_xml(val, True, False)
+                    decoded = key + '=' + self.substitute_xml(val, True)
                 attrs.append(decoded)
         close = ''
         closeTag = ''

@@ -53,15 +53,9 @@ class TestEntitySubstitution(unittest.TestCase):
 
     def test_xml_attribute_quoting_escapes_single_quotes_when_value_contains_both_single_and_double_quotes(self):
         s = 'Welcome to "Bob\'s Bar"'
-        # This one is going into an HTML document.
         self.assertEquals(
             self.sub.substitute_xml(s, True),
-            "'Welcome to \"Bob&squot;s Bar\"'")
-
-        # This one is going into an XML document.
-        self.assertEquals(
-            self.sub.substitute_xml(s, True, destination_is_xml=True),
-            "'Welcome to \"Bob&apos;s Bar\"'")
+            '"Welcome to &quot;Bob\'s Bar&quot;"')
 
     def test_xml_quotes_arent_escaped_when_value_is_not_being_quoted(self):
         quoted = 'Welcome to "Bob\'s Bar"'
@@ -80,6 +74,10 @@ class TestEntitySubstitution(unittest.TestCase):
             self.sub.substitute_xml("&Aacute;T&T"),
             "&Aacute;T&amp;T")
 
+    def test_quotes_not_html_substituted(self):
+        """There's no need to do this except inside attribute values."""
+        text = 'Bob\'s "bar"'
+        self.assertEquals(self.sub.substitute_html(text), text)
 
 class TestUnicodeDammit(unittest.TestCase):
     """Standalone tests of Unicode, Dammit."""

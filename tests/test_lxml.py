@@ -125,7 +125,7 @@ class TestLXMLBuilder(SoupTest):
         soup.foo['attr'] = 'Brawls happen at "Bob\'s Bar"'
         self.assertSoupEquals(
             soup.foo.decode(),
-            """<foo attr='Brawls happen at "Bob&squot;s Bar"'>a</foo>""")
+            """<foo attr="Brawls happen at &quot;Bob\'s Bar&quot;">a</foo>""")
 
     def test_ampersand_in_attribute_value_gets_quoted(self):
         self.assertSoupEquals('<this is="really messed up & stuff"></this>',

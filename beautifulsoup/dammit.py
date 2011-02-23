@@ -35,6 +35,10 @@ class EntitySubstitution(object):
         lookup = {}
         characters = []
         for codepoint, name in codepoint2name.items():
+            if codepoint == 34:
+                # There's no point in turning the quotation mark into
+                # &quot--even in attribute values we quote the 
+                continue;
             character = unichr(codepoint)
             characters.append(character)
             lookup[character] = name
@@ -66,8 +70,7 @@ class EntitySubstitution(object):
         entity = self.CHARACTER_TO_XML_ENTITY[matchobj.group(0)]
         return "&%s;" % entity
 
-    def substitute_xml(self, value, make_quoted_attribute=False,
-                       destination_is_xml=False):
+    def substitute_xml(self, value, make_quoted_attribute=False):
         """Substitute XML entities for special XML characters.
 
         :param value: A string to be substituted. The less-than sign will
@@ -88,33 +91,28 @@ class EntitySubstitution(object):
           Welcome to "my bar" -> 'Welcome to "my bar"'
 
          If the string contains both single and double quotes, the
-         single quotes will be escaped (see `destination_is_xml`), and
-         the string will be quoted using single quotes.
+         double quotes will be escaped, and the string will be quoted
+         using double quotes.
 
-          Welcome to "Bob's Bar" -> 'Welcome to "Bob&squot;s bar'
-                                              OR
-                                    'Welcome to "Bob&apos;s bar'
-          (depending on the value of `destination_is_xml`)
-
-         :param destination_is_xml: If destination_is_xml is True,
-          then when a single quote is escaped it will become
-          "&apos;". But &apos; is not a valid HTML 4 entity. If
-          destination_is_xml is False, then single quotes will be
-          turned into "&squot;".
-
-          The value of this argument is irrelevant unless
-          make_quoted_attribute is True.
+          Welcome to "Bob's Bar" -> "Welcome to &quot;Bob's bar&quot;
         """
-        quote_with = '"'
         if make_quoted_attribute:
+            quote_with = '"'
             if '"' in value:
-                quote_with = "'"
                 if "'" in value:
-                    if destination_is_xml:
-                        replace_with = "&apos;"
-                    else:
-                        replace_with = "&squot;"
-                    value = value.replace("'", replace_with)
+                    # The string contains both single and double
+                    # quotes.  Turn the double quotes into
+                    # entities. We quote the double quotes rather than
+                    # the single quotes because the entity name is
+                    # "&quot;" whether this is HTML or XML.  If we
+                    # quoted the single quotes, we'd have to decide
+                    # between &apos; and &squot;.
+                    replace_with = "&quot;"
+                    value = value.replace('"', replace_with)
+                else:
+                    # There are double quotes but no single quotes.
+                    # We can use single quotes to quote the attribute.
+                    quote_with = "'"
 
         # Escape angle brackets, and ampersands that aren't part of
         # entities.
