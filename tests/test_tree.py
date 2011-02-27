@@ -741,6 +741,14 @@ class TestElementObjects(SoupTest):
         self.assertTrue(soup.foo.has_key('attr'))
         self.assertFalse(soup.foo.has_key('attr2'))
 
+    def test_attributes_come_out_in_alphabetical_order(self):
+        markup = '<b a="1" z="5" m="3" f="2" y="4"></b>'
+        self.assertSoupEquals(markup, '<b a="1" f="2" m="3" y="4" z="5"></b>')
+
+    def test_multiple_values_for_the_same_attribute_are_collapsed(self):
+        markup = '<b b="20" a="1" b="10" a="2" a="3" a="4"></b>'
+        self.assertSoupEquals(markup, '<b a="1" b="20"></b>')
+
     def test_string(self):
         # A tag that contains only a text node makes that node
         # available as .string.
@@ -829,6 +837,19 @@ class TestPersistence(SoupTest):
 
 
 class TestSubstitutions(SoupTest):
+
+    def test_html_entity_substitution(self):
+        soup = self.soup(
+            u"<b>Sacr\N{LATIN SMALL LETTER E WITH ACUTE} bleu!</b>")
+        encoded = soup.encode("utf-8", substitute_html_entities=True)
+        self.assertEquals(encoded,
+                          self.document_for("<b>Sacr&eacute; bleu!</b>"))
+
+    def test_html_entity_substitution_off_by_default(self):
+        markup = u"<b>Sacr\N{LATIN SMALL LETTER E WITH ACUTE} bleu!</b>"
+        soup = self.soup(markup)
+        encoded = soup.b.encode("utf-8")
+        self.assertEquals(encoded, markup.encode('utf-8'))
 
     def test_encoding_substitution(self):
         # Here's the <meta> tag saying that a document is

@@ -11,7 +11,7 @@ from util import isList
 DEFAULT_OUTPUT_ENCODING = "utf-8"
 
 
-class PageElement(object):
+class PageElement(EntitySubstitution):
     """Contains the navigational information for some part of the page
     (either a tag or a piece of text)"""
 
@@ -334,6 +334,9 @@ class PageElement(object):
 
 class NavigableString(unicode, PageElement):
 
+    PREFIX = ''
+    SUFFIX = ''
+
     def __new__(cls, value):
         """Create a new NavigableString.
 
@@ -358,29 +361,35 @@ class NavigableString(unicode, PageElement):
         else:
             raise AttributeError, "'%s' object has no attribute '%s'" % (self.__class__.__name__, attr)
 
-    def decodeGivenEventualEncoding(self, eventual_encoding):
-        return self
+    def output_ready(self, substitute_html_entities=False):
+        if substitute_html_entities:
+            output = self.substitute_html(self)
+        else:
+            output = self
+        return self.PREFIX + output + self.SUFFIX
+
 
 class CData(NavigableString):
 
-    def decodeGivenEventualEncoding(self, eventual_encoding):
-        return u'<![CDATA[' + self + u']]>'
+    PREFIX = u'<![CDATA['
+    SUFFIX = u']]>'
+
 
 class ProcessingInstruction(NavigableString):
 
-    def decodeGivenEventualEncoding(self, eventual_encoding):
-        output = self
-        if u'%SOUP-ENCODING%' in output:
-            output = self.substituteEncoding(output, eventual_encoding)
-        return u'<?' + output + u'?>'
+    PREFIX = u'<?'
+    SUFFIX = u'?>'
+
 
 class Comment(NavigableString):
-    def decodeGivenEventualEncoding(self, eventual_encoding):
-        return u'<!--' + self + u'-->'
+
+    PREFIX = u'<!--'
+    SUFFIX = u'-->'
 
 class Declaration(NavigableString):
-    def decodeGivenEventualEncoding(self, eventual_encoding):
-        return u'<!' + self + u'>'
+    PREFIX = u'<!'
+    SUFFIX = u'!>'
+
 
 class Doctype(NavigableString):
 
@@ -394,10 +403,11 @@ class Doctype(NavigableString):
 
         return Doctype(value)
 
-    def decodeGivenEventualEncoding(self, eventual_encoding):
-        return u'<!DOCTYPE ' + self + u'>'
+    PREFIX = u'<!DOCTYPE '
+    SUFFIX = u'>'
 
-class Tag(PageElement, EntitySubstitution):
+
+class Tag(PageElement):
 
     """Represents a found HTML tag with its attributes and contents."""
 
@@ -410,18 +420,13 @@ class Tag(PageElement, EntitySubstitution):
         self.parserClass = parser.__class__
         self.name = name
         if attrs == None:
-            attrs = []
-        if isinstance(attrs, types.DictType):
-            self.attrMap = attrs
+            attrs = {}
+        else:
+            attrs = dict(attrs)
         self.attrs = attrs
         self.contents = []
         self.setup(parent, previous)
         self.hidden = False
-
-        if isinstance(attrs, types.DictType):
-            self.attrs = [kv for kv in attrs.items()]
-        else:
-            self.attrs = list(attrs)
 
         # Set up any substitutions, such as the charset in a META tag.
         self.contains_substitutions = builder.set_up_substitutions(self)
@@ -468,15 +473,15 @@ class Tag(PageElement, EntitySubstitution):
         """Returns the value of the 'key' attribute for the tag, or
         the value given for 'default' if it doesn't have that
         attribute."""
-        return self._getAttrMap().get(key, default)
+        return self.attrs.get(key, default)
 
     def has_key(self, key):
-        return self._getAttrMap().has_key(key)
+        return self.attrs.has_key(key)
 
     def __getitem__(self, key):
         """tag[key] returns the value of the 'key' attribute for the tag,
         and throws an exception if it's not there."""
-        return self._getAttrMap()[key]
+        return self.attrs[key]
 
     def __iter__(self):
         "Iterating over a tag iterates over its contents."
@@ -496,27 +501,12 @@ class Tag(PageElement, EntitySubstitution):
     def __setitem__(self, key, value):
         """Setting tag[key] sets the value of the 'key' attribute for the
         tag."""
-        self._getAttrMap()
-        self.attrMap[key] = value
-        found = False
-        for i in range(0, len(self.attrs)):
-            if self.attrs[i][0] == key:
-                self.attrs[i] = (key, value)
-                found = True
-        if not found:
-            self.attrs.append((key, value))
-        self._getAttrMap()[key] = value
+        self.attrs[key] = value
 
     def __delitem__(self, key):
         "Deleting tag[key] deletes all 'key' attributes for the tag."
-        for item in self.attrs:
-            if item[0] == key:
-                self.attrs.remove(item)
-                #We don't break because bad HTML can define the same
-                #attribute multiple times.
-            self._getAttrMap()
-            if self.attrMap.has_key(key):
-                del self.attrMap[key]
+        if self.attrs.has_key(key):
+            del self.attrs[key]
 
     def __call__(self, *args, **kwargs):
         """Calling a tag like a function is the same as calling its
@@ -552,7 +542,7 @@ class Tag(PageElement, EntitySubstitution):
 
     def __repr__(self, encoding=DEFAULT_OUTPUT_ENCODING):
         """Renders this tag as a string."""
-        return self.decode(eventual_encoding=encoding)
+        return self.encode(encoding)
 
     def __unicode__(self):
         return self.decode()
@@ -561,17 +551,25 @@ class Tag(PageElement, EntitySubstitution):
         return self.encode()
 
     def encode(self, encoding=DEFAULT_OUTPUT_ENCODING,
-               pretty_print=False, indent_level=0):
-        return self.decode(pretty_print, indent_level, encoding).encode(encoding)
+               indent_level=None, substitute_html_entities=False):
+        return self.decode(indent_level, encoding,
+                           substitute_html_entities).encode(encoding)
 
-    def decode(self, pretty_print=False, indent_level=0,
-               eventual_encoding=DEFAULT_OUTPUT_ENCODING):
-        """Returns a string or Unicode representation of this tag and
-        its contents. To get Unicode, pass None for encoding."""
+    def decode(self, indent_level=None,
+               eventual_encoding=DEFAULT_OUTPUT_ENCODING,
+               substitute_html_entities=False):
+        """Returns a Unicode representation of this tag and its contents.
 
+        :param eventual_encoding: The tag is destined to be
+           encoded into this encoding. This method is _not_
+           responsible for performing that encoding. This information
+           is passed in so that it can be substituted in if the
+           document contains a <META> tag that mentions the document's
+           encoding.
+        """
         attrs = []
         if self.attrs:
-            for key, val in self.attrs:
+            for key, val in sorted(self.attrs.items()):
                 if val is None:
                     decoded = key
                 else:
@@ -591,14 +589,18 @@ class Tag(PageElement, EntitySubstitution):
         else:
             closeTag = '</%s>' % self.name
 
-        indentTag, indentContents = 0, 0
+        pretty_print = (indent_level is not None)
         if pretty_print:
-            indentTag = indent_level
-            space = (' ' * (indentTag-1))
-            indentContents = indentTag + 1
-        contents = self.decodeContents(pretty_print, indentContents,
-                                       eventual_encoding)
+            space = (' ' * (indent_level-1))
+            indent_contents = indent_level + 1
+        else:
+            space = ''
+            indent_contents = None
+        contents = self.decode_contents(
+            indent_contents, eventual_encoding, substitute_html_entities)
+
         if self.hidden:
+            # This is the 'document root' object.
             s = contents
         else:
             s = []
@@ -634,22 +636,28 @@ class Tag(PageElement, EntitySubstitution):
     def prettify(self, encoding=DEFAULT_OUTPUT_ENCODING):
         return self.encode(encoding, True)
 
-    def encodeContents(self, encoding=DEFAULT_OUTPUT_ENCODING,
-                       pretty_print=False, indent_level=0):
-        return self.decodeContents(pretty_print, indent_level).encode(encoding)
+    def decode_contents(self, indent_level=None,
+                       eventual_encoding=DEFAULT_OUTPUT_ENCODING,
+                       substitute_html_entities=False):
+        """Renders the contents of this tag as a Unicode string.
 
-    def decodeContents(self, pretty_print=False, indent_level=0,
-                       eventual_encoding=DEFAULT_OUTPUT_ENCODING):
-        """Renders the contents of this tag as a string in the given
-        encoding. If encoding is None, returns a Unicode string.."""
+        :param eventual_encoding: The tag is destined to be
+           encoded into this encoding. This method is _not_
+           responsible for performing that encoding. This information
+           is passed in so that it can be substituted in if the
+           document contains a <META> tag that mentions the document's
+           encoding.
+        """
+        pretty_print = (indent_level is not None)
         s=[]
         for c in self:
             text = None
             if isinstance(c, NavigableString):
-                text = c.decodeGivenEventualEncoding(eventual_encoding)
+                text = c.output_ready(substitute_html_entities)
             elif isinstance(c, Tag):
-                s.append(c.decode(pretty_print, indent_level, eventual_encoding))
-            if text and pretty_print:
+                s.append(c.decode(indent_level, eventual_encoding,
+                                  substitute_html_entities))
+            if text and indent_level:
                 text = text.strip()
             if text:
                 if pretty_print:
@@ -689,17 +697,6 @@ class Tag(PageElement, EntitySubstitution):
         return self._find_all(name, attrs, text, limit, generator, **kwargs)
     findAll = find_all      # BS3
     findChildren = find_all # BS2
-
-    #Private methods
-
-    def _getAttrMap(self):
-        """Initializes a map representation of this tag's attributes,
-        if not already initialized."""
-        if not getattr(self, 'attrMap'):
-            self.attrMap = {}
-            for (key, value) in self.attrs:
-                self.attrMap[key] = value
-        return self.attrMap
 
     #Generator methods
     @property

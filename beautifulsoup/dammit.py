@@ -37,8 +37,8 @@ class EntitySubstitution(object):
         for codepoint, name in codepoint2name.items():
             if codepoint == 34:
                 # There's no point in turning the quotation mark into
-                # &quot;, unless it happens in an attribute value, which
-                # is done elsewhere.
+                # &quot;, unless it happens within an attribute value, which
+                # is handled elsewhere.
                 continue;
             character = unichr(codepoint)
             characters.append(character)
