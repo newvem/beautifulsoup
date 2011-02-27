@@ -99,6 +99,21 @@ sections into ordinary text elements:
 In theory it's possible to preserve the CDATA sections when using the
 XML parser, but I don't see how to get it to work in practice.
 
+== Miscellaneous other stuff ==
+
+If the BeautifulSoup instance has .is_xml set to True, an appropriate
+XML declaration will be emitted when the tree is transformed into a
+string:
+
+    <?xml version="1.0" encoding="utf-8">
+    <markup>
+     ...
+    </markup>
+
+The ['lxml', 'xml'] tree builder sets .is_xml to True; the other tree
+builders set it to False. If you want to parse XHTML with an HTML
+parser, you can set it manually.
+
 = 3.1.0 =
 
 A hybrid version that supports 2.4 and can be automatically converted

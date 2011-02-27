@@ -66,7 +66,7 @@ import re
 from util import isList, buildSet
 from builder import builder_registry
 from dammit import UnicodeDammit
-from element import NavigableString, Tag
+from element import DEFAULT_OUTPUT_ENCODING, NavigableString, Tag
 
 
 class BeautifulSoup(Tag):
@@ -122,6 +122,7 @@ class BeautifulSoup(Tag):
                     % ",".join(features))
             builder = builder_class()
         self.builder = builder
+        self.is_xml = builder.is_xml
         self.builder.soup = self
 
         self.parse_only = parse_only
@@ -260,6 +261,21 @@ class BeautifulSoup(Tag):
 
     def handle_data(self, data):
         self.currentData.append(data)
+
+    def decode(self, pretty_print=False, indent_level=0,
+               eventual_encoding=DEFAULT_OUTPUT_ENCODING):
+        """Returns a string or Unicode representation of this document.
+        To get Unicode, pass None for encoding."""
+        if self.is_xml:
+            # Print the XML declaration
+            encoding_part = ''
+            if eventual_encoding != None:
+                encoding_part = ' encoding="%s"' % eventual_encoding
+            prefix = u'<?xml version="1.0"%s>\n' % encoding_part
+        else:
+            prefix = u''
+        return prefix + super(BeautifulSoup, self).decode(
+            pretty_print, indent_level, eventual_encoding)
 
 
 class StopParsing(Exception):

@@ -77,7 +77,7 @@ class TreeBuilder(object):
 
     features = []
 
-    assume_html = False
+    is_xml = False
     preserve_whitespace_tags = set()
     empty_element_tags = None # A tag will be considered an empty-element
                               # tag when and only when it has no contents.
@@ -184,8 +184,6 @@ class HTMLTreeBuilder(TreeBuilder):
 
     Such as which tags are empty-element tags.
     """
-
-    assume_html = True
 
     preserve_whitespace_tags = set(['pre', 'textarea'])
     empty_element_tags = set(['br' , 'hr', 'input', 'img', 'meta',

@@ -20,6 +20,8 @@ LXML = 'lxml'
 class LXMLTreeBuilderForXML(TreeBuilder):
     DEFAULT_PARSER_CLASS = etree.XMLParser
 
+    is_xml = True
+
     # Well, it's permissive by XML parser standards.
     features = [LXML, XML, FAST, PERMISSIVE]
 
@@ -87,10 +89,15 @@ class LXMLTreeBuilderForXML(TreeBuilder):
         self.soup.handle_data(content)
         self.soup.endData(Comment)
 
+    def test_fragment_to_document(self, fragment):
+        """See `TreeBuilder`."""
+        return u'<?xml version="1.0" encoding="utf-8">\n%s' % fragment
+
 
 class LXMLTreeBuilder(HTMLTreeBuilder, LXMLTreeBuilderForXML):
 
     features = [LXML, HTML, FAST]
+    is_xml = False
 
     @property
     def default_parser(self):
