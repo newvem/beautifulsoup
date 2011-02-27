@@ -12,10 +12,10 @@ methods tested here.
 import copy
 import cPickle as pickle
 import re
-from beautifulsoup import BeautifulSoup
-from beautifulsoup.builder import builder_registry
-from beautifulsoup.element import CData, SoupStrainer, Tag
-from beautifulsoup.testing import SoupTest
+from bs4 import BeautifulSoup
+from bs4.builder import builder_registry
+from bs4.element import CData, SoupStrainer, Tag
+from bs4.testing import SoupTest
 
 class TreeTest(SoupTest):
 

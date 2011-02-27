@@ -2,8 +2,8 @@
 
 import unittest
 
-from beautifulsoup import BeautifulSoup
-from beautifulsoup.builder import (
+from bs4 import BeautifulSoup
+from bs4.builder import (
     builder_registry as registry,
     LXMLTreeBuilderForXML,
     LXMLTreeBuilder,

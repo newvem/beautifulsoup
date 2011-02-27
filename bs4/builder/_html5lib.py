@@ -2,7 +2,7 @@ __all__ = [
     'HTML5TreeBuilder',
     ]
 
-from beautifulsoup.builder import (
+from bs4.builder import (
     PERMISSIVE,
     HTML,
     HTML_5,
@@ -11,7 +11,7 @@ from beautifulsoup.builder import (
 import html5lib
 from html5lib.constants import DataLossWarning
 import warnings
-from beautifulsoup.element import (
+from bs4.element import (
     Comment,
     Doctype,
     NavigableString,

@@ -2,10 +2,10 @@
 
 import re
 
-from beautifulsoup import BeautifulSoup
-from beautifulsoup.builder import LXMLTreeBuilder, LXMLTreeBuilderForXML
-from beautifulsoup.element import Comment, Doctype, SoupStrainer
-from beautifulsoup.testing import SoupTest
+from bs4 import BeautifulSoup
+from bs4.builder import LXMLTreeBuilder, LXMLTreeBuilderForXML
+from bs4.element import Comment, Doctype, SoupStrainer
+from bs4.testing import SoupTest
 
 
 class TestLXMLBuilder(SoupTest):

@@ -1,9 +1,9 @@
 """Helper classes for tests."""
 
 import unittest
-from beautifulsoup import BeautifulSoup
-from beautifulsoup.element import Comment, SoupStrainer
-from beautifulsoup.builder import LXMLTreeBuilder
+from bs4 import BeautifulSoup
+from bs4.element import Comment, SoupStrainer
+from bs4.builder import LXMLTreeBuilder
 
 class SoupTest(unittest.TestCase):
 
