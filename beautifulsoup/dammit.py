@@ -31,6 +31,8 @@ except ImportError:
 
 class EntitySubstitution(object):
 
+    """Substitute XML or HTML entities for the corresponding characters."""
+
     def _populate_class_variables():
         lookup = {}
         characters = []
