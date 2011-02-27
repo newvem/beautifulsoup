@@ -8,7 +8,8 @@ from bs4.builder import (
     LXMLTreeBuilderForXML,
     LXMLTreeBuilder,
     TreeBuilderRegistry,
-    HTML5TreeBuilder
+    HTML5TreeBuilder,
+    HTMLParserTreeBuilder,
 )
 
 
@@ -21,6 +22,8 @@ class BuiltInRegistryTest(unittest.TestCase):
                           LXMLTreeBuilder)
         self.assertEquals(registry.lookup('permissive', 'xml'),
                           LXMLTreeBuilderForXML)
+        self.assertEquals(registry.lookup('strict', 'html'),
+                          HTMLParserTreeBuilder)
         self.assertEquals(registry.lookup('permissive', 'html'),
                           HTML5TreeBuilder)
 
@@ -35,6 +38,9 @@ class BuiltInRegistryTest(unittest.TestCase):
                           LXMLTreeBuilder)
         self.assertEquals(registry.lookup('html5lib'),
                           HTML5TreeBuilder)
+
+        self.assertEquals(registry.lookup('html.parser'),
+                          HTMLParserTreeBuilder)
 
     def test_unimplemented_combinations(self):
         self.assertEquals(registry.lookup('fast', 'permissive', 'html'),

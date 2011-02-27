@@ -168,27 +168,6 @@ class TestLXMLBuilder(SoupTest):
         expected = u"<p><<sacr\N{LATIN SMALL LETTER E WITH ACUTE} bleu!>></p>"
         self.assertSoupEquals(text, expected)
 
-    def test_entities_in_attribute_values_converted_during_parsing(self):
-        text = '<x t="pi&#241ata">'
-        expected = u"pi\N{LATIN SMALL LETTER N WITH TILDE}ata"
-        soup = self.soup(text)
-        self.assertEquals(soup.x['t'], expected)
-
-        text = '<x t="pi&#xf1;ata">'
-        soup = self.soup(text)
-        self.assertEquals(soup.x['t'], expected)
-
-        text = '<x t="sacr&eacute; bleu">'
-        soup = self.soup(text)
-        self.assertEquals(
-            soup.x['t'],
-            u"sacr\N{LATIN SMALL LETTER E WITH ACUTE} bleu")
-
-        # This can cause valid HTML to become invalid.
-        valid_url = '<a href="http://example.org?a=1&amp;b=2;3">foo</a>'
-        soup = self.soup(valid_url)
-        self.assertEquals(soup.a['href'], "http://example.org?a=1&b=2;3")
-
     def test_smart_quotes_converted_on_the_way_in(self):
         # Microsoft smart quotes are converted to Unicode characters during
         # parsing.
@@ -230,7 +209,7 @@ class TestLXMLBuilder(SoupTest):
         # Test a namespaced doctype with a system id.
         self._test_doctype('xsl:stylesheet SYSTEM "htmlent.dtd"')
 
-    def test_namespaced_system_doctype(self):
+    def test_namespaced_public_doctype(self):
         # Test a namespaced doctype with a public id.
         self._test_doctype('xsl:stylesheet PUBLIC "htmlent.dtd"')
 
