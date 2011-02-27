@@ -571,12 +571,11 @@ class Tag(PageElement):
         return self.encode()
 
     def encode(self, encoding=DEFAULT_OUTPUT_ENCODING,
-               pretty_print=False, indent_level=0,
-               substitute_html_entities=False):
-        return self.decode(pretty_print, indent_level, encoding,
+               indent_level=None, substitute_html_entities=False):
+        return self.decode(indent_level, encoding,
                            substitute_html_entities).encode(encoding)
 
-    def decode(self, pretty_print=False, indent_level=0,
+    def decode(self, indent_level=None,
                eventual_encoding=DEFAULT_OUTPUT_ENCODING,
                substitute_html_entities=False):
         """Returns a string or Unicode representation of this tag and
@@ -604,15 +603,18 @@ class Tag(PageElement):
         else:
             closeTag = '</%s>' % self.name
 
-        indentTag, indentContents = 0, 0
+        pretty_print = (indent_level is not None)
         if pretty_print:
-            indentTag = indent_level
-            space = (' ' * (indentTag-1))
-            indentContents = indentTag + 1
-        contents = self.decode_contents(pretty_print, indentContents,
-                                       eventual_encoding,
-                                       substitute_html_entities)
+            space = (' ' * (indent_level-1))
+            indent_contents = indent_level + 1
+        else:
+            space = ''
+            indent_contents = None
+        contents = self.decode_contents(
+            indent_contents, eventual_encoding, substitute_html_entities)
+
         if self.hidden:
+            # This is the 'document root' object.
             s = contents
         else:
             s = []
@@ -648,7 +650,7 @@ class Tag(PageElement):
     def prettify(self, encoding=DEFAULT_OUTPUT_ENCODING):
         return self.encode(encoding, True)
 
-    def decode_contents(self, pretty_print=False, indent_level=0,
+    def decode_contents(self, indent_level=None,
                        eventual_encoding=DEFAULT_OUTPUT_ENCODING,
                        substitute_html_entities=False):
         """Renders the contents of this tag as a Unicode string.
@@ -660,15 +662,16 @@ class Tag(PageElement):
            document contains a <META> tag that mentions the document's
            encoding.
         """
+        pretty_print = (indent_level is not None)
         s=[]
         for c in self:
             text = None
             if isinstance(c, NavigableString):
                 text = c.output_ready(substitute_html_entities)
             elif isinstance(c, Tag):
-                s.append(c.decode(pretty_print, indent_level, eventual_encoding,
+                s.append(c.decode(indent_level, eventual_encoding,
                                   substitute_html_entities))
-            if text and pretty_print:
+            if text and indent_level:
                 text = text.strip()
             if text:
                 if pretty_print:
