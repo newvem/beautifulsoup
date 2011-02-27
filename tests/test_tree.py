@@ -741,6 +741,14 @@ class TestElementObjects(SoupTest):
         self.assertTrue(soup.foo.has_key('attr'))
         self.assertFalse(soup.foo.has_key('attr2'))
 
+    def test_attributes_come_out_in_alphabetical_order(self):
+        markup = '<b a="1" z="5" m="3" f="2" y="4"></b>'
+        self.assertSoupEquals(markup, '<b a="1" f="2" m="3" y="4" z="5"></b>')
+
+    def test_multiple_values_for_the_same_attribute_are_collapsed(self):
+        markup = '<b b="20" a="1" b="10" a="2" a="3" a="4"></b>'
+        self.assertSoupEquals(markup, '<b a="1" b="20"></b>')
+
     def test_string(self):
         # A tag that contains only a text node makes that node
         # available as .string.

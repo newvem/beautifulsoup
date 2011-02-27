@@ -420,18 +420,13 @@ class Tag(PageElement):
         self.parserClass = parser.__class__
         self.name = name
         if attrs == None:
-            attrs = []
-        if isinstance(attrs, types.DictType):
-            self.attrMap = attrs
+            attrs = {}
+        else:
+            attrs = dict(attrs)
         self.attrs = attrs
         self.contents = []
         self.setup(parent, previous)
         self.hidden = False
-
-        if isinstance(attrs, types.DictType):
-            self.attrs = [kv for kv in attrs.items()]
-        else:
-            self.attrs = list(attrs)
 
         # Set up any substitutions, such as the charset in a META tag.
         self.contains_substitutions = builder.set_up_substitutions(self)
@@ -478,15 +473,15 @@ class Tag(PageElement):
         """Returns the value of the 'key' attribute for the tag, or
         the value given for 'default' if it doesn't have that
         attribute."""
-        return self._getAttrMap().get(key, default)
+        return self.attrs.get(key, default)
 
     def has_key(self, key):
-        return self._getAttrMap().has_key(key)
+        return self.attrs.has_key(key)
 
     def __getitem__(self, key):
         """tag[key] returns the value of the 'key' attribute for the tag,
         and throws an exception if it's not there."""
-        return self._getAttrMap()[key]
+        return self.attrs[key]
 
     def __iter__(self):
         "Iterating over a tag iterates over its contents."
@@ -506,27 +501,12 @@ class Tag(PageElement):
     def __setitem__(self, key, value):
         """Setting tag[key] sets the value of the 'key' attribute for the
         tag."""
-        self._getAttrMap()
-        self.attrMap[key] = value
-        found = False
-        for i in range(0, len(self.attrs)):
-            if self.attrs[i][0] == key:
-                self.attrs[i] = (key, value)
-                found = True
-        if not found:
-            self.attrs.append((key, value))
-        self._getAttrMap()[key] = value
+        self.attrs[key] = value
 
     def __delitem__(self, key):
         "Deleting tag[key] deletes all 'key' attributes for the tag."
-        for item in self.attrs:
-            if item[0] == key:
-                self.attrs.remove(item)
-                #We don't break because bad HTML can define the same
-                #attribute multiple times.
-            self._getAttrMap()
-            if self.attrMap.has_key(key):
-                del self.attrMap[key]
+        if self.attrs.has_key(key):
+            del self.attrs[key]
 
     def __call__(self, *args, **kwargs):
         """Calling a tag like a function is the same as calling its
@@ -589,7 +569,7 @@ class Tag(PageElement):
         """
         attrs = []
         if self.attrs:
-            for key, val in self.attrs:
+            for key, val in sorted(self.attrs.items()):
                 if val is None:
                     decoded = key
                 else:
@@ -717,17 +697,6 @@ class Tag(PageElement):
         return self._find_all(name, attrs, text, limit, generator, **kwargs)
     findAll = find_all      # BS3
     findChildren = find_all # BS2
-
-    #Private methods
-
-    def _getAttrMap(self):
-        """Initializes a map representation of this tag's attributes,
-        if not already initialized."""
-        if not getattr(self, 'attrMap'):
-            self.attrMap = {}
-            for (key, value) in self.attrs:
-                self.attrMap[key] = value
-        return self.attrMap
 
     #Generator methods
     @property
