@@ -19,7 +19,7 @@ class TestSelectiveParsing(SoupTest):
 class TestEntitySubstitution(unittest.TestCase):
     """Standalone tests of the EntitySubstitution class."""
     def setUp(self):
-        self.sub = EntitySubstitution()
+        self.sub = EntitySubstitution
 
     def test_simple_html_substitution(self):
         # Unicode characters corresponding to named HTML entites
