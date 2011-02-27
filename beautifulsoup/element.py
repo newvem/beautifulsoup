@@ -11,7 +11,7 @@ from util import isList
 DEFAULT_OUTPUT_ENCODING = "utf-8"
 
 
-class PageElement(object):
+class PageElement(EntitySubstitution):
     """Contains the navigational information for some part of the page
     (either a tag or a piece of text)"""
 
@@ -334,6 +334,9 @@ class PageElement(object):
 
 class NavigableString(unicode, PageElement):
 
+    PREFIX = ''
+    SUFFIX = ''
+
     def __new__(cls, value):
         """Create a new NavigableString.
 
@@ -358,29 +361,35 @@ class NavigableString(unicode, PageElement):
         else:
             raise AttributeError, "'%s' object has no attribute '%s'" % (self.__class__.__name__, attr)
 
-    def decodeGivenEventualEncoding(self, eventual_encoding):
-        return self
+    def output_ready(self, substitute_html_entities=False):
+        if substitute_html_entities:
+            output = self.substitute_html(self)
+        else:
+            output = self
+        return self.PREFIX + output + self.SUFFIX
+
 
 class CData(NavigableString):
 
-    def decodeGivenEventualEncoding(self, eventual_encoding):
-        return u'<![CDATA[' + self + u']]>'
+    PREFIX = u'<![CDATA['
+    SUFFIX = u']]>'
+
 
 class ProcessingInstruction(NavigableString):
 
-    def decodeGivenEventualEncoding(self, eventual_encoding):
-        output = self
-        if u'%SOUP-ENCODING%' in output:
-            output = self.substituteEncoding(output, eventual_encoding)
-        return u'<?' + output + u'?>'
+    PREFIX = u'<?'
+    SUFFIX = u'?>'
+
 
 class Comment(NavigableString):
-    def decodeGivenEventualEncoding(self, eventual_encoding):
-        return u'<!--' + self + u'-->'
+
+    PREFIX = u'<!--'
+    SUFFIX = u'-->'
 
 class Declaration(NavigableString):
-    def decodeGivenEventualEncoding(self, eventual_encoding):
-        return u'<!' + self + u'>'
+    PREFIX = u'<!'
+    SUFFIX = u'!>'
+
 
 class Doctype(NavigableString):
 
@@ -394,10 +403,11 @@ class Doctype(NavigableString):
 
         return Doctype(value)
 
-    def decodeGivenEventualEncoding(self, eventual_encoding):
-        return u'<!DOCTYPE ' + self + u'>'
+    PREFIX = u'<!DOCTYPE '
+    SUFFIX = u'>'
 
-class Tag(PageElement, EntitySubstitution):
+
+class Tag(PageElement):
 
     """Represents a found HTML tag with its attributes and contents."""
 
@@ -654,15 +664,13 @@ class Tag(PageElement, EntitySubstitution):
         for c in self:
             text = None
             if isinstance(c, NavigableString):
-                text = c.decodeGivenEventualEncoding(eventual_encoding)
+                text = c.output_ready(substitute_html_entities)
             elif isinstance(c, Tag):
                 s.append(c.decode(pretty_print, indent_level, eventual_encoding,
                                   substitute_html_entities))
             if text and pretty_print:
                 text = text.strip()
             if text:
-                if substitute_html_entities:
-                    text = self.substitute_html(text)
                 if pretty_print:
                     s.append(" " * (indent_level-1))
                 s.append(text)
