@@ -112,7 +112,7 @@ class BeautifulSoup(Tag):
         if builder is None:
             if isinstance(features, basestring):
                 features = [features]
-            if len(features) == 0:
+            if features is None or len(features) == 0:
                 features = self.DEFAULT_BUILDER_FEATURES
             builder_class = builder_registry.lookup(*features)
             if builder_class is None:
