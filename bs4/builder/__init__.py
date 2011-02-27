@@ -12,6 +12,7 @@ __all__ = [
 # Some useful features for a TreeBuilder to have.
 FAST = 'fast'
 PERMISSIVE = 'permissive'
+STRICT = 'strict'
 XML = 'xml'
 HTML = 'html'
 HTML_5 = 'html5'
@@ -244,7 +245,10 @@ def register_treebuilders_from(module):
 
 # Builders are registered in reverse order of priority, so that custom
 # builder registrations will take precedence. In general, we want
-# html5lib to take precedence over lxml, because it's more reliable.
+# html5lib to take precedence over lxml, because it's more
+# reliable. And we only want to use HTMLParser as a last result.
+import _htmlparser
+register_treebuilders_from(_htmlparser)
 try:
     import _lxml
     register_treebuilders_from(_lxml)

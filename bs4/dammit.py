@@ -35,6 +35,7 @@ class EntitySubstitution(object):
 
     def _populate_class_variables():
         lookup = {}
+        reverse_lookup = {}
         characters = []
         for codepoint, name in codepoint2name.items():
             if codepoint == 34:
@@ -45,10 +46,11 @@ class EntitySubstitution(object):
             character = unichr(codepoint)
             characters.append(character)
             lookup[character] = name
+            reverse_lookup[name] = character
         re_definition = "[%s]" % "".join(characters)
-        return lookup, re.compile(re_definition)
-    CHARACTER_TO_HTML_ENTITY, CHARACTER_TO_HTML_ENTITY_RE = (
-        _populate_class_variables())
+        return lookup, reverse_lookup, re.compile(re_definition)
+    (CHARACTER_TO_HTML_ENTITY, HTML_ENTITY_TO_CHARACTER,
+     CHARACTER_TO_HTML_ENTITY_RE) = _populate_class_variables()
 
 
     CHARACTER_TO_XML_ENTITY = {
