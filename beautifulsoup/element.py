@@ -562,13 +562,13 @@ class Tag(PageElement, EntitySubstitution):
 
     def encode(self, encoding=DEFAULT_OUTPUT_ENCODING,
                pretty_print=False, indent_level=0,
-               replace_with_html_entities=False):
+               substitute_html_entities=False):
         return self.decode(pretty_print, indent_level, encoding,
-                           replace_with_html_entities).encode(encoding)
+                           substitute_html_entities).encode(encoding)
 
     def decode(self, pretty_print=False, indent_level=0,
                eventual_encoding=DEFAULT_OUTPUT_ENCODING,
-               replace_with_html_entities=False):
+               substitute_html_entities=False):
         """Returns a string or Unicode representation of this tag and
         its contents. To get Unicode, pass None for encoding."""
 
@@ -601,7 +601,7 @@ class Tag(PageElement, EntitySubstitution):
             indentContents = indentTag + 1
         contents = self.decodeContents(pretty_print, indentContents,
                                        eventual_encoding,
-                                       replace_with_html_entities)
+                                       substitute_html_entities)
         if self.hidden:
             s = contents
         else:
@@ -642,12 +642,12 @@ class Tag(PageElement, EntitySubstitution):
                        pretty_print=False, indent_level=0,
                        replace_With_html_entities=False):
         return self.decodeContents(
-            pretty_print, indent_level, replace_with_html_entities).encode(
+            pretty_print, indent_level, substitute_html_entities).encode(
             encoding)
 
     def decodeContents(self, pretty_print=False, indent_level=0,
                        eventual_encoding=DEFAULT_OUTPUT_ENCODING,
-                       replace_with_html_entities=False):
+                       substitute_html_entities=False):
         """Renders the contents of this tag as a string in the given
         encoding. If encoding is None, returns a Unicode string.."""
         s=[]
@@ -657,11 +657,11 @@ class Tag(PageElement, EntitySubstitution):
                 text = c.decodeGivenEventualEncoding(eventual_encoding)
             elif isinstance(c, Tag):
                 s.append(c.decode(pretty_print, indent_level, eventual_encoding,
-                                  replace_with_html_entities))
+                                  substitute_html_entities))
             if text and pretty_print:
                 text = text.strip()
             if text:
-                if replace_with_html_entities:
+                if substitute_html_entities:
                     text = self.substitute_html(text)
                 if pretty_print:
                     s.append(" " * (indent_level-1))

@@ -830,14 +830,14 @@ class TestPersistence(SoupTest):
 
 class TestSubstitutions(SoupTest):
 
-    def test_entity_substitution(self):
+    def test_html_entity_substitution(self):
         soup = self.soup(
             u"<b>Sacr\N{LATIN SMALL LETTER E WITH ACUTE} bleu!</b>")
-        encoded = soup.encode("utf-8", replace_with_html_entities=True)
+        encoded = soup.encode("utf-8", substitute_html_entities=True)
         self.assertEquals(encoded,
                           self.document_for("<b>Sacr&eacute; bleu!</b>"))
 
-    def test_entity_substitution_off_by_default(self):
+    def test_html_entity_substitution_off_by_default(self):
         markup = u"<b>Sacr\N{LATIN SMALL LETTER E WITH ACUTE} bleu!</b>"
         soup = self.soup(markup)
         encoded = soup.b.encode("utf-8")
