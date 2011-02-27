@@ -609,7 +609,7 @@ class Tag(PageElement):
             indentTag = indent_level
             space = (' ' * (indentTag-1))
             indentContents = indentTag + 1
-        contents = self.decodeContents(pretty_print, indentContents,
+        contents = self.decode_contents(pretty_print, indentContents,
                                        eventual_encoding,
                                        substitute_html_entities)
         if self.hidden:
@@ -648,18 +648,18 @@ class Tag(PageElement):
     def prettify(self, encoding=DEFAULT_OUTPUT_ENCODING):
         return self.encode(encoding, True)
 
-    def encodeContents(self, encoding=DEFAULT_OUTPUT_ENCODING,
-                       pretty_print=False, indent_level=0,
-                       replace_With_html_entities=False):
-        return self.decodeContents(
-            pretty_print, indent_level, substitute_html_entities).encode(
-            encoding)
-
-    def decodeContents(self, pretty_print=False, indent_level=0,
+    def decode_contents(self, pretty_print=False, indent_level=0,
                        eventual_encoding=DEFAULT_OUTPUT_ENCODING,
                        substitute_html_entities=False):
-        """Renders the contents of this tag as a string in the given
-        encoding. If encoding is None, returns a Unicode string.."""
+        """Renders the contents of this tag as a Unicode string.
+
+        :param eventual_encoding: The document is destined to be
+           encoded into this encoding. This method is _not_
+           responsible for performing that encoding. This information
+           is passed in so that it can be substituted in if the
+           document contains a <META> tag that mentions the document's
+           encoding.
+        """
         s=[]
         for c in self:
             text = None
