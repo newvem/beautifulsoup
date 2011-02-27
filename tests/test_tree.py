@@ -830,6 +830,19 @@ class TestPersistence(SoupTest):
 
 class TestSubstitutions(SoupTest):
 
+    def test_entity_substitution(self):
+        soup = self.soup(
+            u"<b>Sacr\N{LATIN SMALL LETTER E WITH ACUTE} bleu!</b>")
+        encoded = soup.encode("utf-8", replace_with_html_entities=True)
+        self.assertEquals(encoded,
+                          self.document_for("<b>Sacr&eacute; bleu!</b>"))
+
+    def test_entity_substitution_off_by_default(self):
+        markup = u"<b>Sacr\N{LATIN SMALL LETTER E WITH ACUTE} bleu!</b>"
+        soup = self.soup(markup)
+        encoded = soup.b.encode("utf-8")
+        self.assertEquals(encoded, markup.encode('utf-8'))
+
     def test_encoding_substitution(self):
         # Here's the <meta> tag saying that a document is
         # encoded in Shift-JIS.

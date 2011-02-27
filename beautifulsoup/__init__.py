@@ -263,7 +263,8 @@ class BeautifulSoup(Tag):
         self.currentData.append(data)
 
     def decode(self, pretty_print=False, indent_level=0,
-               eventual_encoding=DEFAULT_OUTPUT_ENCODING):
+               eventual_encoding=DEFAULT_OUTPUT_ENCODING,
+               replace_with_html_entities=False):
         """Returns a string or Unicode representation of this document.
         To get Unicode, pass None for encoding."""
         if self.is_xml:
@@ -275,7 +276,8 @@ class BeautifulSoup(Tag):
         else:
             prefix = u''
         return prefix + super(BeautifulSoup, self).decode(
-            pretty_print, indent_level, eventual_encoding)
+            pretty_print, indent_level, eventual_encoding,
+            replace_with_html_entities)
 
 
 class StopParsing(Exception):
