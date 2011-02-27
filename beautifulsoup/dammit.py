@@ -31,6 +31,8 @@ except ImportError:
 
 class EntitySubstitution(object):
 
+    """Substitute XML or HTML entities for the corresponding characters."""
+
     def _populate_class_variables():
         lookup = {}
         characters = []
@@ -61,17 +63,20 @@ class EntitySubstitution(object):
                                            "&(?!#\d+;|#x[0-9a-fA-F]+;|\w+;)"
                                            ")")
 
-    def _substitute_html_entity(self, matchobj):
-        entity = self.CHARACTER_TO_HTML_ENTITY.get(matchobj.group(0))
+    @classmethod
+    def _substitute_html_entity(cls, matchobj):
+        entity = cls.CHARACTER_TO_HTML_ENTITY.get(matchobj.group(0))
         return "&%s;" % entity
 
-    def _substitute_xml_entity(self, matchobj):
+    @classmethod
+    def _substitute_xml_entity(cls, matchobj):
         """Used with a regular expression to substitute the
         appropriate XML entity for an XML special character."""
-        entity = self.CHARACTER_TO_XML_ENTITY[matchobj.group(0)]
+        entity = cls.CHARACTER_TO_XML_ENTITY[matchobj.group(0)]
         return "&%s;" % entity
 
-    def substitute_xml(self, value, make_quoted_attribute=False):
+    @classmethod
+    def substitute_xml(cls, value, make_quoted_attribute=False):
         """Substitute XML entities for special XML characters.
 
         :param value: A string to be substituted. The less-than sign will
@@ -117,14 +122,15 @@ class EntitySubstitution(object):
 
         # Escape angle brackets, and ampersands that aren't part of
         # entities.
-        value = self.BARE_AMPERSAND_OR_BRACKET.sub(
-            self._substitute_xml_entity, value)
+        value = cls.BARE_AMPERSAND_OR_BRACKET.sub(
+            cls._substitute_xml_entity, value)
         if make_quoted_attribute:
             return quote_with + value + quote_with
         else:
             return value
 
-    def substitute_html(self, s):
+    @classmethod
+    def substitute_html(cls, s):
         """Replace certain Unicode characters with named HTML entities.
 
         This differs from data.encode(encoding, 'xmlcharrefreplace')
@@ -135,8 +141,8 @@ class EntitySubstitution(object):
         character with "&eacute;" will make it more readable to some
         people.
         """
-        return self.CHARACTER_TO_HTML_ENTITY_RE.sub(
-            self._substitute_html_entity, s)
+        return cls.CHARACTER_TO_HTML_ENTITY_RE.sub(
+            cls._substitute_html_entity, s)
 
 
 class UnicodeDammit:

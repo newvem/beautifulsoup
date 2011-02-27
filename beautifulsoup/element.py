@@ -11,7 +11,7 @@ from util import isList
 DEFAULT_OUTPUT_ENCODING = "utf-8"
 
 
-class PageElement(EntitySubstitution):
+class PageElement(object):
     """Contains the navigational information for some part of the page
     (either a tag or a piece of text)"""
 
@@ -363,7 +363,7 @@ class NavigableString(unicode, PageElement):
 
     def output_ready(self, substitute_html_entities=False):
         if substitute_html_entities:
-            output = self.substitute_html(self)
+            output = EntitySubstitution.substitute_html(self)
         else:
             output = self
         return self.PREFIX + output + self.SUFFIX
@@ -580,7 +580,8 @@ class Tag(PageElement):
                         and '%SOUP-ENCODING%' in val):
                         val = self.substituteEncoding(val, eventual_encoding)
 
-                    decoded = key + '=' + self.substitute_xml(val, True)
+                    decoded = (key + '='
+                               + EntitySubstitution.substitute_xml(val, True))
                 attrs.append(decoded)
         close = ''
         closeTag = ''

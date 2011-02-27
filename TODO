@@ -1,11 +1,6 @@
 Bare ampersands should be converted to HTML entities upon output.
 
-It should also be possible to, on output, convert to HTML entities any
-Unicode characters found in htmlentitydefs.codepoint2name. (This
-algorithm would allow me to simplify Unicode, Dammit--convert
-everything to Unicode, and then convert to entities upon output, not
-treating smart quotes differently from any other Unicode character
-that can be represented as an entity.)
+Add namespace support.
 
 XML handling:
 
