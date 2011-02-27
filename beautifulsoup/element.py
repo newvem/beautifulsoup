@@ -562,7 +562,7 @@ class Tag(PageElement):
 
     def __repr__(self, encoding=DEFAULT_OUTPUT_ENCODING):
         """Renders this tag as a string."""
-        return self.decode(eventual_encoding=encoding)
+        return self.encode(encoding)
 
     def __unicode__(self):
         return self.decode()
@@ -578,9 +578,15 @@ class Tag(PageElement):
     def decode(self, indent_level=None,
                eventual_encoding=DEFAULT_OUTPUT_ENCODING,
                substitute_html_entities=False):
-        """Returns a string or Unicode representation of this tag and
-        its contents. To get Unicode, pass None for encoding."""
+        """Returns a Unicode representation of this tag and its contents.
 
+        :param eventual_encoding: The tag is destined to be
+           encoded into this encoding. This method is _not_
+           responsible for performing that encoding. This information
+           is passed in so that it can be substituted in if the
+           document contains a <META> tag that mentions the document's
+           encoding.
+        """
         attrs = []
         if self.attrs:
             for key, val in self.attrs:
@@ -655,7 +661,7 @@ class Tag(PageElement):
                        substitute_html_entities=False):
         """Renders the contents of this tag as a Unicode string.
 
-        :param eventual_encoding: The document is destined to be
+        :param eventual_encoding: The tag is destined to be
            encoded into this encoding. This method is _not_
            responsible for performing that encoding. This information
            is passed in so that it can be substituted in if the
