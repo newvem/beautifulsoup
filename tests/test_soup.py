@@ -2,9 +2,9 @@
 """Tests of Beautiful Soup as a whole."""
 
 import unittest
-from beautifulsoup.element import SoupStrainer
-from beautifulsoup.dammit import EntitySubstitution, UnicodeDammit
-from beautifulsoup.testing import SoupTest
+from bs4.element import SoupStrainer
+from bs4.dammit import EntitySubstitution, UnicodeDammit
+from bs4.testing import SoupTest
 
 
 class TestSelectiveParsing(SoupTest):

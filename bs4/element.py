@@ -4,7 +4,7 @@ try:
     from htmlentitydefs import name2codepoint
 except ImportError:
     name2codepoint = {}
-from beautifulsoup.dammit import EntitySubstitution
+from bs4.dammit import EntitySubstitution
 
 from util import isList
 

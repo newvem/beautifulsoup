@@ -4,15 +4,15 @@ __all__ = [
     ]
 
 from lxml import etree
-from beautifulsoup.element import Comment, Doctype
-from beautifulsoup.builder import (
+from bs4.element import Comment, Doctype
+from bs4.builder import (
     FAST,
     HTML,
     HTMLTreeBuilder,
     PERMISSIVE,
     TreeBuilder,
     XML)
-from beautifulsoup.dammit import UnicodeDammit
+from bs4.dammit import UnicodeDammit
 import types
 
 LXML = 'lxml'

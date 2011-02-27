@@ -1,5 +1,5 @@
-from beautifulsoup.builder import HTML5TreeBuilder
-from beautifulsoup.element import Comment, SoupStrainer
+from bs4.builder import HTML5TreeBuilder
+from bs4.element import Comment, SoupStrainer
 from test_lxml import (
     TestLXMLBuilder,
     TestLXMLBuilderInvalidMarkup,
