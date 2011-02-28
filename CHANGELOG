@@ -1,5 +1,22 @@
 = 4.0 =
 
+This is a nearly-complete rewrite that removes Beautiful Soup's custom
+HTML parser in favor of a system that lets you write a little glue
+code and plug in whatever HTML or XML parser you want.
+
+Beautiful Soup 4.0 comes with glue code for four parsers: an Python's
+HTMLParser, lxml's HTML and XML parsers, and html5lib's HTML
+parser. HTMLParser is the default, but I recommend you install one of
+the other parsers, or you'll have problems handling real-world HTML.
+
+== The module name has changed ==
+
+Previously you imported the BeautifulSoup class from a module also
+called BeautifulSoup. To save keystrokes and make it clear which
+version of the API is in use, the module is now called 'bs4':
+
+    >>> from bs4 import BeautifulSoup
+
 == Better method names ==
 
 Methods have been renamed to comply with PEP 8. The old names still
@@ -25,7 +42,6 @@ So have some arguments to popular methods:
 
  * BeautifulSoup(parseOnlyThese=...) -> BeautifulSoup(parse_only=...)
  * BeautifulSoup(fromEncoding=...) -> BeautifulSoup(from_encoding=...)
- * Tag.encode(prettyPrint=...) -> Tag.encode(pretty_print=...)
 
 == Generators are now properties ==
 
@@ -77,12 +93,13 @@ being an empty-element tag.
 
 An HTML or XML entity is always converted into the corresponding
 Unicode character. There are no longer any smartQuotesTo or
-convert_entities arguments. (Unicode Dammit still has smart_quotes_to,
-but the default is now to turn smart quotes into Unicode.)
+convertEntities arguments. (Unicode, Dammit still has smart_quotes_to,
+but its default is now to turn smart quotes into Unicode.)
 
 == CDATA sections are normal text, if they're understood at all. ==
 
-Currently, both HTML parsers ignore CDATA sections in markup:
+Currently, the lxml and html5lib HTML parsers ignore CDATA sections in
+markup:
 
  <p><![CDATA[foo]]></p> => <p></p>
 
