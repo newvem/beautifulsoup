@@ -27,10 +27,10 @@ class PageElement(object):
             self.previousSibling = self.parent.contents[-1]
             self.previousSibling.nextSibling = self
 
-    def replace_with(self, replaceWith):
+    def replace_with(self, replace_with):
         oldParent = self.parent
         myIndex = self.parent.contents.index(self)
-        if hasattr(replace_with, 'parent') and replaceWith.parent == self.parent:
+        if hasattr(replace_with, 'parent') and replace_with.parent == self.parent:
             # We're replacing this element with one of its siblings.
             index = self.parent.contents.index(replace_with)
             if index and index < myIndex:
@@ -40,6 +40,7 @@ class PageElement(object):
                 myIndex = myIndex - 1
         self.extract()
         oldParent.insert(myIndex, replace_with)
+    replaceWith = replace_with # BS4
 
     def extract(self):
         """Destructively rips this element out of the tree."""
@@ -52,7 +53,7 @@ class PageElement(object):
         #Find the two elements that would be next to each other if
         #this element (and any children) hadn't been parsed. Connect
         #the two.
-        lastChild = self._lastRecursiveChild()
+        lastChild = self._last_recursive_child()
         nextElement = lastChild.next
 
         if self.previous:
@@ -70,7 +71,7 @@ class PageElement(object):
         self.previousSibling = self.nextSibling = None
         return self
 
-    def _lastRecursiveChild(self):
+    def _last_recursive_child(self):
         "Finds the last element beneath this object to be parsed."
         lastChild = self
         while hasattr(lastChild, 'contents') and lastChild.contents:
@@ -106,11 +107,11 @@ class PageElement(object):
             previousChild = self.contents[position-1]
             newChild.previousSibling = previousChild
             newChild.previousSibling.nextSibling = newChild
-            newChild.previous = previousChild._lastRecursiveChild()
+            newChild.previous = previousChild._last_recursive_child()
         if newChild.previous:
             newChild.previous.next = newChild
 
-        newChildsLastElement = newChild._lastRecursiveChild()
+        newChildsLastElement = newChild._last_recursive_child()
 
         if position >= len(self.contents):
             newChild.nextSibling = None
@@ -710,7 +711,7 @@ class Tag(PageElement):
     def recursive_children(self):
         if not len(self.contents):
             raise StopIteration
-        stopNode = self._lastRecursiveChild().next
+        stopNode = self._last_recursive_child().next
         current = self.contents[0]
         while current is not stopNode:
             yield current
