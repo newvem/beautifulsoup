@@ -370,6 +370,7 @@ class Comment(NavigableString):
     PREFIX = u'<!--'
     SUFFIX = u'-->'
 
+
 class Declaration(NavigableString):
     PREFIX = u'<!'
     SUFFIX = u'!>'
@@ -508,10 +509,7 @@ class Tag(PageElement):
 
     def __eq__(self, other):
         """Returns true iff this tag has the same name, the same attributes,
-        and the same contents (recursively) as the given tag.
-
-        XXX: right now this will return false if two tags have the
-        same attributes in a different order. Should this be fixed?"""
+        and the same contents (recursively) as the given tag."""
         if not hasattr(other, 'name') or not hasattr(other, 'attrs') or not hasattr(other, 'contents') or self.name != other.name or self.attrs != other.attrs or len(self) != len(other):
             return False
         for i in range(0, len(self.contents)):
@@ -686,14 +684,12 @@ class Tag(PageElement):
     #Generator methods
     @property
     def children(self):
-        for i in range(0, len(self.contents)):
-            yield self.contents[i]
-        raise StopIteration
+        return iter(self.contents) # XXX This seems to be untested.
 
     @property
     def recursive_children(self):
         if not len(self.contents):
-            raise StopIteration
+            raise StopIteration # XXX return instead?
         stopNode = self._last_recursive_child().next
         current = self.contents[0]
         while current is not stopNode:
