@@ -145,7 +145,7 @@ class PageElement(object):
     def find_next(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the first item that matches the given criteria and
         appears after this Tag in the document."""
-        return self._findOne(self.find_all_next, name, attrs, text, **kwargs)
+        return self._find_one(self.find_all_next, name, attrs, text, **kwargs)
     findNext = find_next # BS3
 
     def find_all_next(self, name=None, attrs={}, text=None, limit=None,
@@ -159,7 +159,7 @@ class PageElement(object):
     def find_next_sibling(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the closest sibling to this Tag that matches the
         given criteria and appears after this Tag in the document."""
-        return self._findOne(self.find_next_siblings, name, attrs, text,
+        return self._find_one(self.find_next_siblings, name, attrs, text,
                              **kwargs)
     findNextSibling = find_next_sibling # BS3
 
@@ -175,7 +175,7 @@ class PageElement(object):
     def find_previous(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the first item that matches the given criteria and
         appears before this Tag in the document."""
-        return self._findOne(
+        return self._find_one(
             self.find_all_previous, name, attrs, text, **kwargs)
     findPrevious = find_previous # BS3
 
@@ -191,7 +191,7 @@ class PageElement(object):
     def find_previous_sibling(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the closest sibling to this Tag that matches the
         given criteria and appears before this Tag in the document."""
-        return self._findOne(self.find_previous_siblings, name, attrs, text,
+        return self._find_one(self.find_previous_siblings, name, attrs, text,
                              **kwargs)
     findPreviousSibling = find_previous_sibling # BS3
 
@@ -207,7 +207,7 @@ class PageElement(object):
     def find_parent(self, name=None, attrs={}, **kwargs):
         """Returns the closest parent of this Tag that matches the given
         criteria."""
-        # NOTE: We can't use _findOne because findParents takes a different
+        # NOTE: We can't use _find_one because findParents takes a different
         # set of arguments.
         r = None
         l = self.find_parents(name, attrs, 1)
@@ -227,7 +227,7 @@ class PageElement(object):
 
     #These methods do the real heavy lifting.
 
-    def _findOne(self, method, name, attrs, text, **kwargs):
+    def _find_one(self, method, name, attrs, text, **kwargs):
         r = None
         l = method(name, attrs, text, 1, **kwargs)
         if l:
@@ -311,11 +311,11 @@ class PageElement(object):
         return self.parents
 
     # Utility methods
-    def substituteEncoding(self, str, encoding=None):
+    def substitute_encoding(self, str, encoding=None):
         encoding = encoding or "utf-8"
         return str.replace("%SOUP-ENCODING%", encoding)
 
-    def toEncoding(self, s, encoding=None):
+    def to_encoding(self, s, encoding=None):
         """Encodes an object to a string in some encoding, or to Unicode.
         ."""
         if isinstance(s, unicode):
@@ -328,7 +328,7 @@ class PageElement(object):
                 s = unicode(s)
         else:
             if encoding:
-                s  = self.toEncoding(str(s), encoding)
+                s  = self.to_encoding(str(s), encoding)
             else:
                 s = unicode(s)
         return s
@@ -579,7 +579,7 @@ class Tag(PageElement):
                     if (self.contains_substitutions
                         and eventual_encoding is not None
                         and '%SOUP-ENCODING%' in val):
-                        val = self.substituteEncoding(val, eventual_encoding)
+                        val = self.substitute_encoding(val, eventual_encoding)
 
                     decoded = (key + '='
                                + EntitySubstitution.substitute_xml(val, True))

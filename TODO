@@ -1,3 +1,6 @@
+3.0.8 optimized findAll('tag-name') and findAll(True), bypassing the
+soupstrainer process.
+
 define a setter for Tag.string which replaces the tag's contents with
 a string.
 
