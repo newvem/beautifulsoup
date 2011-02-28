@@ -400,6 +400,10 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
         self.assertEquals(soup.a['bar'], '')
         self.assertEquals(soup.a.string, "baz")
 
+    def test_unquoted_attribute_value(self):
+        soup = self.soup('<a style={height:21px;}></a>')
+        self.assertEquals(soup.a['style'], '{height:21px;}')
+
     def test_attribute_value_with_embedded_brackets(self):
         soup = self.soup('<a b="<a>">')
         self.assertEquals(soup.a['b'], '<a>')
