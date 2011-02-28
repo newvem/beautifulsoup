@@ -355,6 +355,12 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
             '<table><tr><table><tr id="nested">',
             '<table><tr><table><tr id="nested"></tr></table></tr></table>')
 
+    def test_paragraphs_containing_block_display_elements(self):
+        markup = self.soup("<p>this is the definition:"
+                           "<dl><dt>first case</dt>")
+        # The <p> tag is closed before the <dl> tag begins.
+        self.assertEquals(markup.p.contents, ["this is the definition:"])
+
     def test_empty_element_tag_with_contents(self):
         self.assertSoupEquals("<br>foo</br>", "<br />foo")
 
