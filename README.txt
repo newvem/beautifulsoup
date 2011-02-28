@@ -1,8 +1,9 @@
 = About Beautiful Soup 4 =
 
 Earlier versions of Beautiful Soup included a custom HTML
-parser. Beautiful Soup 4 does not include a parser. You'll need to
-install either lxml or html5lib.
+parser. Beautiful Soup 4 uses Python's default HTMLParser, which does
+fairly poorly on real-world HTML. By installing lxml or html5lib you
+can get more accurate parsing and possibly better performance as well.
 
 = Introduction =
 
