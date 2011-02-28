@@ -355,6 +355,12 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
             '<table><tr><table><tr id="nested">',
             '<table><tr><table><tr id="nested"></tr></table></tr></table>')
 
+    def test_paragraphs_containing_block_display_elements(self):
+        markup = self.soup("<p>this is the definition:"
+                           "<dl><dt>first case</dt>")
+        # The <p> tag is closed before the <dl> tag begins.
+        self.assertEquals(markup.p.contents, ["this is the definition:"])
+
     def test_empty_element_tag_with_contents(self):
         self.assertSoupEquals("<br>foo</br>", "<br />foo")
 
@@ -400,6 +406,10 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
         self.assertEquals(soup.a['bar'], '')
         self.assertEquals(soup.a.string, "baz")
 
+    def test_unquoted_attribute_value(self):
+        soup = self.soup('<a style={height:21px;}></a>')
+        self.assertEquals(soup.a['style'], '{height:21px;}')
+
     def test_attribute_value_with_embedded_brackets(self):
         soup = self.soup('<a b="<a>">')
         self.assertEquals(soup.a['b'], '<a>')
@@ -414,6 +424,15 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
 
         # Also compare html5lib, which preserves the &# before the
         # entity name.
+
+    def test_entity_out_of_range(self):
+        # An entity that's out of range will be ignored.
+        soup = self.soup("<p>&#10000000000000;</p>")
+        self.assertEquals(soup.p.string, None)
+
+        soup = self.soup("<p>&#x1000000000000;</p>")
+        self.assertEquals(soup.p.string, None)
+
 
     def test_entity_was_not_finished(self):
         soup = self.soup("<p>&lt;Hello&gt")

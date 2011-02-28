@@ -200,6 +200,15 @@ class TestHTML5BuilderInvalidMarkup(TestLXMLBuilderInvalidMarkup):
         soup = self.soup("<p>foo&#100;baz</p>")
         self.assertEquals(soup.p.string, "foodbaz")
 
+    def test_entity_out_of_range(self):
+        # An entity that's out of range will be converted to
+        # REPLACEMENT CHARACTER.
+        soup = self.soup("<p>&#10000000000000;</p>")
+        self.assertEquals(soup.p.string, u"\N{REPLACEMENT CHARACTER}")
+
+        soup = self.soup("<p>&#x1000000000000;</p>")
+        self.assertEquals(soup.p.string, u"\N{REPLACEMENT CHARACTER}")
+
 
 class TestHTML5LibEncodingConversion(TestLXMLBuilderEncodingConversion):
     @property
