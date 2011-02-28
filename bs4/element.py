@@ -27,19 +27,20 @@ class PageElement(object):
             self.previousSibling = self.parent.contents[-1]
             self.previousSibling.nextSibling = self
 
-    def replaceWith(self, replaceWith):
+    def replace_with(self, replace_with):
         oldParent = self.parent
         myIndex = self.parent.contents.index(self)
-        if hasattr(replaceWith, 'parent') and replaceWith.parent == self.parent:
+        if hasattr(replace_with, 'parent') and replace_with.parent == self.parent:
             # We're replacing this element with one of its siblings.
-            index = self.parent.contents.index(replaceWith)
+            index = self.parent.contents.index(replace_with)
             if index and index < myIndex:
                 # Furthermore, it comes before this element. That
                 # means that when we extract it, the index of this
                 # element will change.
                 myIndex = myIndex - 1
         self.extract()
-        oldParent.insert(myIndex, replaceWith)
+        oldParent.insert(myIndex, replace_with)
+    replaceWith = replace_with # BS4
 
     def extract(self):
         """Destructively rips this element out of the tree."""
@@ -52,7 +53,7 @@ class PageElement(object):
         #Find the two elements that would be next to each other if
         #this element (and any children) hadn't been parsed. Connect
         #the two.
-        lastChild = self._lastRecursiveChild()
+        lastChild = self._last_recursive_child()
         nextElement = lastChild.next
 
         if self.previous:
@@ -70,7 +71,7 @@ class PageElement(object):
         self.previousSibling = self.nextSibling = None
         return self
 
-    def _lastRecursiveChild(self):
+    def _last_recursive_child(self):
         "Finds the last element beneath this object to be parsed."
         lastChild = self
         while hasattr(lastChild, 'contents') and lastChild.contents:
@@ -106,11 +107,11 @@ class PageElement(object):
             previousChild = self.contents[position-1]
             newChild.previousSibling = previousChild
             newChild.previousSibling.nextSibling = newChild
-            newChild.previous = previousChild._lastRecursiveChild()
+            newChild.previous = previousChild._last_recursive_child()
         if newChild.previous:
             newChild.previous.next = newChild
 
-        newChildsLastElement = newChild._lastRecursiveChild()
+        newChildsLastElement = newChild._last_recursive_child()
 
         if position >= len(self.contents):
             newChild.nextSibling = None
@@ -144,7 +145,7 @@ class PageElement(object):
     def find_next(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the first item that matches the given criteria and
         appears after this Tag in the document."""
-        return self._findOne(self.find_all_next, name, attrs, text, **kwargs)
+        return self._find_one(self.find_all_next, name, attrs, text, **kwargs)
     findNext = find_next # BS3
 
     def find_all_next(self, name=None, attrs={}, text=None, limit=None,
@@ -158,7 +159,7 @@ class PageElement(object):
     def find_next_sibling(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the closest sibling to this Tag that matches the
         given criteria and appears after this Tag in the document."""
-        return self._findOne(self.find_next_siblings, name, attrs, text,
+        return self._find_one(self.find_next_siblings, name, attrs, text,
                              **kwargs)
     findNextSibling = find_next_sibling # BS3
 
@@ -174,7 +175,7 @@ class PageElement(object):
     def find_previous(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the first item that matches the given criteria and
         appears before this Tag in the document."""
-        return self._findOne(
+        return self._find_one(
             self.find_all_previous, name, attrs, text, **kwargs)
     findPrevious = find_previous # BS3
 
@@ -190,7 +191,7 @@ class PageElement(object):
     def find_previous_sibling(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the closest sibling to this Tag that matches the
         given criteria and appears before this Tag in the document."""
-        return self._findOne(self.find_previous_siblings, name, attrs, text,
+        return self._find_one(self.find_previous_siblings, name, attrs, text,
                              **kwargs)
     findPreviousSibling = find_previous_sibling # BS3
 
@@ -206,7 +207,7 @@ class PageElement(object):
     def find_parent(self, name=None, attrs={}, **kwargs):
         """Returns the closest parent of this Tag that matches the given
         criteria."""
-        # NOTE: We can't use _findOne because findParents takes a different
+        # NOTE: We can't use _find_one because findParents takes a different
         # set of arguments.
         r = None
         l = self.find_parents(name, attrs, 1)
@@ -226,7 +227,7 @@ class PageElement(object):
 
     #These methods do the real heavy lifting.
 
-    def _findOne(self, method, name, attrs, text, **kwargs):
+    def _find_one(self, method, name, attrs, text, **kwargs):
         r = None
         l = method(name, attrs, text, 1, **kwargs)
         if l:
@@ -310,27 +311,10 @@ class PageElement(object):
         return self.parents
 
     # Utility methods
-    def substituteEncoding(self, str, encoding=None):
+    def substitute_encoding(self, str, encoding=None):
         encoding = encoding or "utf-8"
         return str.replace("%SOUP-ENCODING%", encoding)
 
-    def toEncoding(self, s, encoding=None):
-        """Encodes an object to a string in some encoding, or to Unicode.
-        ."""
-        if isinstance(s, unicode):
-            if encoding:
-                s = s.encode(encoding)
-        elif isinstance(s, str):
-            if encoding:
-                s = s.encode(encoding)
-            else:
-                s = unicode(s)
-        else:
-            if encoding:
-                s  = self.toEncoding(str(s), encoding)
-            else:
-                s = unicode(s)
-        return s
 
 class NavigableString(unicode, PageElement):
 
@@ -385,6 +369,7 @@ class Comment(NavigableString):
 
     PREFIX = u'<!--'
     SUFFIX = u'-->'
+
 
 class Declaration(NavigableString):
     PREFIX = u'<!'
@@ -524,10 +509,7 @@ class Tag(PageElement):
 
     def __eq__(self, other):
         """Returns true iff this tag has the same name, the same attributes,
-        and the same contents (recursively) as the given tag.
-
-        XXX: right now this will return false if two tags have the
-        same attributes in a different order. Should this be fixed?"""
+        and the same contents (recursively) as the given tag."""
         if not hasattr(other, 'name') or not hasattr(other, 'attrs') or not hasattr(other, 'contents') or self.name != other.name or self.attrs != other.attrs or len(self) != len(other):
             return False
         for i in range(0, len(self.contents)):
@@ -578,7 +560,7 @@ class Tag(PageElement):
                     if (self.contains_substitutions
                         and eventual_encoding is not None
                         and '%SOUP-ENCODING%' in val):
-                        val = self.substituteEncoding(val, eventual_encoding)
+                        val = self.substitute_encoding(val, eventual_encoding)
 
                     decoded = (key + '='
                                + EntitySubstitution.substitute_xml(val, True))
@@ -702,15 +684,13 @@ class Tag(PageElement):
     #Generator methods
     @property
     def children(self):
-        for i in range(0, len(self.contents)):
-            yield self.contents[i]
-        raise StopIteration
+        return iter(self.contents) # XXX This seems to be untested.
 
     @property
     def recursive_children(self):
         if not len(self.contents):
-            raise StopIteration
-        stopNode = self._lastRecursiveChild().next
+            raise StopIteration # XXX return instead?
+        stopNode = self._last_recursive_child().next
         current = self.contents[0]
         while current is not stopNode:
             yield current
