@@ -315,23 +315,6 @@ class PageElement(object):
         encoding = encoding or "utf-8"
         return str.replace("%SOUP-ENCODING%", encoding)
 
-    def to_encoding(self, s, encoding=None):
-        """Encodes an object to a string in some encoding, or to Unicode.
-        ."""
-        if isinstance(s, unicode):
-            if encoding:
-                s = s.encode(encoding)
-        elif isinstance(s, str):
-            if encoding:
-                s = s.encode(encoding)
-            else:
-                s = unicode(s)
-        else:
-            if encoding:
-                s  = self.to_encoding(str(s), encoding)
-            else:
-                s = unicode(s)
-        return s
 
 class NavigableString(unicode, PageElement):
 
