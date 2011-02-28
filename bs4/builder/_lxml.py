@@ -13,7 +13,6 @@ from bs4.builder import (
     TreeBuilder,
     XML)
 from bs4.dammit import UnicodeDammit
-import types
 
 LXML = 'lxml'
 
