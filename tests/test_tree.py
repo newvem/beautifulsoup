@@ -557,12 +557,12 @@ class TestTreeModification(SoupTest):
         text = "<a><b></b><c>Foo<d></d></c></a><a><e></e></a>"
         soup = self.soup(text)
         c = soup.c
-        soup.c.replaceWith(c)
+        soup.c.replace_with(c)
         self.assertEquals(soup.decode(), self.document_for(text))
 
     def test_replace_final_node(self):
         soup = self.soup("<b>Argh!</b>")
-        soup.find(text="Argh!").replaceWith("Hooray!")
+        soup.find(text="Argh!").replace_with("Hooray!")
         new_text = soup.find(text="Hooray!")
         b = soup.b
         self.assertEqual(new_text.previous, b)
@@ -635,7 +635,7 @@ class TestTreeModification(SoupTest):
         soup = self.soup(
                 "<p>There's <b>no</b> business like <b>show</b> business</p>")
         no, show = soup.find_all('b')
-        show.replaceWith(no)
+        show.replace_with(no)
         self.assertEquals(
             soup.decode(),
             self.document_for(
@@ -654,7 +654,7 @@ class TestTreeModification(SoupTest):
         # right") with the <f> tag ("refuse").
         remove_tag = soup.b
         move_tag = soup.f
-        remove_tag.replaceWith(move_tag)
+        remove_tag.replace_with(move_tag)
 
         self.assertEqual(
             soup.decode(), self.document_for(

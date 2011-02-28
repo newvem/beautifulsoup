@@ -27,19 +27,19 @@ class PageElement(object):
             self.previousSibling = self.parent.contents[-1]
             self.previousSibling.nextSibling = self
 
-    def replaceWith(self, replaceWith):
+    def replace_with(self, replaceWith):
         oldParent = self.parent
         myIndex = self.parent.contents.index(self)
-        if hasattr(replaceWith, 'parent') and replaceWith.parent == self.parent:
+        if hasattr(replace_with, 'parent') and replaceWith.parent == self.parent:
             # We're replacing this element with one of its siblings.
-            index = self.parent.contents.index(replaceWith)
+            index = self.parent.contents.index(replace_with)
             if index and index < myIndex:
                 # Furthermore, it comes before this element. That
                 # means that when we extract it, the index of this
                 # element will change.
                 myIndex = myIndex - 1
         self.extract()
-        oldParent.insert(myIndex, replaceWith)
+        oldParent.insert(myIndex, replace_with)
 
     def extract(self):
         """Destructively rips this element out of the tree."""

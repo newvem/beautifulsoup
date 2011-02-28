@@ -1,3 +1,8 @@
+define a setter for Tag.string which replaces the tag's contents with
+a string.
+
+Tag.text: concatenate all strings and return them
+
 Bare ampersands should be converted to HTML entities upon output.
 
 Add namespace support.

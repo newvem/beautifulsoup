@@ -22,6 +22,7 @@ version of the API is in use, the module is now called 'bs4':
 Methods have been renamed to comply with PEP 8. The old names still
 work. Here are the renames:
 
+ * replaceWith -> replace_with
  * findAll -> find_all
  * findAllNext -> find_all_next
  * findAllPrevious -> find_all_previous
