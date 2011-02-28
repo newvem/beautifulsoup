@@ -425,6 +425,15 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
         # Also compare html5lib, which preserves the &# before the
         # entity name.
 
+    def test_entity_out_of_range(self):
+        # An entity that's out of range will be ignored.
+        soup = self.soup("<p>&#10000000000000;</p>")
+        self.assertEquals(soup.p.string, None)
+
+        soup = self.soup("<p>&#x1000000000000;</p>")
+        self.assertEquals(soup.p.string, None)
+
+
     def test_entity_was_not_finished(self):
         soup = self.soup("<p>&lt;Hello&gt")
         # Compare html5lib, which completes the entity.
