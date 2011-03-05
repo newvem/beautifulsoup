@@ -19,10 +19,11 @@ version of the API is in use, the module is now called 'bs4':
 
 == Better method names ==
 
-Methods have been renamed to comply with PEP 8. The old names still
-work. Here are the renames:
+Methods and attributes have been renamed to comply with PEP 8. The old names
+still work. Here are the renames:
 
  * replaceWith -> replace_with
+ * replaceWithChildren -> replace_with_children
  * findAll -> find_all
  * findAllNext -> find_all_next
  * findAllPrevious -> find_all_previous
@@ -34,6 +35,8 @@ work. Here are the renames:
  * findPrevious -> find_previous
  * findPreviousSibling -> find_previous_sibling
  * findPreviousSiblings -> find_previous_siblings
+ * nextSibling -> next_sibling
+ * previousSibling -> previous_sibling
 
 Some attributes have also been renamed:
 
@@ -159,7 +162,7 @@ A later version of Beautiful Soup will allow you to plug in different
 parsers to make tradeoffs between speed and the ability to handle bad
 HTML.
 
-3. In Python 3 (but not Python 2),HTMLParser converts entities within
+3. In Python 3 (but not Python 2), HTMLParser converts entities within
 attributes to the corresponding Unicode characters. In Python 2 it's
 possible to parse this string and leave the &eacute; intact.
 
