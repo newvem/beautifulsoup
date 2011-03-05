@@ -204,7 +204,7 @@ class BeautifulSoup(Tag):
 
         if (self.parse_only and len(self.tagStack) <= 1
             and (self.parse_only.text
-                 or not self.parse_only.searchTag(name, attrs))):
+                 or not self.parse_only.search_tag(name, attrs))):
             return None
 
         tag = Tag(self, self.builder, name, attrs, self.currentTag,

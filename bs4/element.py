@@ -16,6 +16,18 @@ def _match_css_class(str):
     return re.compile(r"(^|.*\s)%s($|\s)" % str)
 
 
+def _alias(attr):
+    """Alias one attribute name to another for backward compatibility"""
+    @property
+    def alias(self):
+        return getattr(self, attr)
+
+    @alias.setter
+    def alias(self):
+        return setattr(self, attr)
+    return alias
+
+
 class PageElement(object):
     """Contains the navigational information for some part of the page
     (either a tag or a piece of text)"""
@@ -26,25 +38,30 @@ class PageElement(object):
         self.parent = parent
         self.previous = previous
         self.next = None
-        self.previousSibling = None
-        self.nextSibling = None
+        self.previous_sibling = None
+        self.next_sibling = None
         if self.parent and self.parent.contents:
-            self.previousSibling = self.parent.contents[-1]
-            self.previousSibling.nextSibling = self
+            self.previous_sibling = self.parent.contents[-1]
+            self.previous_sibling.next_sibling = self
+
+    nextSibling = _alias("next_sibling") # BS3
+    previousSibling = _alias("previous_sibling") # BS3
 
     def replace_with(self, replace_with):
-        oldParent = self.parent
-        myIndex = self.parent.index(self)
-        if hasattr(replace_with, 'parent') and replace_with.parent is self.parent:
+        if replace_with is self:
+            return
+        old_parent = self.parent
+        my_index = self.parent.index(self)
+        if (hasattr(replace_with, 'parent')
+            and replace_with.parent is self.parent):
             # We're replacing this element with one of its siblings.
-            index = self.parent.index(replace_with)
-            if index and index < myIndex:
+            if self.parent.index(replace_with) < my_index:
                 # Furthermore, it comes before this element. That
                 # means that when we extract it, the index of this
                 # element will change.
-                myIndex = myIndex - 1
+                my_index -= 1
         self.extract()
-        oldParent.insert(myIndex, replace_with)
+        old_parent.insert(my_index, replace_with)
     replaceWith = replace_with # BS3
 
     def replace_with_children(self):
@@ -53,7 +70,7 @@ class PageElement(object):
         self.extract()
         for child in reversed(self.contents[:]):
             my_parent.insert(my_index, child)
-    replaceWithChildren = replace_with_children
+    replaceWithChildren = replace_with_children # BS3
 
     def extract(self):
         """Destructively rips this element out of the tree."""
@@ -63,88 +80,90 @@ class PageElement(object):
         #Find the two elements that would be next to each other if
         #this element (and any children) hadn't been parsed. Connect
         #the two.
-        lastChild = self._last_recursive_child()
-        nextElement = lastChild.next
+        last_child = self._last_recursive_child()
+        next_element = last_child.next
 
         if self.previous:
-            self.previous.next = nextElement
-        if nextElement:
-            nextElement.previous = self.previous
+            self.previous.next = next_element
+        if next_element:
+            next_element.previous = self.previous
         self.previous = None
-        lastChild.next = None
+        last_child.next = None
 
         self.parent = None
-        if self.previousSibling:
-            self.previousSibling.nextSibling = self.nextSibling
-        if self.nextSibling:
-            self.nextSibling.previousSibling = self.previousSibling
-        self.previousSibling = self.nextSibling = None
+        if self.previous_sibling:
+            self.previous_sibling.next_sibling = self.next_sibling
+        if self.next_sibling:
+            self.next_sibling.previous_sibling = self.previous_sibling
+        self.previous_sibling = self.next_sibling = None
         return self
 
     def _last_recursive_child(self):
         "Finds the last element beneath this object to be parsed."
-        lastChild = self
-        while hasattr(lastChild, 'contents') and lastChild.contents:
-            lastChild = lastChild.contents[-1]
-        return lastChild
+        last_child = self
+        while hasattr(last_child, 'contents') and last_child.contents:
+            last_child = last_child.contents[-1]
+        return last_child
+    # BS3: Not part of the API!
+    _lastRecursiveChild = _last_recursive_child
 
-    def insert(self, position, newChild):
-        if (isinstance(newChild, basestring)
-            and not isinstance(newChild, NavigableString)):
-            newChild = NavigableString(newChild)
+    def insert(self, position, new_child):
+        if (isinstance(new_child, basestring)
+            and not isinstance(new_child, NavigableString)):
+            new_child = NavigableString(new_child)
 
         position =  min(position, len(self.contents))
-        if hasattr(newChild, 'parent') and newChild.parent is not None:
+        if hasattr(new_child, 'parent') and new_child.parent is not None:
             # We're 'inserting' an element that's already one
             # of this object's children.
-            if newChild.parent is self:
-                if self.index(newChild) > position:
+            if new_child.parent is self:
+                if self.index(new_child) > position:
                     # Furthermore we're moving it further down the
                     # list of this object's children. That means that
                     # when we extract this element, our target index
                     # will jump down one.
                     position -= 1
-            newChild.extract()
+            new_child.extract()
 
-        newChild.parent = self
-        previousChild = None
+        new_child.parent = self
+        previous_child = None
         if position == 0:
-            newChild.previousSibling = None
-            newChild.previous = self
+            new_child.previous_sibling = None
+            new_child.previous = self
         else:
-            previousChild = self.contents[position-1]
-            newChild.previousSibling = previousChild
-            newChild.previousSibling.nextSibling = newChild
-            newChild.previous = previousChild._last_recursive_child()
-        if newChild.previous:
-            newChild.previous.next = newChild
+            previous_child = self.contents[position - 1]
+            new_child.previous_sibling = previous_child
+            new_child.previous_sibling.next_sibling = new_child
+            new_child.previous = previous_child._last_recursive_child()
+        if new_child.previous:
+            new_child.previous.next = new_child
 
-        newChildsLastElement = newChild._last_recursive_child()
+        new_childs_last_element = new_child._last_recursive_child()
 
         if position >= len(self.contents):
-            newChild.nextSibling = None
+            new_child.next_sibling = None
 
             parent = self
-            parentsNextSibling = None
-            while not parentsNextSibling:
-                parentsNextSibling = parent.nextSibling
+            parents_next_sibling = None
+            while not parents_next_sibling:
+                parents_next_sibling = parent.next_sibling
                 parent = parent.parent
                 if not parent: # This is the last element in the document.
                     break
-            if parentsNextSibling:
-                newChildsLastElement.next = parentsNextSibling
+            if parents_next_sibling:
+                new_childs_last_element.next = parents_next_sibling
             else:
-                newChildsLastElement.next = None
+                new_childs_last_element.next = None
         else:
-            nextChild = self.contents[position]
-            newChild.nextSibling = nextChild
-            if newChild.nextSibling:
-                newChild.nextSibling.previousSibling = newChild
-            newChildsLastElement.next = nextChild
+            next_child = self.contents[position]
+            new_child.next_sibling = next_child
+            if new_child.next_sibling:
+                new_child.next_sibling.previous_sibling = new_child
+            new_childs_last_element.next = next_child
 
-        if newChildsLastElement.next:
-            newChildsLastElement.next.previous = newChildsLastElement
-        self.contents.insert(position, newChild)
+        if new_childs_last_element.next:
+            new_childs_last_element.next.previous = new_childs_last_element
+        self.contents.insert(position, new_child)
 
     def append(self, tag):
         """Appends the given tag to the contents of this tag."""
@@ -288,7 +307,7 @@ class PageElement(object):
     def next_siblings(self):
         i = self
         while i is not None:
-            i = i.nextSibling
+            i = i.next_sibling
             yield i
 
     @property
@@ -302,7 +321,7 @@ class PageElement(object):
     def previous_siblings(self):
         i = self
         while i is not None:
-            i = i.previousSibling
+            i = i.previous_sibling
             yield i
 
     @property
@@ -421,7 +440,7 @@ class Tag(PageElement):
 
         # We don't actually store the parser object: that lets extracted
         # chunks be garbage-collected.
-        self.parserClass = parser.__class__
+        self.parser_class = parser.__class__
         self.name = name
         if attrs is None:
             attrs = {}
@@ -436,6 +455,8 @@ class Tag(PageElement):
         self.contains_substitutions = builder.set_up_substitutions(self)
 
         self.can_be_empty_element = builder.can_be_empty_element(name)
+
+    parserClass = _alias("parser_class") # BS3
 
     @property
     def is_empty_element(self):
@@ -574,9 +595,9 @@ class Tag(PageElement):
 
     def __getattr__(self, tag):
         #print "Getattr %s.%s" % (self.__class__, tag)
-        if len(tag) > 3 and tag.rfind('Tag') == len(tag)-3:
+        if len(tag) > 3 and tag.rfind('Tag') == len(tag)-3: # TODO: Can this be endswith?
             return self.find(tag[:-3])
-        elif tag.find('__') != 0:
+        elif tag.find('__') != 0: # TODO: Can this be not startswith?
             return self.find(tag)
         raise AttributeError, "'%s' object has no attribute '%s'" % (self.__class__, tag)
 
@@ -587,8 +608,8 @@ class Tag(PageElement):
             return True
         if not hasattr(other, 'name') or not hasattr(other, 'attrs') or not hasattr(other, 'contents') or self.name != other.name or self.attrs != other.attrs or len(self) != len(other):
             return False
-        for i in range(0, len(self.contents)):
-            if self.contents[i] != other.contents[i]:
+        for i, my_child in enumerate(self.contents):
+            if my_child != other.contents[i]:
                 return False
         return True
 
@@ -662,12 +683,12 @@ class Tag(PageElement):
             s = contents
         else:
             s = []
-            attributeString = ''
+            attribute_string = ''
             if attrs:
-                attributeString = ' ' + ' '.join(attrs)
+                attribute_string = ' ' + ' '.join(attrs)
             if pretty_print:
                 s.append(space)
-            s.append('<%s%s%s>' % (self.name, attributeString, close))
+            s.append('<%s%s%s>' % (self.name, attribute_string, close))
             if pretty_print:
                 s.append("\n")
             s.append(contents)
@@ -676,7 +697,7 @@ class Tag(PageElement):
             if pretty_print and closeTag:
                 s.append(space)
             s.append(closeTag)
-            if pretty_print and closeTag and self.nextSibling:
+            if pretty_print and closeTag and self.next_sibling:
                 s.append("\n")
             s = ''.join(s)
         return s
@@ -795,42 +816,43 @@ class SoupStrainer(object):
         else:
             return "%s|%s" % (self.name, self.attrs)
 
-    def searchTag(self, markupName=None, markupAttrs={}):
+    def search_tag(self, markup_name=None, markup_attrs={}):
         found = None
         markup = None
-        if isinstance(markupName, Tag):
-            markup = markupName
-            markupAttrs = markup
-        callFunctionWithTagData = callable(self.name) \
-                                and not isinstance(markupName, Tag)
+        if isinstance(markup_name, Tag):
+            markup = markup_name
+            markup_attrs = markup
+        call_function_with_tag_data = callable(self.name) \
+                                and not isinstance(markup_name, Tag)
 
         if (not self.name) \
-               or callFunctionWithTagData \
+               or call_function_with_tag_data \
                or (markup and self._matches(markup, self.name)) \
-               or (not markup and self._matches(markupName, self.name)):
-            if callFunctionWithTagData:
-                match = self.name(markupName, markupAttrs)
+               or (not markup and self._matches(markup_name, self.name)):
+            if call_function_with_tag_data:
+                match = self.name(markup_name, markup_attrs)
             else:
                 match = True
-                markupAttrMap = None
-                for attr, matchAgainst in self.attrs.items():
-                    if not markupAttrMap:
-                         if hasattr(markupAttrs, 'get'):
-                            markupAttrMap = markupAttrs
+                markup_attr_map = None
+                for attr, match_against in self.attrs.items():
+                    if not markup_attr_map:
+                         if hasattr(markup_attrs, 'get'):
+                            markup_attr_map = markup_attrs
                          else:
-                            markupAttrMap = {}
-                            for k,v in markupAttrs:
-                                markupAttrMap[k] = v
-                    attrValue = markupAttrMap.get(attr)
-                    if not self._matches(attrValue, matchAgainst):
+                            markup_attr_map = {}
+                            for k,v in markup_attrs:
+                                markup_attr_map[k] = v
+                    attr_value = markup_attr_map.get(attr)
+                    if not self._matches(attr_value, match_against):
                         match = False
                         break
             if match:
                 if markup:
                     found = markup
                 else:
-                    found = markupName
+                    found = markup_name
         return found
+    searchTag = search_tag
 
     def search(self, markup):
         #print 'looking for %s in %s' % (self, markup)
@@ -847,7 +869,7 @@ class SoupStrainer(object):
         # Don't bother with Tags if we're searching for text.
         elif isinstance(markup, Tag):
             if not self.text:
-                found = self.searchTag(markup)
+                found = self.search_tag(markup)
         # If it's text, make sure the text matches.
         elif isinstance(markup, NavigableString) or \
                  isinstance(markup, basestring):
@@ -858,13 +880,13 @@ class SoupStrainer(object):
                   % markup.__class__
         return found
 
-    def _matches(self, markup, matchAgainst):
-        #print "Matching %s against %s" % (markup, matchAgainst)
+    def _matches(self, markup, match_against):
+        #print "Matching %s against %s" % (markup, match_against)
         result = False
-        if matchAgainst is True:
+        if match_against is True:
             result = markup is not None
-        elif callable(matchAgainst):
-            result = matchAgainst(markup)
+        elif callable(match_against):
+            result = match_against(markup)
         else:
             #Custom match methods take the tag as an argument, but all
             #other ways of matching match the tag name as a string.
@@ -873,23 +895,23 @@ class SoupStrainer(object):
             if markup is not None and not isinstance(markup, basestring):
                 markup = unicode(markup)
             #Now we know that chunk is either a string, or None.
-            if hasattr(matchAgainst, 'match'):
+            if hasattr(match_against, 'match'):
                 # It's a regexp object.
-                result = markup and matchAgainst.search(markup)
-            elif (isList(matchAgainst)
+                result = markup and match_against.search(markup)
+            elif (isList(match_against)
                   and (markup is not None
-                       or not isinstance(matchAgainst, basestring))):
-                result = markup in matchAgainst
-            elif hasattr(matchAgainst, 'items'):
-                result = markup.has_key(matchAgainst)
-            elif matchAgainst and isinstance(markup, basestring):
+                       or not isinstance(match_against, basestring))):
+                result = markup in match_against
+            elif hasattr(match_against, 'items'):
+                result = match_against in markup
+            elif match_against and isinstance(markup, basestring):
                 if isinstance(markup, unicode):
-                    matchAgainst = unicode(matchAgainst)
+                    match_against = unicode(match_against)
                 else:
-                    matchAgainst = str(matchAgainst)
+                    match_against = str(match_against)
 
             if not result:
-                result = matchAgainst == markup
+                result = match_against == markup
         return result
 
 
