@@ -557,22 +557,22 @@ class TestTreeModification(SoupTest):
             '<body><a href="http://foo.com/"></a><ol></ol></body>')
 
     def test_append_to_contents_moves_tag(self):
-       doc = """<p id="1">Don't leave me <b>here</b>.</p>
+        doc = """<p id="1">Don't leave me <b>here</b>.</p>
                 <p id="2">Don\'t leave!</p>"""
-       soup = self.soup(doc)
-       second_para = soup.find(id='2')
-       bold = soup.b
+        soup = self.soup(doc)
+        second_para = soup.find(id='2')
+        bold = soup.b
 
-       # Move the <b> tag to the end of the second paragraph.
-       soup.find(id='2').append(soup.b)
+        # Move the <b> tag to the end of the second paragraph.
+        soup.find(id='2').append(soup.b)
 
-       # The <b> tag is now a child of the second paragraph.
-       self.assertEqual(bold.parent, second_para)
+        # The <b> tag is now a child of the second paragraph.
+        self.assertEqual(bold.parent, second_para)
 
-       self.assertEqual(
-           soup.decode(), self.document_for(
-               '<p id="1">Don\'t leave me .</p>\n'
-               '<p id="2">Don\'t leave!<b>here</b></p>'))
+        self.assertEqual(
+            soup.decode(), self.document_for(
+                '<p id="1">Don\'t leave me .</p>\n'
+                '<p id="2">Don\'t leave!<b>here</b></p>'))
 
     def test_replace_tag_with_itself(self):
         text = "<a><b></b><c>Foo<d></d></c></a><a><e></e></a>"
@@ -700,7 +700,7 @@ class TestTreeModification(SoupTest):
         self.assertEqual(to_text.next, g_tag)
         self.assertEqual(to_text.next_sibling, g_tag)
         self.assertEqual(g_tag.previous, to_text)
-        self.assertEqual(g_tag.previous_sibling, to_text)
+    self.assertEqual(g_tag.previous_sibling, to_text)
 
     def test_replace_with_children(self):
         tree = self.soup("""

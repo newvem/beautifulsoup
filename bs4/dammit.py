@@ -42,7 +42,7 @@ class EntitySubstitution(object):
                 # There's no point in turning the quotation mark into
                 # &quot;, unless it happens within an attribute value, which
                 # is handled elsewhere.
-                continue;
+                continue
             character = unichr(codepoint)
             characters.append(character)
             lookup[character] = name
@@ -52,13 +52,12 @@ class EntitySubstitution(object):
     (CHARACTER_TO_HTML_ENTITY, HTML_ENTITY_TO_CHARACTER,
      CHARACTER_TO_HTML_ENTITY_RE) = _populate_class_variables()
 
-
     CHARACTER_TO_XML_ENTITY = {
-        "'" : "apos",
-        '"' : "quot",
-        "&" : "amp",
-        "<" : "lt",
-        ">" : "gt",
+        "'": "apos",
+        '"': "quot",
+        "&": "amp",
+        "<": "lt",
+        ">": "gt",
         }
 
     BARE_AMPERSAND_OR_BRACKET = re.compile("([<>]|"
@@ -157,8 +156,8 @@ class UnicodeDammit:
     # meta tags to the corresponding Python codec names. It only covers
     # values that aren't in Python's aliases and can't be determined
     # by the heuristics in find_codec.
-    CHARSET_ALIASES = { "macintosh" : "mac-roman",
-                        "x-sjis" : "shift-jis" }
+    CHARSET_ALIASES = {"macintosh": "mac-roman",
+                       "x-sjis": "shift-jis"}
 
     ENCODINGS_WITH_SMART_QUOTES = [
         "windows-1252",
@@ -198,7 +197,8 @@ class UnicodeDammit:
                     break
 
         self.unicode = u
-        if not u: self.original_encoding = None
+        if not u:
+            self.original_encoding = None
 
     def _sub_ms_char(self, match):
         """Changes a MS smart quote character to an XML or HTML
@@ -335,7 +335,6 @@ class UnicodeDammit:
                 xml_encoding = sniffed_xml_encoding
         return xml_data, xml_encoding, sniffed_xml_encoding
 
-
     def find_codec(self, charset):
         return self._codec(self.CHARSET_ALIASES.get(charset, charset)) \
                or (charset and self._codec(charset.replace("-", ""))) \
@@ -343,7 +342,8 @@ class UnicodeDammit:
                or charset
 
     def _codec(self, charset):
-        if not charset: return charset
+        if not charset:
+            return charset
         codec = None
         try:
             codecs.lookup(charset)
@@ -353,6 +353,7 @@ class UnicodeDammit:
         return codec
 
     EBCDIC_TO_ASCII_MAP = None
+
     def _ebcdic_to_ascii(self, s):
         c = self.__class__
         if not c.EBCDIC_TO_ASCII_MAP:
@@ -374,39 +375,39 @@ class UnicodeDammit:
                     90,244,245,246,247,248,249,48,49,50,51,52,53,54,55,56,57,
                     250,251,252,253,254,255)
             import string
-            c.EBCDIC_TO_ASCII_MAP = string.maketrans( \
+            c.EBCDIC_TO_ASCII_MAP = string.maketrans(
             ''.join(map(chr, range(256))), ''.join(map(chr, emap)))
         return s.translate(c.EBCDIC_TO_ASCII_MAP)
 
-    MS_CHARS = { '\x80' : ('euro', '20AC'),
-                 '\x81' : ' ',
-                 '\x82' : ('sbquo', '201A'),
-                 '\x83' : ('fnof', '192'),
-                 '\x84' : ('bdquo', '201E'),
-                 '\x85' : ('hellip', '2026'),
-                 '\x86' : ('dagger', '2020'),
-                 '\x87' : ('Dagger', '2021'),
-                 '\x88' : ('circ', '2C6'),
-                 '\x89' : ('permil', '2030'),
-                 '\x8A' : ('Scaron', '160'),
-                 '\x8B' : ('lsaquo', '2039'),
-                 '\x8C' : ('OElig', '152'),
-                 '\x8D' : '?',
-                 '\x8E' : ('#x17D', '17D'),
-                 '\x8F' : '?',
-                 '\x90' : '?',
-                 '\x91' : ('lsquo', '2018'),
-                 '\x92' : ('rsquo', '2019'),
-                 '\x93' : ('ldquo', '201C'),
-                 '\x94' : ('rdquo', '201D'),
-                 '\x95' : ('bull', '2022'),
-                 '\x96' : ('ndash', '2013'),
-                 '\x97' : ('mdash', '2014'),
-                 '\x98' : ('tilde', '2DC'),
-                 '\x99' : ('trade', '2122'),
-                 '\x9a' : ('scaron', '161'),
-                 '\x9b' : ('rsaquo', '203A'),
-                 '\x9c' : ('oelig', '153'),
-                 '\x9d' : '?',
-                 '\x9e' : ('#x17E', '17E'),
-                 '\x9f' : ('Yuml', ''),}
+    MS_CHARS = {'\x80': ('euro', '20AC'),
+                '\x81': ' ',
+                '\x82': ('sbquo', '201A'),
+                '\x83': ('fnof', '192'),
+                '\x84': ('bdquo', '201E'),
+                '\x85': ('hellip', '2026'),
+                '\x86': ('dagger', '2020'),
+                '\x87': ('Dagger', '2021'),
+                '\x88': ('circ', '2C6'),
+                '\x89': ('permil', '2030'),
+                '\x8A': ('Scaron', '160'),
+                '\x8B': ('lsaquo', '2039'),
+                '\x8C': ('OElig', '152'),
+                '\x8D': '?',
+                '\x8E': ('#x17D', '17D'),
+                '\x8F': '?',
+                '\x90': '?',
+                '\x91': ('lsquo', '2018'),
+                '\x92': ('rsquo', '2019'),
+                '\x93': ('ldquo', '201C'),
+                '\x94': ('rdquo', '201D'),
+                '\x95': ('bull', '2022'),
+                '\x96': ('ndash', '2013'),
+                '\x97': ('mdash', '2014'),
+                '\x98': ('tilde', '2DC'),
+                '\x99': ('trade', '2122'),
+                '\x9a': ('scaron', '161'),
+                '\x9b': ('rsaquo', '203A'),
+                '\x9c': ('oelig', '153'),
+                '\x9d': '?',
+                '\x9e': ('#x17E', '17E'),
+                '\x9f': ('Yuml', ''),}

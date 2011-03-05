@@ -65,7 +65,7 @@ class BeautifulSoup(Tag):
     # can be replaced with a single space. A text node that contains
     # fancy Unicode spaces (usually non-breaking) should be left
     # alone.
-    STRIP_ASCII_SPACES = { 9: None, 10: None, 12: None, 13: None, 32: None, }
+    STRIP_ASCII_SPACES = {9: None, 10: None, 12: None, 13: None, 32: None, }
 
     def __init__(self, markup="", features=None, builder=None,
                  parse_only=None, from_encoding=None):
@@ -167,7 +167,6 @@ class BeautifulSoup(Tag):
         self.previous = o
         self.currentTag.contents.append(o)
 
-
     def _popToTag(self, name, inclusivePop=True):
         """Pops the tag stack up to and including the most recent
         instance of the given tag. If inclusivePop is false, pops the tag
@@ -179,9 +178,10 @@ class BeautifulSoup(Tag):
 
         numPops = 0
         mostRecentTag = None
-        for i in range(len(self.tagStack)-1, 0, -1):
+
+        for i in range(len(self.tagStack) - 1, 0, -1):
             if name == self.tagStack[i].name:
-                numPops = len(self.tagStack)-i
+                numPops = len(self.tagStack) - i
                 break
         if not inclusivePop:
             numPops = numPops - 1
@@ -216,7 +216,6 @@ class BeautifulSoup(Tag):
         self.previous = tag
         self.pushTag(tag)
         return tag
-
 
     def handle_endtag(self, name):
         #print "End tag: " + name

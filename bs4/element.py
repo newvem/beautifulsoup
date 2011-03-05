@@ -44,8 +44,8 @@ class PageElement(object):
             self.previous_sibling = self.parent.contents[-1]
             self.previous_sibling.next_sibling = self
 
-    nextSibling = _alias("next_sibling") # BS3
-    previousSibling = _alias("previous_sibling") # BS3
+    nextSibling = _alias("next_sibling")  # BS3
+    previousSibling = _alias("previous_sibling")  # BS3
 
     def replace_with(self, replace_with):
         if replace_with is self:
@@ -62,7 +62,7 @@ class PageElement(object):
                 my_index -= 1
         self.extract()
         old_parent.insert(my_index, replace_with)
-    replaceWith = replace_with # BS3
+    replaceWith = replace_with  # BS3
 
     def replace_with_children(self):
         my_parent = self.parent
@@ -70,7 +70,7 @@ class PageElement(object):
         self.extract()
         for child in reversed(self.contents[:]):
             my_parent.insert(my_index, child)
-    replaceWithChildren = replace_with_children # BS3
+    replaceWithChildren = replace_with_children  # BS3
 
     def extract(self):
         """Destructively rips this element out of the tree."""
@@ -112,7 +112,7 @@ class PageElement(object):
             and not isinstance(new_child, NavigableString)):
             new_child = NavigableString(new_child)
 
-        position =  min(position, len(self.contents))
+        position = min(position, len(self.contents))
         if hasattr(new_child, 'parent') and new_child.parent is not None:
             # We're 'inserting' an element that's already one
             # of this object's children.
@@ -148,7 +148,7 @@ class PageElement(object):
             while not parents_next_sibling:
                 parents_next_sibling = parent.next_sibling
                 parent = parent.parent
-                if not parent: # This is the last element in the document.
+                if not parent:  # This is the last element in the document.
                     break
             if parents_next_sibling:
                 new_childs_last_element.next = parents_next_sibling
@@ -173,7 +173,7 @@ class PageElement(object):
         """Returns the first item that matches the given criteria and
         appears after this Tag in the document."""
         return self._find_one(self.find_all_next, name, attrs, text, **kwargs)
-    findNext = find_next # BS3
+    findNext = find_next  # BS3
 
     def find_all_next(self, name=None, attrs={}, text=None, limit=None,
                     **kwargs):
@@ -181,14 +181,14 @@ class PageElement(object):
         after this Tag in the document."""
         return self._find_all(name, attrs, text, limit, self.next_elements,
                              **kwargs)
-    findAllNext = find_all_next # BS3
+    findAllNext = find_all_next  # BS3
 
     def find_next_sibling(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the closest sibling to this Tag that matches the
         given criteria and appears after this Tag in the document."""
         return self._find_one(self.find_next_siblings, name, attrs, text,
                              **kwargs)
-    findNextSibling = find_next_sibling # BS3
+    findNextSibling = find_next_sibling  # BS3
 
     def find_next_siblings(self, name=None, attrs={}, text=None, limit=None,
                            **kwargs):
@@ -196,15 +196,15 @@ class PageElement(object):
         criteria and appear after this Tag in the document."""
         return self._find_all(name, attrs, text, limit,
                               self.next_siblings, **kwargs)
-    findNextSiblings = find_next_siblings  # BS3
-    fetchNextSiblings = find_next_siblings # BS2
+    findNextSiblings = find_next_siblings   # BS3
+    fetchNextSiblings = find_next_siblings  # BS2
 
     def find_previous(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the first item that matches the given criteria and
         appears before this Tag in the document."""
         return self._find_one(
             self.find_all_previous, name, attrs, text, **kwargs)
-    findPrevious = find_previous # BS3
+    findPrevious = find_previous  # BS3
 
     def find_all_previous(self, name=None, attrs={}, text=None, limit=None,
                         **kwargs):
@@ -212,15 +212,15 @@ class PageElement(object):
         before this Tag in the document."""
         return self._find_all(name, attrs, text, limit, self.previous_elements,
                            **kwargs)
-    findAllPrevious = find_all_previous # BS3
-    fetchPrevious = find_all_previous   # BS2
+    findAllPrevious = find_all_previous  # BS3
+    fetchPrevious = find_all_previous    # BS2
 
     def find_previous_sibling(self, name=None, attrs={}, text=None, **kwargs):
         """Returns the closest sibling to this Tag that matches the
         given criteria and appears before this Tag in the document."""
         return self._find_one(self.find_previous_siblings, name, attrs, text,
                              **kwargs)
-    findPreviousSibling = find_previous_sibling # BS3
+    findPreviousSibling = find_previous_sibling  # BS3
 
     def find_previous_siblings(self, name=None, attrs={}, text=None,
                                limit=None, **kwargs):
@@ -228,8 +228,8 @@ class PageElement(object):
         criteria and appear before this Tag in the document."""
         return self._find_all(name, attrs, text, limit,
                               self.previous_siblings, **kwargs)
-    findPreviousSiblings = find_previous_siblings  # BS3
-    fetchPreviousSiblings = find_previous_siblings # BS2
+    findPreviousSiblings = find_previous_siblings   # BS3
+    fetchPreviousSiblings = find_previous_siblings  # BS2
 
     def find_parent(self, name=None, attrs={}, **kwargs):
         """Returns the closest parent of this Tag that matches the given
@@ -241,7 +241,7 @@ class PageElement(object):
         if l:
             r = l[0]
         return r
-    findParent = find_parent # BS3
+    findParent = find_parent  # BS3
 
     def find_parents(self, name=None, attrs={}, limit=None, **kwargs):
         """Returns the parents of this Tag that match the given
@@ -249,8 +249,8 @@ class PageElement(object):
 
         return self._find_all(name, attrs, None, limit, self.parents,
                              **kwargs)
-    findParents = find_parents  # BS3
-    fetchParents = find_parents # BS2
+    findParents = find_parents   # BS3
+    fetchParents = find_parents  # BS2
 
     #These methods do the real heavy lifting.
 
@@ -381,7 +381,8 @@ class NavigableString(unicode, PageElement):
         if attr == 'string':
             return self
         else:
-            raise AttributeError, "'%s' object has no attribute '%s'" % (self.__class__.__name__, attr)
+            raise AttributeError("'%s' object has no attribute '%s'" %
+                                 (self.__class__.__name__, attr))
 
     def output_ready(self, substitute_html_entities=False):
         if substitute_html_entities:
@@ -456,7 +457,7 @@ class Tag(PageElement):
 
         self.can_be_empty_element = builder.can_be_empty_element(name)
 
-    parserClass = _alias("parser_class") # BS3
+    parserClass = _alias("parser_class")  # BS3
 
     @property
     def is_empty_element(self):
@@ -474,8 +475,7 @@ class Tag(PageElement):
         then any tag with no contents is an empty-element tag.
         """
         return len(self.contents) == 0 and self.can_be_empty_element
-    isSelfClosing = is_empty_element # BS3
-
+    isSelfClosing = is_empty_element  # BS3
 
     @property
     def string(self):
@@ -555,7 +555,7 @@ class Tag(PageElement):
         return self.attrs.get(key, default)
 
     def has_key(self, key):
-        return self.attrs.has_key(key)
+        return key in self.attrs
 
     def __getitem__(self, key):
         """tag[key] returns the value of the 'key' attribute for the tag,
@@ -584,8 +584,7 @@ class Tag(PageElement):
 
     def __delitem__(self, key):
         "Deleting tag[key] deletes all 'key' attributes for the tag."
-        if self.attrs.has_key(key):
-            del self.attrs[key]
+        self.attrs.pop(key, None)
 
     def __call__(self, *args, **kwargs):
         """Calling a tag like a function is the same as calling its
@@ -595,18 +594,24 @@ class Tag(PageElement):
 
     def __getattr__(self, tag):
         #print "Getattr %s.%s" % (self.__class__, tag)
-        if len(tag) > 3 and tag.rfind('Tag') == len(tag)-3: # TODO: Can this be endswith?
+        if len(tag) > 3 and tag.endswith('Tag'):
             return self.find(tag[:-3])
-        elif tag.find('__') != 0: # TODO: Can this be not startswith?
+        elif not tag.startswith("__"):
             return self.find(tag)
-        raise AttributeError, "'%s' object has no attribute '%s'" % (self.__class__, tag)
+        raise AttributeError("'%s' object has no attribute '%s'" %
+                               (self.__class__, tag))
 
     def __eq__(self, other):
         """Returns true iff this tag has the same name, the same attributes,
         and the same contents (recursively) as the given tag."""
         if self is other:
             return True
-        if not hasattr(other, 'name') or not hasattr(other, 'attrs') or not hasattr(other, 'contents') or self.name != other.name or self.attrs != other.attrs or len(self) != len(other):
+        if (not hasattr(other, 'name') or
+            not hasattr(other, 'attrs') or
+            not hasattr(other, 'contents') or
+            self.name != other.name or
+            self.attrs != other.attrs or
+            len(self) != len(other)):
             return False
         for i, my_child in enumerate(self.contents):
             if my_child != other.contents[i]:
@@ -670,7 +675,7 @@ class Tag(PageElement):
 
         pretty_print = (indent_level is not None)
         if pretty_print:
-            space = (' ' * (indent_level-1))
+            space = (' ' * (indent_level - 1))
             indent_contents = indent_level + 1
         else:
             space = ''
@@ -718,7 +723,7 @@ class Tag(PageElement):
            encoding.
         """
         pretty_print = (indent_level is not None)
-        s=[]
+        s = []
         for c in self:
             text = None
             if isinstance(c, NavigableString):
@@ -730,7 +735,7 @@ class Tag(PageElement):
                 text = text.strip()
             if text:
                 if pretty_print:
-                    s.append(" " * (indent_level-1))
+                    s.append(" " * (indent_level - 1))
                 s.append(text)
                 if pretty_print:
                     s.append("\n")
@@ -764,14 +769,14 @@ class Tag(PageElement):
         if not recursive:
             generator = self.children
         return self._find_all(name, attrs, text, limit, generator, **kwargs)
-    findAll = find_all      # BS3
-    findChildren = find_all # BS2
+    findAll = find_all       # BS3
+    findChildren = find_all  # BS2
 
     #Generator methods
     @property
     def children(self):
         # return iter() to make the purpose of the method clear
-        return iter(self.contents) # XXX This seems to be untested.
+        return iter(self.contents)  # XXX This seems to be untested.
 
     @property
     def recursive_children(self):
@@ -836,11 +841,11 @@ class SoupStrainer(object):
                 markup_attr_map = None
                 for attr, match_against in self.attrs.items():
                     if not markup_attr_map:
-                         if hasattr(markup_attrs, 'get'):
+                        if hasattr(markup_attrs, 'get'):
                             markup_attr_map = markup_attrs
-                         else:
+                        else:
                             markup_attr_map = {}
-                            for k,v in markup_attrs:
+                            for k, v in markup_attrs:
                                 markup_attr_map[k] = v
                     attr_value = markup_attr_map.get(attr)
                     if not self._matches(attr_value, match_against):
@@ -876,8 +881,8 @@ class SoupStrainer(object):
             if self._matches(markup, self.text):
                 found = markup
         else:
-            raise Exception, "I don't know how to match against a %s" \
-                  % markup.__class__
+            raise Exception("I don't know how to match against a %s"
+                  % markup.__class__)
         return found
 
     def _matches(self, markup, match_against):
