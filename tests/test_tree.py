@@ -179,10 +179,13 @@ class TestFindAllByAttribute(TreeTest):
         tree = self.soup("""
                          <a class="1">Class 1.</a>
                          <a class="2">Class 2.</a>
-                         <b class="1">Class 1.</a>
+                         <b class="1">Class 1.</b>
+                         <c class="3 4">Class 3 and 4.</c>
                          """)
         self.assertSelects(tree.find_all('a', '1'), ['Class 1.'])
         self.assertSelects(tree.find_all(attrs='1'), ['Class 1.', 'Class 1.'])
+        self.assertSelects(tree.find_all('c', '3'), ['Class 3 and 4.'])
+        self.assertSelects(tree.find_all('c', '4'), ['Class 3 and 4.'])
 
     def test_find_all_by_attribute_soupstrainer(self):
         tree = self.soup("""
@@ -240,6 +243,24 @@ class TestFindAllByAttribute(TreeTest):
 
         self.assertSelects(tree.find_all(id=re.compile("^a+$")),
                            ["One a.", "Two as."])
+
+
+class TestIndex(TreeTest):
+    """Test Tag.index"""
+    def test_index(self):
+        tree = self.soup("""<wrap>
+                            <a>Identical</a>
+                            <b>Not identical</b>
+                            <a>Identical</a>
+
+                            <c><d>Identical with child</d></c>
+                            <b>Also not identical</b>
+                            <c><d>Identical with child</d></c>
+                            </wrap>""")
+        wrap = tree.wrap
+        for i, element in enumerate(wrap.contents):
+            self.assertEqual(i, wrap.index(element))
+        self.assertRaises(ValueError, tree.index, 1)
 
 
 class TestParentOperations(TreeTest):
@@ -591,7 +612,6 @@ class TestTreeModification(SoupTest):
         self.assertEqual(new_text.nextSibling, None)
         self.assertEqual(new_text.next, soup.c)
 
-
     def test_insert_tag(self):
         builder = self.default_builder
         soup = self.soup(
@@ -682,6 +702,14 @@ class TestTreeModification(SoupTest):
         self.assertEqual(g_tag.previous, to_text)
         self.assertEqual(g_tag.previousSibling, to_text)
 
+    def test_replace_with_children(self):
+        tree = self.soup("""
+            <p>Unneeded <em>formatting</em> is unneeded</p>
+            """)
+        tree.em.replace_with_children()
+        self.assertEqual(tree.em, None)
+        self.assertEqual(tree.p.text, "Unneeded formatting is unneeded")
+
     def test_extract(self):
         soup = self.soup(
             '<html><body>Some content. <div id="nav">Nav crap</div> More content.</body></html>')
@@ -706,6 +734,28 @@ class TestTreeModification(SoupTest):
         self.assertEquals(content_1.nextSibling, content_2)
         self.assertEquals(content_2.previous, content_1)
         self.assertEquals(content_2.previousSibling, content_1)
+
+    def test_clear(self):
+        """Tag.clear()"""
+        soup = self.soup("<p><a>String <em>Italicized</em></a> and another</p>")
+        # clear using extract()
+        a = soup.a
+        soup.p.clear()
+        self.assertEqual(len(soup.p.contents), 0)
+        self.assertTrue(hasattr(a, "contents"))
+
+        # clear using decompose()
+        em = a.em
+        a.clear(decompose=True)
+        self.assertFalse(hasattr(em, "contents"))
+
+    def test_string_set(self):
+        """Tag.string = 'string'"""
+        soup = self.soup("<a></a> <b><c></c></b>")
+        soup.a.string = "foo"
+        self.assertEqual(soup.a.contents, ["foo"])
+        soup.b.string = "bar"
+        self.assertEqual(soup.b.contents, ["bar"])
 
 
 class TestElementObjects(SoupTest):
@@ -781,7 +831,6 @@ class TestElementObjects(SoupTest):
         self.assertEqual(soup.a.string, "foo")
         self.assertEqual(soup.string, "foo")
 
-
     def test_lack_of_string(self):
         """Only a tag containing a single text node has a .string."""
         soup = self.soup("<b>f<i>e</i>o</b>")
@@ -789,6 +838,14 @@ class TestElementObjects(SoupTest):
 
         soup = self.soup("<b></b>")
         self.assertFalse(soup.b.string)
+
+    def test_all_text(self):
+        """Tag.text and Tag.get_text(sep=u"") -> all child text, concatenated"""
+        soup = self.soup("<a>a<b>r</b>   <r> t </r></a>")
+        self.assertEqual(soup.a.text, "ar  t ")
+        self.assertEqual(soup.a.get_text(strip=True), "art")
+        self.assertEqual(soup.a.get_text(","), "a,r, , t ")
+        self.assertEqual(soup.a.get_text(",", strip=True), "a,r,t")
 
 
 class TestPersistence(SoupTest):

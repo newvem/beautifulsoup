@@ -11,6 +11,11 @@ from util import isList
 DEFAULT_OUTPUT_ENCODING = "utf-8"
 
 
+def _match_css_class(str):
+    """Build a RE to match the given CSS class."""
+    return re.compile(r"(^|.*\s)%s($|\s)" % str)
+
+
 class PageElement(object):
     """Contains the navigational information for some part of the page
     (either a tag or a piece of text)"""
@@ -29,10 +34,10 @@ class PageElement(object):
 
     def replace_with(self, replace_with):
         oldParent = self.parent
-        myIndex = self.parent.contents.index(self)
-        if hasattr(replace_with, 'parent') and replace_with.parent == self.parent:
+        myIndex = self.parent.index(self)
+        if hasattr(replace_with, 'parent') and replace_with.parent is self.parent:
             # We're replacing this element with one of its siblings.
-            index = self.parent.contents.index(replace_with)
+            index = self.parent.index(replace_with)
             if index and index < myIndex:
                 # Furthermore, it comes before this element. That
                 # means that when we extract it, the index of this
@@ -40,15 +45,20 @@ class PageElement(object):
                 myIndex = myIndex - 1
         self.extract()
         oldParent.insert(myIndex, replace_with)
-    replaceWith = replace_with # BS4
+    replaceWith = replace_with # BS3
+
+    def replace_with_children(self):
+        my_parent = self.parent
+        my_index = self.parent.index(self)
+        self.extract()
+        for child in reversed(self.contents[:]):
+            my_parent.insert(my_index, child)
+    replaceWithChildren = replace_with_children
 
     def extract(self):
         """Destructively rips this element out of the tree."""
         if self.parent:
-            try:
-                self.parent.contents.remove(self)
-            except ValueError:
-                pass
+            del self.parent.contents[self.parent.index(self)]
 
         #Find the two elements that would be next to each other if
         #this element (and any children) hadn't been parsed. Connect
@@ -80,22 +90,20 @@ class PageElement(object):
 
     def insert(self, position, newChild):
         if (isinstance(newChild, basestring)
-            or isinstance(newChild, unicode)) \
-            and not isinstance(newChild, NavigableString):
+            and not isinstance(newChild, NavigableString)):
             newChild = NavigableString(newChild)
 
         position =  min(position, len(self.contents))
-        if hasattr(newChild, 'parent') and newChild.parent != None:
+        if hasattr(newChild, 'parent') and newChild.parent is not None:
             # We're 'inserting' an element that's already one
             # of this object's children.
-            if newChild.parent == self:
-                index = self.find(newChild)
-                if index and index < position:
+            if newChild.parent is self:
+                if self.index(newChild) > position:
                     # Furthermore we're moving it further down the
                     # list of this object's children. That means that
                     # when we extract this element, our target index
                     # will jump down one.
-                    position = position - 1
+                    position -= 1
             newChild.extract()
 
         newChild.parent = self
@@ -239,6 +247,17 @@ class PageElement(object):
 
         if isinstance(name, SoupStrainer):
             strainer = name
+        elif text is None and not limit and not attrs and not kwargs:
+            # findAll*(True)
+            if name is True or name is None:
+                return [element for element in generator
+                        if isinstance(element, Tag)]
+            # findAll*('tag-name')
+            elif isinstance(name, basestring):
+                return [element for element in generator
+                        if isinstance(element, Tag) and element.name == name]
+            else:
+                strainer = SoupStrainer(name, attrs, text, **kwargs)
         else:
             # Build a SoupStrainer
             strainer = SoupStrainer(name, attrs, text, **kwargs)
@@ -261,35 +280,35 @@ class PageElement(object):
     @property
     def next_elements(self):
         i = self
-        while i:
+        while i is not None:
             i = i.next
             yield i
 
     @property
     def next_siblings(self):
         i = self
-        while i:
+        while i is not None:
             i = i.nextSibling
             yield i
 
     @property
     def previous_elements(self):
         i = self
-        while i:
+        while i is not None:
             i = i.previous
             yield i
 
     @property
     def previous_siblings(self):
         i = self
-        while i:
+        while i is not None:
             i = i.previousSibling
             yield i
 
     @property
     def parents(self):
         i = self
-        while i:
+        while i is not None:
             i = i.parent
             yield i
 
@@ -404,7 +423,7 @@ class Tag(PageElement):
         # chunks be garbage-collected.
         self.parserClass = parser.__class__
         self.name = name
-        if attrs == None:
+        if attrs is None:
             attrs = {}
         else:
             attrs = dict(attrs)
@@ -453,6 +472,60 @@ class Tag(PageElement):
         if isinstance(child, NavigableString):
             return child
         return child.string
+
+    @string.setter
+    def string(self, string):
+        self.clear()
+        self.append(string)
+
+    def get_text(self, separator=u"", strip=False):
+        """
+        Get all child strings, concatenated using the given separator
+        """
+        if strip:
+            return separator.join(string.strip()
+                for string in self.recursive_children
+                if isinstance(string, NavigableString) and string.strip())
+        else:
+            return separator.join(string
+                for string in self.recursive_children
+                if isinstance(string, NavigableString))
+    getText = get_text
+
+    text = property(get_text)
+
+    def decompose(self):
+        """Recursively destroys the contents of this tree."""
+        self.extract()
+        i = self
+        while i is not None:
+            next = i.next
+            i.__dict__.clear()
+            i = next
+
+    def clear(self, decompose=False):
+        """
+        Extract all children. If decompose is True, decompose instead.
+        """
+        if decompose:
+            for element in self.contents[:]:
+                if isinstance(element, Tag):
+                    element.decompose()
+                else:
+                    element.extract()
+        else:
+            for element in self.contents[:]:
+                element.extract()
+
+    def index(self, element):
+        """
+        Find the index of a child by identity, not value. Avoids issues with
+        tag.contents.index(element) getting the index of equal elements.
+        """
+        for i, child in enumerate(self.contents):
+            if child is element:
+                return i
+        raise ValueError("Tag.index: element not in tag")
 
     def get(self, key, default=None):
         """Returns the value of the 'key' attribute for the tag, or
@@ -510,6 +583,8 @@ class Tag(PageElement):
     def __eq__(self, other):
         """Returns true iff this tag has the same name, the same attributes,
         and the same contents (recursively) as the given tag."""
+        if self is other:
+            return True
         if not hasattr(other, 'name') or not hasattr(other, 'attrs') or not hasattr(other, 'contents') or self.name != other.name or self.attrs != other.attrs or len(self) != len(other):
             return False
         for i in range(0, len(self.contents)):
@@ -606,16 +681,6 @@ class Tag(PageElement):
             s = ''.join(s)
         return s
 
-    def decompose(self):
-        """Recursively destroys the contents of this tree."""
-        contents = [i for i in self.contents]
-        for i in contents:
-            if isinstance(i, Tag):
-                i.decompose()
-            else:
-                i.extract()
-        self.extract()
-
     def prettify(self, encoding=DEFAULT_OUTPUT_ENCODING):
         return self.encode(encoding, True)
 
@@ -684,12 +749,13 @@ class Tag(PageElement):
     #Generator methods
     @property
     def children(self):
+        # return iter() to make the purpose of the method clear
         return iter(self.contents) # XXX This seems to be untested.
 
     @property
     def recursive_children(self):
         if not len(self.contents):
-            raise StopIteration # XXX return instead?
+            return
         stopNode = self._last_recursive_child().next
         current = self.contents[0]
         while current is not stopNode:
@@ -712,7 +778,7 @@ class SoupStrainer(object):
     def __init__(self, name=None, attrs={}, text=None, **kwargs):
         self.name = name
         if isinstance(attrs, basestring):
-            kwargs['class'] = attrs
+            kwargs['class'] = _match_css_class(attrs)
             attrs = None
         if kwargs:
             if attrs:
@@ -795,8 +861,8 @@ class SoupStrainer(object):
     def _matches(self, markup, matchAgainst):
         #print "Matching %s against %s" % (markup, matchAgainst)
         result = False
-        if matchAgainst == True and type(matchAgainst) == types.BooleanType:
-            result = markup != None
+        if matchAgainst is True:
+            result = markup is not None
         elif callable(matchAgainst):
             result = matchAgainst(markup)
         else:
