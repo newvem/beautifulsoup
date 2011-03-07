@@ -1,10 +1,7 @@
-3.0.8 optimized findAll('tag-name') and findAll(True), bypassing the
-soupstrainer process.
-
-define a setter for Tag.string which replaces the tag's contents with
-a string.
-
-Tag.text: concatenate all strings and return them
+if len(tag) > 3 and tag.endswith('Tag'): -> endswith('_tag')
+markup_attr_map can be optimized since it's always a map now.
+Can we get rid of isList?
+Split self.assertRaises(ValueError, tree.index, 1) into a separate test
 
 Bare ampersands should be converted to HTML entities upon output.
 

@@ -179,10 +179,13 @@ class TestFindAllByAttribute(TreeTest):
         tree = self.soup("""
                          <a class="1">Class 1.</a>
                          <a class="2">Class 2.</a>
-                         <b class="1">Class 1.</a>
+                         <b class="1">Class 1.</b>
+                         <c class="3 4">Class 3 and 4.</c>
                          """)
         self.assertSelects(tree.find_all('a', '1'), ['Class 1.'])
         self.assertSelects(tree.find_all(attrs='1'), ['Class 1.', 'Class 1.'])
+        self.assertSelects(tree.find_all('c', '3'), ['Class 3 and 4.'])
+        self.assertSelects(tree.find_all('c', '4'), ['Class 3 and 4.'])
 
     def test_find_all_by_attribute_soupstrainer(self):
         tree = self.soup("""
@@ -240,6 +243,24 @@ class TestFindAllByAttribute(TreeTest):
 
         self.assertSelects(tree.find_all(id=re.compile("^a+$")),
                            ["One a.", "Two as."])
+
+
+class TestIndex(TreeTest):
+    """Test Tag.index"""
+    def test_index(self):
+        tree = self.soup("""<wrap>
+                            <a>Identical</a>
+                            <b>Not identical</b>
+                            <a>Identical</a>
+
+                            <c><d>Identical with child</d></c>
+                            <b>Also not identical</b>
+                            <c><d>Identical with child</d></c>
+                            </wrap>""")
+        wrap = tree.wrap
+        for i, element in enumerate(wrap.contents):
+            self.assertEqual(i, wrap.index(element))
+        self.assertRaises(ValueError, tree.index, 1)
 
 
 class TestParentOperations(TreeTest):
@@ -429,23 +450,23 @@ class TestNextSibling(SiblingTest):
         self.start = self.tree.find(id="1")
 
     def test_next_sibling_of_root_is_none(self):
-        self.assertEquals(self.tree.nextSibling, None)
+        self.assertEquals(self.tree.next_sibling, None)
 
     def test_next_sibling(self):
-        self.assertEquals(self.start.nextSibling['id'], '2')
-        self.assertEquals(self.start.nextSibling.nextSibling['id'], '3')
+        self.assertEquals(self.start.next_sibling['id'], '2')
+        self.assertEquals(self.start.next_sibling.next_sibling['id'], '3')
 
-        # Note the difference between nextSibling and next.
+        # Note the difference between next_sibling and next.
         self.assertEquals(self.start.next['id'], '1.1')
 
     def test_next_sibling_may_not_exist(self):
-        self.assertEquals(self.tree.html.nextSibling, None)
+        self.assertEquals(self.tree.html.next_sibling, None)
 
         nested_span = self.tree.find(id="1.1")
-        self.assertEquals(nested_span.nextSibling, None)
+        self.assertEquals(nested_span.next_sibling, None)
 
         last_span = self.tree.find(id="4")
-        self.assertEquals(last_span.nextSibling, None)
+        self.assertEquals(last_span.next_sibling, None)
 
     def test_find_next_sibling(self):
         self.assertEquals(self.start.find_next_sibling('span')['id'], '2')
@@ -459,8 +480,8 @@ class TestNextSibling(SiblingTest):
     def test_next_sibling_for_text_element(self):
         soup = self.soup("Foo<b>bar</b>baz")
         start = soup.find(text="Foo")
-        self.assertEquals(start.nextSibling.name, 'b')
-        self.assertEquals(start.nextSibling.nextSibling, 'baz')
+        self.assertEquals(start.next_sibling.name, 'b')
+        self.assertEquals(start.next_sibling.next_sibling, 'baz')
 
         self.assertSelects(start.find_next_siblings('b'), ['bar'])
         self.assertEquals(start.find_next_sibling(text="baz"), "baz")
@@ -474,23 +495,23 @@ class TestPreviousSibling(SiblingTest):
         self.end = self.tree.find(id="4")
 
     def test_previous_sibling_of_root_is_none(self):
-        self.assertEquals(self.tree.previousSibling, None)
+        self.assertEquals(self.tree.previous_sibling, None)
 
     def test_previous_sibling(self):
-        self.assertEquals(self.end.previousSibling['id'], '3')
-        self.assertEquals(self.end.previousSibling.previousSibling['id'], '2')
+        self.assertEquals(self.end.previous_sibling['id'], '3')
+        self.assertEquals(self.end.previous_sibling.previous_sibling['id'], '2')
 
-        # Note the difference between previousSibling and previous.
+        # Note the difference between previous_sibling and previous.
         self.assertEquals(self.end.previous['id'], '3.1')
 
     def test_previous_sibling_may_not_exist(self):
-        self.assertEquals(self.tree.html.previousSibling, None)
+        self.assertEquals(self.tree.html.previous_sibling, None)
 
         nested_span = self.tree.find(id="1.1")
-        self.assertEquals(nested_span.previousSibling, None)
+        self.assertEquals(nested_span.previous_sibling, None)
 
         first_span = self.tree.find(id="1")
-        self.assertEquals(first_span.previousSibling, None)
+        self.assertEquals(first_span.previous_sibling, None)
 
     def test_find_previous_sibling(self):
         self.assertEquals(self.end.find_previous_sibling('span')['id'], '3')
@@ -504,8 +525,8 @@ class TestPreviousSibling(SiblingTest):
     def test_previous_sibling_for_text_element(self):
         soup = self.soup("Foo<b>bar</b>baz")
         start = soup.find(text="baz")
-        self.assertEquals(start.previousSibling.name, 'b')
-        self.assertEquals(start.previousSibling.previousSibling, 'Foo')
+        self.assertEquals(start.previous_sibling.name, 'b')
+        self.assertEquals(start.previous_sibling.previous_sibling, 'Foo')
 
         self.assertSelects(start.find_previous_siblings('b'), ['bar'])
         self.assertEquals(start.find_previous_sibling(text="Foo"), "Foo")
@@ -536,22 +557,22 @@ class TestTreeModification(SoupTest):
             '<body><a href="http://foo.com/"></a><ol></ol></body>')
 
     def test_append_to_contents_moves_tag(self):
-       doc = """<p id="1">Don't leave me <b>here</b>.</p>
+        doc = """<p id="1">Don't leave me <b>here</b>.</p>
                 <p id="2">Don\'t leave!</p>"""
-       soup = self.soup(doc)
-       second_para = soup.find(id='2')
-       bold = soup.b
+        soup = self.soup(doc)
+        second_para = soup.find(id='2')
+        bold = soup.b
 
-       # Move the <b> tag to the end of the second paragraph.
-       soup.find(id='2').append(soup.b)
+        # Move the <b> tag to the end of the second paragraph.
+        soup.find(id='2').append(soup.b)
 
-       # The <b> tag is now a child of the second paragraph.
-       self.assertEqual(bold.parent, second_para)
+        # The <b> tag is now a child of the second paragraph.
+        self.assertEqual(bold.parent, second_para)
 
-       self.assertEqual(
-           soup.decode(), self.document_for(
-               '<p id="1">Don\'t leave me .</p>\n'
-               '<p id="2">Don\'t leave!<b>here</b></p>'))
+        self.assertEqual(
+            soup.decode(), self.document_for(
+                '<p id="1">Don\'t leave me .</p>\n'
+                '<p id="2">Don\'t leave!<b>here</b></p>'))
 
     def test_replace_tag_with_itself(self):
         text = "<a><b></b><c>Foo<d></d></c></a><a><e></e></a>"
@@ -585,12 +606,11 @@ class TestTreeModification(SoupTest):
         self.assertEqual(new_text.previous, "Argh!")
         self.assertEqual(new_text.previous.next, new_text)
 
-        self.assertEqual(new_text.previousSibling, "Argh!")
-        self.assertEqual(new_text.previousSibling.nextSibling, new_text)
+        self.assertEqual(new_text.previous_sibling, "Argh!")
+        self.assertEqual(new_text.previous_sibling.next_sibling, new_text)
 
-        self.assertEqual(new_text.nextSibling, None)
+        self.assertEqual(new_text.next_sibling, None)
         self.assertEqual(new_text.next, soup.c)
-
 
     def test_insert_tag(self):
         builder = self.default_builder
@@ -606,16 +626,16 @@ class TestTreeModification(SoupTest):
 
         # Make sure all the relationships are hooked up correctly.
         b_tag = soup.b
-        self.assertEqual(b_tag.nextSibling, magic_tag)
-        self.assertEqual(magic_tag.previousSibling, b_tag)
+        self.assertEqual(b_tag.next_sibling, magic_tag)
+        self.assertEqual(magic_tag.previous_sibling, b_tag)
 
         find = b_tag.find(text="Find")
         self.assertEqual(find.next, magic_tag)
         self.assertEqual(magic_tag.previous, find)
 
         c_tag = soup.c
-        self.assertEqual(magic_tag.nextSibling, c_tag)
-        self.assertEqual(c_tag.previousSibling, magic_tag)
+        self.assertEqual(magic_tag.next_sibling, c_tag)
+        self.assertEqual(c_tag.previous_sibling, magic_tag)
 
         the = magic_tag.find(text="the")
         self.assertEqual(the.parent, magic_tag)
@@ -644,7 +664,7 @@ class TestTreeModification(SoupTest):
         self.assertEquals(show.parent, None)
         self.assertEquals(no.parent, soup.p)
         self.assertEquals(no.next, "no")
-        self.assertEquals(no.nextSibling, " business")
+        self.assertEquals(no.next_sibling, " business")
 
     def test_nested_tag_replace_with(self):
         soup = self.soup(
@@ -664,23 +684,31 @@ class TestTreeModification(SoupTest):
         self.assertEqual(remove_tag.parent, None)
         self.assertEqual(remove_tag.find(text="right").next, None)
         self.assertEqual(remove_tag.previous, None)
-        self.assertEqual(remove_tag.nextSibling, None)
-        self.assertEqual(remove_tag.previousSibling, None)
+        self.assertEqual(remove_tag.next_sibling, None)
+        self.assertEqual(remove_tag.previous_sibling, None)
 
         # The <f> tag is now connected to the <a> tag.
         self.assertEqual(move_tag.parent, soup.a)
         self.assertEqual(move_tag.previous, "We")
         self.assertEqual(move_tag.next.next, soup.e)
-        self.assertEqual(move_tag.nextSibling, None)
+        self.assertEqual(move_tag.next_sibling, None)
 
         # The gap where the <f> tag used to be has been mended, and
         # the word "to" is now connected to the <g> tag.
         to_text = soup.find(text="to")
         g_tag = soup.g
         self.assertEqual(to_text.next, g_tag)
-        self.assertEqual(to_text.nextSibling, g_tag)
+        self.assertEqual(to_text.next_sibling, g_tag)
         self.assertEqual(g_tag.previous, to_text)
-        self.assertEqual(g_tag.previousSibling, to_text)
+        self.assertEqual(g_tag.previous_sibling, to_text)
+
+    def test_replace_with_children(self):
+        tree = self.soup("""
+            <p>Unneeded <em>formatting</em> is unneeded</p>
+            """)
+        tree.em.replace_with_children()
+        self.assertEqual(tree.em, None)
+        self.assertEqual(tree.p.text, "Unneeded formatting is unneeded")
 
     def test_extract(self):
         soup = self.soup(
@@ -703,9 +731,31 @@ class TestTreeModification(SoupTest):
         content_1 = soup.find(text="Some content. ")
         content_2 = soup.find(text=" More content.")
         self.assertEquals(content_1.next, content_2)
-        self.assertEquals(content_1.nextSibling, content_2)
+        self.assertEquals(content_1.next_sibling, content_2)
         self.assertEquals(content_2.previous, content_1)
-        self.assertEquals(content_2.previousSibling, content_1)
+        self.assertEquals(content_2.previous_sibling, content_1)
+
+    def test_clear(self):
+        """Tag.clear()"""
+        soup = self.soup("<p><a>String <em>Italicized</em></a> and another</p>")
+        # clear using extract()
+        a = soup.a
+        soup.p.clear()
+        self.assertEqual(len(soup.p.contents), 0)
+        self.assertTrue(hasattr(a, "contents"))
+
+        # clear using decompose()
+        em = a.em
+        a.clear(decompose=True)
+        self.assertFalse(hasattr(em, "contents"))
+
+    def test_string_set(self):
+        """Tag.string = 'string'"""
+        soup = self.soup("<a></a> <b><c></c></b>")
+        soup.a.string = "foo"
+        self.assertEqual(soup.a.contents, ["foo"])
+        soup.b.string = "bar"
+        self.assertEqual(soup.b.contents, ["bar"])
 
 
 class TestElementObjects(SoupTest):
@@ -781,7 +831,6 @@ class TestElementObjects(SoupTest):
         self.assertEqual(soup.a.string, "foo")
         self.assertEqual(soup.string, "foo")
 
-
     def test_lack_of_string(self):
         """Only a tag containing a single text node has a .string."""
         soup = self.soup("<b>f<i>e</i>o</b>")
@@ -789,6 +838,14 @@ class TestElementObjects(SoupTest):
 
         soup = self.soup("<b></b>")
         self.assertFalse(soup.b.string)
+
+    def test_all_text(self):
+        """Tag.text and Tag.get_text(sep=u"") -> all child text, concatenated"""
+        soup = self.soup("<a>a<b>r</b>   <r> t </r></a>")
+        self.assertEqual(soup.a.text, "ar  t ")
+        self.assertEqual(soup.a.get_text(strip=True), "art")
+        self.assertEqual(soup.a.get_text(","), "a,r, , t ")
+        self.assertEqual(soup.a.get_text(",", strip=True), "a,r,t")
 
 
 class TestPersistence(SoupTest):

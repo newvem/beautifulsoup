@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from bs4.element import Comment, SoupStrainer
 from bs4.builder import LXMLTreeBuilder
 
+
 class SoupTest(unittest.TestCase):
 
     @property
@@ -30,8 +31,3 @@ class SoupTest(unittest.TestCase):
             compare_parsed_to = to_parse
 
         self.assertEquals(obj.decode(), self.document_for(compare_parsed_to))
-
-
-
-
-
