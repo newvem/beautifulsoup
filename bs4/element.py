@@ -501,7 +501,7 @@ class Tag(PageElement):
         """Calling a tag like a function is the same as calling its
         find_all() method. Eg. tag('a') returns a list of all the A tags
         found within this tag."""
-        return apply(self.find_all, args, kwargs)
+        return self.find_all(args, kwargs)
 
     def __getattr__(self, tag):
         #print "Getattr %s.%s" % (self.__class__, tag)
@@ -509,7 +509,8 @@ class Tag(PageElement):
             return self.find(tag[:-3])
         elif tag.find('__') != 0:
             return self.find(tag)
-        raise AttributeError, "'%s' object has no attribute '%s'" % (self.__class__, tag)
+        raise AttributeError(
+            "'%s' object has no attribute '%s'" % (self.__class__, tag))
 
     def __eq__(self, other):
         """Returns true iff this tag has the same name, the same attributes,
