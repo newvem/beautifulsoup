@@ -1,9 +1,5 @@
+import collections
 import re
-import types
-try:
-    from htmlentitydefs import name2codepoint
-except ImportError:
-    name2codepoint = {}
 from bs4.dammit import EntitySubstitution
 
 DEFAULT_OUTPUT_ENCODING = "utf-8"
@@ -13,12 +9,12 @@ class PageElement(object):
     """Contains the navigational information for some part of the page
     (either a tag or a piece of text)"""
 
-    def setup(self, parent=None, previous=None):
+    def setup(self, parent=None, previous_element=None):
         """Sets up the initial relations between this element and
         other elements."""
         self.parent = parent
-        self.previous = previous
-        self.next = None
+        self.previous_element = previous_element
+        self.next_element = None
         self.previousSibling = None
         self.nextSibling = None
         if self.parent and self.parent.contents:
@@ -52,14 +48,14 @@ class PageElement(object):
         #this element (and any children) hadn't been parsed. Connect
         #the two.
         lastChild = self._last_recursive_child()
-        nextElement = lastChild.next
+        nextElement = lastChild.next_element
 
-        if self.previous:
-            self.previous.next = nextElement
+        if self.previous_element:
+            self.previous_element.next_element = nextElement
         if nextElement:
-            nextElement.previous = self.previous
-        self.previous = None
-        lastChild.next = None
+            nextElement.previous_element = self.previous_element
+        self.previous_element = None
+        lastChild.next_element = None
 
         self.parent = None
         if self.previousSibling:
@@ -78,8 +74,7 @@ class PageElement(object):
 
     def insert(self, position, newChild):
         if (isinstance(newChild, basestring)
-            or isinstance(newChild, unicode)) \
-            and not isinstance(newChild, NavigableString):
+            and not isinstance(newChild, NavigableString)):
             newChild = NavigableString(newChild)
 
         position =  min(position, len(self.contents))
@@ -100,14 +95,14 @@ class PageElement(object):
         previousChild = None
         if position == 0:
             newChild.previousSibling = None
-            newChild.previous = self
+            newChild.previous_element = self
         else:
             previousChild = self.contents[position-1]
             newChild.previousSibling = previousChild
             newChild.previousSibling.nextSibling = newChild
-            newChild.previous = previousChild._last_recursive_child()
-        if newChild.previous:
-            newChild.previous.next = newChild
+            newChild.previous_element = previousChild._last_recursive_child()
+        if newChild.previous_element:
+            newChild.previous_element.next_element = newChild
 
         newChildsLastElement = newChild._last_recursive_child()
 
@@ -122,18 +117,18 @@ class PageElement(object):
                 if not parent: # This is the last element in the document.
                     break
             if parentsNextSibling:
-                newChildsLastElement.next = parentsNextSibling
+                newChildsLastElement.next_element = parentsNextSibling
             else:
-                newChildsLastElement.next = None
+                newChildsLastElement.next_element = None
         else:
             nextChild = self.contents[position]
             newChild.nextSibling = nextChild
             if newChild.nextSibling:
                 newChild.nextSibling.previousSibling = newChild
-            newChildsLastElement.next = nextChild
+            newChildsLastElement.next_element = nextChild
 
-        if newChildsLastElement.next:
-            newChildsLastElement.next.previous = newChildsLastElement
+        if newChildsLastElement.next_element:
+            newChildsLastElement.next_element.previous_element = newChildsLastElement
         self.contents.insert(position, newChild)
 
     def append(self, tag):
@@ -223,6 +218,14 @@ class PageElement(object):
     findParents = find_parents  # BS3
     fetchParents = find_parents # BS2
 
+    @property
+    def next(self):
+        return self.next_element
+
+    @property
+    def previous(self):
+        return self.previous_element
+
     #These methods do the real heavy lifting.
 
     def _find_one(self, method, name, attrs, text, **kwargs):
@@ -243,7 +246,7 @@ class PageElement(object):
         results = ResultSet(strainer)
         while True:
             try:
-                i = generator.next()
+                i = next(generator)
             except StopIteration:
                 break
             if i:
@@ -260,7 +263,7 @@ class PageElement(object):
     def next_elements(self):
         i = self
         while i:
-            i = i.next
+            i = i.next_element
             yield i
 
     @property
@@ -274,7 +277,7 @@ class PageElement(object):
     def previous_elements(self):
         i = self
         while i:
-            i = i.previous
+            i = i.previous_element
             yield i
 
     @property
@@ -341,7 +344,9 @@ class NavigableString(unicode, PageElement):
         if attr == 'string':
             return self
         else:
-            raise AttributeError, "'%s' object has no attribute '%s'" % (self.__class__.__name__, attr)
+            raise AttributeError(
+                "'%s' object has no attribute '%s'" % (
+                    self.__class__.__name__, attr))
 
     def output_ready(self, substitute_html_entities=False):
         if substitute_html_entities:
@@ -458,8 +463,8 @@ class Tag(PageElement):
         attribute."""
         return self.attrs.get(key, default)
 
-    def has_key(self, key):
-        return self.attrs.has_key(key)
+    def has_attr(self, key):
+        return key in self.attrs
 
     def __getitem__(self, key):
         """tag[key] returns the value of the 'key' attribute for the tag,
@@ -488,14 +493,14 @@ class Tag(PageElement):
 
     def __delitem__(self, key):
         "Deleting tag[key] deletes all 'key' attributes for the tag."
-        if self.attrs.has_key(key):
+        if key in self.attrs:
             del self.attrs[key]
 
     def __call__(self, *args, **kwargs):
         """Calling a tag like a function is the same as calling its
         find_all() method. Eg. tag('a') returns a list of all the A tags
         found within this tag."""
-        return apply(self.find_all, args, kwargs)
+        return self.find_all(args, kwargs)
 
     def __getattr__(self, tag):
         #print "Getattr %s.%s" % (self.__class__, tag)
@@ -503,7 +508,8 @@ class Tag(PageElement):
             return self.find(tag[:-3])
         elif tag.find('__') != 0:
             return self.find(tag)
-        raise AttributeError, "'%s' object has no attribute '%s'" % (self.__class__, tag)
+        raise AttributeError(
+            "'%s' object has no attribute '%s'" % (self.__class__, tag))
 
     def __eq__(self, other):
         """Returns true iff this tag has the same name, the same attributes,
@@ -688,11 +694,11 @@ class Tag(PageElement):
     def recursive_children(self):
         if not len(self.contents):
             raise StopIteration # XXX return instead?
-        stopNode = self._last_recursive_child().next
+        stopNode = self._last_recursive_child().next_element
         current = self.contents[0]
         while current is not stopNode:
             yield current
-            current = current.next
+            current = current.next_element
 
     # Old names for backwards compatibility
     def childGenerator(self):
@@ -701,6 +707,10 @@ class Tag(PageElement):
     def recursiveChildGenerator(self):
         return self.recursive_children
 
+    # This was kind of misleading because has_key() (attributes) was
+    # different from __in__ (contents). has_key() is gone in Python 3,
+    # anyway.
+    has_key = has_attr
 
 # Next, a couple classes to represent queries and their results.
 class SoupStrainer(object):
@@ -733,8 +743,9 @@ class SoupStrainer(object):
         if isinstance(markupName, Tag):
             markup = markupName
             markupAttrs = markup
-        callFunctionWithTagData = callable(self.name) \
-                                and not isinstance(markupName, Tag)
+        callFunctionWithTagData = (
+            isinstance(self.name, collections.Callable)
+            and not isinstance(markupName, Tag))
 
         if (not self.name) \
                or callFunctionWithTagData \
@@ -745,7 +756,7 @@ class SoupStrainer(object):
             else:
                 match = True
                 markupAttrMap = None
-                for attr, matchAgainst in self.attrs.items():
+                for attr, matchAgainst in list(self.attrs.items()):
                     if not markupAttrMap:
                          if hasattr(markupAttrs, 'get'):
                             markupAttrMap = markupAttrs
@@ -786,16 +797,16 @@ class SoupStrainer(object):
             if self._matches(markup, self.text):
                 found = markup
         else:
-            raise Exception, "I don't know how to match against a %s" \
-                  % markup.__class__
+            raise Exception(
+                "I don't know how to match against a %s" % markup.__class__)
         return found
 
     def _matches(self, markup, matchAgainst):
         #print "Matching %s against %s" % (markup, matchAgainst)
         result = False
-        if matchAgainst == True and type(matchAgainst) == types.BooleanType:
+        if matchAgainst == True and isinstance(matchAgainst, bool):
             result = markup != None
-        elif callable(matchAgainst):
+        elif isinstance(matchAgainst, collections.Callable):
             result = matchAgainst(markup)
         else:
             #Custom match methods take the tag as an argument, but all
@@ -813,12 +824,9 @@ class SoupStrainer(object):
                        or not isinstance(matchAgainst, basestring))):
                 result = markup in matchAgainst
             elif hasattr(matchAgainst, 'items'):
-                result = markup.has_key(matchAgainst)
+                result = matchAgainst in markup
             elif matchAgainst and isinstance(markup, basestring):
-                if isinstance(markup, unicode):
-                    matchAgainst = unicode(matchAgainst)
-                else:
-                    matchAgainst = str(matchAgainst)
+                matchAgainst = markup.__class__(matchAgainst)
 
             if not result:
                 result = matchAgainst == markup

@@ -9,7 +9,6 @@ encoding; that's the tree builder's job.
 import codecs
 from htmlentitydefs import codepoint2name
 import re
-import types
 
 # Autodetects character encodings. Very useful.
 # Download from http://chardet.feedparser.org/
@@ -37,7 +36,7 @@ class EntitySubstitution(object):
         lookup = {}
         reverse_lookup = {}
         characters = []
-        for codepoint, name in codepoint2name.items():
+        for codepoint, name in list(codepoint2name.items()):
             if codepoint == 34:
                 # There's no point in turning the quotation mark into
                 # &quot;, unless it happens within an attribute value, which
@@ -175,7 +174,7 @@ class UnicodeDammit:
         self.tried_encodings = []
         if markup == '' or isinstance(markup, unicode):
             self.original_encoding = None
-            self.unicode = unicode(markup)
+            self.unicode_markup = unicode(markup)
             return
 
         u = None
@@ -197,7 +196,7 @@ class UnicodeDammit:
                 if u:
                     break
 
-        self.unicode = u
+        self.unicode_markup = u
         if not u: self.original_encoding = None
 
     def _sub_ms_char(self, match):
@@ -205,7 +204,7 @@ class UnicodeDammit:
         entity."""
         orig = match.group(1)
         sub = self.MS_CHARS.get(orig)
-        if type(sub) == types.TupleType:
+        if type(sub) == tuple:
             if self.smart_quotes_to == 'xml':
                 sub = '&#x'.encode() + sub[1].encode() + ';'.encode()
             else:
@@ -234,7 +233,7 @@ class UnicodeDammit:
             u = self._to_unicode(markup, proposed)
             self.markup = u
             self.original_encoding = proposed
-        except Exception, e:
+        except Exception as e:
             # print "That didn't work!"
             # print e
             return None
@@ -375,7 +374,7 @@ class UnicodeDammit:
                     250,251,252,253,254,255)
             import string
             c.EBCDIC_TO_ASCII_MAP = string.maketrans( \
-            ''.join(map(chr, range(256))), ''.join(map(chr, emap)))
+            ''.join(map(chr, list(range(256)))), ''.join(map(chr, emap)))
         return s.translate(c.EBCDIC_TO_ASCII_MAP)
 
     MS_CHARS = { '\x80' : ('euro', '20AC'),
