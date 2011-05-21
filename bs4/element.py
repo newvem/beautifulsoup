@@ -1,6 +1,5 @@
 import collections
 import re
-import types
 from bs4.dammit import EntitySubstitution
 
 DEFAULT_OUTPUT_ENCODING = "utf-8"
@@ -753,7 +752,7 @@ class SoupStrainer(object):
             else:
                 match = True
                 markupAttrMap = None
-                for attr, matchAgainst in self.attrs.items():
+                for attr, matchAgainst in list(self.attrs.items()):
                     if not markupAttrMap:
                          if hasattr(markupAttrs, 'get'):
                             markupAttrMap = markupAttrs
@@ -794,14 +793,14 @@ class SoupStrainer(object):
             if self._matches(markup, self.text):
                 found = markup
         else:
-            raise Exception, "I don't know how to match against a %s" \
-                  % markup.__class__
+            raise Exception(
+                "I don't know how to match against a %s" % markup.__class__)
         return found
 
     def _matches(self, markup, matchAgainst):
         #print "Matching %s against %s" % (markup, matchAgainst)
         result = False
-        if matchAgainst == True and type(matchAgainst) == types.BooleanType:
+        if matchAgainst == True and isinstance(matchAgainst, bool):
             result = markup != None
         elif isinstance(matchAgainst, collections.Callable):
             result = matchAgainst(markup)
@@ -821,7 +820,7 @@ class SoupStrainer(object):
                        or not isinstance(matchAgainst, basestring))):
                 result = markup in matchAgainst
             elif hasattr(matchAgainst, 'items'):
-                result = markup.has_key(matchAgainst)
+                result = matchAgainst in markup
             elif matchAgainst and isinstance(markup, basestring):
                 if isinstance(markup, unicode):
                     matchAgainst = unicode(matchAgainst)
