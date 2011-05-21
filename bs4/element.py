@@ -822,10 +822,7 @@ class SoupStrainer(object):
             elif hasattr(matchAgainst, 'items'):
                 result = matchAgainst in markup
             elif matchAgainst and isinstance(markup, basestring):
-                if isinstance(markup, unicode):
-                    matchAgainst = unicode(matchAgainst)
-                else:
-                    matchAgainst = str(matchAgainst)
+                matchAgainst = markup.__class__(matchAgainst)
 
             if not result:
                 result = matchAgainst == markup
