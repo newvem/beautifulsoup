@@ -27,7 +27,7 @@ __all__ = ['BeautifulSoup']
 
 import re
 
-from util import isList, buildSet
+from util import buildSet
 from builder import builder_registry
 from dammit import UnicodeDammit
 from element import DEFAULT_OUTPUT_ENCODING, NavigableString, Tag
