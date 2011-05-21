@@ -16,7 +16,6 @@ For more than you ever wanted to know about Beautiful Soup, see the
 documentation:
 http://www.crummy.com/software/BeautifulSoup/documentation.html
 """
-from __future__ import generators
 
 __author__ = "Leonard Richardson (leonardr@segfault.org)"
 __version__ = "4.0.0a"
@@ -27,9 +26,9 @@ __all__ = ['BeautifulSoup']
 
 import re
 
-from builder import builder_registry
-from dammit import UnicodeDammit
-from element import DEFAULT_OUTPUT_ENCODING, NavigableString, Tag
+from .builder import builder_registry
+from .dammit import UnicodeDammit
+from .element import DEFAULT_OUTPUT_ENCODING, NavigableString, Tag
 
 
 class BeautifulSoup(Tag):
