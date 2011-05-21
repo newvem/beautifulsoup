@@ -144,7 +144,7 @@ class SAXTreeBuilder(TreeBuilder):
         pass
 
     def startElement(self, name, attrs):
-        attrs = dict((key[1], value) for key, value in attrs.items())
+        attrs = dict((key[1], value) for key, value in list(attrs.items()))
         #print "Start %s, %r" % (name, attrs)
         self.soup.handle_starttag(name, attrs)
 
@@ -247,16 +247,16 @@ def register_treebuilders_from(module):
 # builder registrations will take precedence. In general, we want
 # html5lib to take precedence over lxml, because it's more
 # reliable. And we only want to use HTMLParser as a last result.
-import _htmlparser
+from . import _htmlparser
 register_treebuilders_from(_htmlparser)
 try:
-    import _lxml
+    from . import _lxml
     register_treebuilders_from(_lxml)
 except ImportError:
     # They don't have lxml installed.
     pass
 try:
-    import _html5lib
+    from . import _html5lib
     register_treebuilders_from(_html5lib)
 except ImportError:
     # They don't have html5lib installed.
