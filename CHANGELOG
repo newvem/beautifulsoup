@@ -38,6 +38,7 @@ work. Here are the renames:
 Some attributes have also been renamed:
 
  * Tag.isSelfClosing -> Tag.is_empty_element
+ * UnicodeDammit.unicode -> UnicodeDammit.unicode_markup
 
 So have some arguments to popular methods:
 
