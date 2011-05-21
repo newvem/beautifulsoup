@@ -1,9 +1,6 @@
+import collections
 import re
 import types
-try:
-    from htmlentitydefs import name2codepoint
-except ImportError:
-    name2codepoint = {}
 from bs4.dammit import EntitySubstitution
 
 DEFAULT_OUTPUT_ENCODING = "utf-8"
@@ -13,12 +10,12 @@ class PageElement(object):
     """Contains the navigational information for some part of the page
     (either a tag or a piece of text)"""
 
-    def setup(self, parent=None, previous=None):
+    def setup(self, parent=None, previous_element=None):
         """Sets up the initial relations between this element and
         other elements."""
         self.parent = parent
-        self.previous = previous
-        self.next = None
+        self.previous_element = previous_element
+        self.next_element = None
         self.previousSibling = None
         self.nextSibling = None
         if self.parent and self.parent.contents:
@@ -52,14 +49,14 @@ class PageElement(object):
         #this element (and any children) hadn't been parsed. Connect
         #the two.
         lastChild = self._last_recursive_child()
-        nextElement = lastChild.next
+        nextElement = lastChild.next_element
 
-        if self.previous:
-            self.previous.next = nextElement
+        if self.previous_element:
+            self.previous_element.next_element = nextElement
         if nextElement:
-            nextElement.previous = self.previous
-        self.previous = None
-        lastChild.next = None
+            nextElement.previous_element = self.previous_element
+        self.previous_element = None
+        lastChild.next_element = None
 
         self.parent = None
         if self.previousSibling:
@@ -100,14 +97,14 @@ class PageElement(object):
         previousChild = None
         if position == 0:
             newChild.previousSibling = None
-            newChild.previous = self
+            newChild.previous_element = self
         else:
             previousChild = self.contents[position-1]
             newChild.previousSibling = previousChild
             newChild.previousSibling.nextSibling = newChild
-            newChild.previous = previousChild._last_recursive_child()
-        if newChild.previous:
-            newChild.previous.next = newChild
+            newChild.previous_element = previousChild._last_recursive_child()
+        if newChild.previous_element:
+            newChild.previous_element.next_element = newChild
 
         newChildsLastElement = newChild._last_recursive_child()
 
@@ -122,18 +119,18 @@ class PageElement(object):
                 if not parent: # This is the last element in the document.
                     break
             if parentsNextSibling:
-                newChildsLastElement.next = parentsNextSibling
+                newChildsLastElement.next_element = parentsNextSibling
             else:
-                newChildsLastElement.next = None
+                newChildsLastElement.next_element = None
         else:
             nextChild = self.contents[position]
             newChild.nextSibling = nextChild
             if newChild.nextSibling:
                 newChild.nextSibling.previousSibling = newChild
-            newChildsLastElement.next = nextChild
+            newChildsLastElement.next_element = nextChild
 
-        if newChildsLastElement.next:
-            newChildsLastElement.next.previous = newChildsLastElement
+        if newChildsLastElement.next_element:
+            newChildsLastElement.next_element.previous_element = newChildsLastElement
         self.contents.insert(position, newChild)
 
     def append(self, tag):
@@ -223,6 +220,14 @@ class PageElement(object):
     findParents = find_parents  # BS3
     fetchParents = find_parents # BS2
 
+    @property
+    def next(self):
+        return self.next_element
+
+    @property
+    def previous(self):
+        return self.previous_element
+
     #These methods do the real heavy lifting.
 
     def _find_one(self, method, name, attrs, text, **kwargs):
@@ -260,7 +265,7 @@ class PageElement(object):
     def next_elements(self):
         i = self
         while i:
-            i = i.next
+            i = i.next_element
             yield i
 
     @property
@@ -274,7 +279,7 @@ class PageElement(object):
     def previous_elements(self):
         i = self
         while i:
-            i = i.previous
+            i = i.previous_element
             yield i
 
     @property
@@ -688,11 +693,11 @@ class Tag(PageElement):
     def recursive_children(self):
         if not len(self.contents):
             raise StopIteration # XXX return instead?
-        stopNode = self._last_recursive_child().next
+        stopNode = self._last_recursive_child().next_element
         current = self.contents[0]
         while current is not stopNode:
             yield current
-            current = current.next
+            current = current.next_element
 
     # Old names for backwards compatibility
     def childGenerator(self):
@@ -733,8 +738,9 @@ class SoupStrainer(object):
         if isinstance(markupName, Tag):
             markup = markupName
             markupAttrs = markup
-        callFunctionWithTagData = callable(self.name) \
-                                and not isinstance(markupName, Tag)
+        callFunctionWithTagData = (
+            isinstance(self.name, collections.Callable)
+            and not isinstance(markupName, Tag))
 
         if (not self.name) \
                or callFunctionWithTagData \
@@ -795,7 +801,7 @@ class SoupStrainer(object):
         result = False
         if matchAgainst == True and type(matchAgainst) == types.BooleanType:
             result = markup != None
-        elif callable(matchAgainst):
+        elif isinstance(matchAgainst, collections.Callable):
             result = matchAgainst(markup)
         else:
             #Custom match methods take the tag as an argument, but all

@@ -39,6 +39,8 @@ Some attributes have also been renamed:
 
  * Tag.isSelfClosing -> Tag.is_empty_element
  * UnicodeDammit.unicode -> UnicodeDammit.unicode_markup
+ * Tag.next -> Tag.next_element
+ * Tag.previous -> Tag.previous_element
 
 So have some arguments to popular methods:
 

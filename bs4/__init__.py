@@ -159,10 +159,10 @@ class BeautifulSoup(Tag):
 
     def object_was_parsed(self, o):
         """Add an object to the parse tree."""
-        o.setup(self.currentTag, self.previous)
-        if self.previous:
-            self.previous.next = o
-        self.previous = o
+        o.setup(self.currentTag, self.previous_element)
+        if self.previous_element:
+            self.previous_element.next_element = o
+        self.previous_element = o
         self.currentTag.contents.append(o)
 
 
@@ -206,12 +206,12 @@ class BeautifulSoup(Tag):
             return None
 
         tag = Tag(self, self.builder, name, attrs, self.currentTag,
-                  self.previous)
+                  self.previous_element)
         if tag is None:
             return tag
-        if self.previous:
-            self.previous.next = tag
-        self.previous = tag
+        if self.previous_element:
+            self.previous_element.next_element = tag
+        self.previous_element = tag
         self.pushTag(tag)
         return tag
 
