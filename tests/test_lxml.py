@@ -535,6 +535,12 @@ class TestLXMLXMLBuilder(SoupTest):
         self.assertEquals(cdata.__class__.__name__, 'NavigableString')
 
 
+    def test_mixed_case_tags(self):
+        # Mixed-case tags are folded to lowercase.
+        self.assertSoupEquals(
+            "<a><B><Cd><EFG></efg></CD></b></A>",
+            "<a><b><cd><efg></efg></cd></b></a>")
+
     def test_can_handle_invalid_xml(self):
         self.assertSoupEquals("<a><b>", "<a><b /></a>")
 
