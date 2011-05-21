@@ -38,9 +38,19 @@ still work. Here are the renames:
  * nextSibling -> next_sibling
  * previousSibling -> previous_sibling
 
+Methods have been renamed for compatibility with Python 3.
+
+ * Tag.has_key() -> Tag.has_attr()
+
+   (This was misleading, anyway, because has_key() looked at
+   a tag's attributes and __in__ looked at a tag's contents.)
+
 Some attributes have also been renamed:
 
  * Tag.isSelfClosing -> Tag.is_empty_element
+ * UnicodeDammit.unicode -> UnicodeDammit.unicode_markup
+ * Tag.next -> Tag.next_element
+ * Tag.previous -> Tag.previous_element
 
 So have some arguments to popular methods:
 

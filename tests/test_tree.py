@@ -10,7 +10,7 @@ methods tested here.
 """
 
 import copy
-import cPickle as pickle
+import pickle
 import re
 from bs4 import BeautifulSoup
 from bs4.builder import builder_registry
@@ -309,7 +309,7 @@ class TestParentOperations(TreeTest):
 
     def test_parent_generator(self):
         parents = [parent['id'] for parent in self.start.parents
-                   if parent is not None and parent.has_key('id')]
+                   if parent is not None and 'id' in parent.attrs]
         self.assertEquals(parents, ['bottom', 'middle', 'top'])
 
 
@@ -328,19 +328,20 @@ class TestNextOperations(ProximityTest):
         self.start = self.tree.b
 
     def test_next(self):
-        self.assertEquals(self.start.next, "One")
-        self.assertEquals(self.start.next.next['id'], "2")
+        self.assertEquals(self.start.next_element, "One")
+        self.assertEquals(self.start.next_element.next_element['id'], "2")
 
     def test_next_of_last_item_is_none(self):
         last = self.tree.find(text="Three")
-        self.assertEquals(last.next, None)
+        self.assertEquals(last.next_element, None)
 
     def test_next_of_root_is_none(self):
         # The document root is outside the next/previous chain.
-        self.assertEquals(self.tree.next, None)
+        self.assertEquals(self.tree.next_element, None)
 
     def test_find_all_next(self):
         self.assertSelects(self.start.find_all_next('b'), ["Two", "Three"])
+        self.start.find_all_next(id=3)
         self.assertSelects(self.start.find_all_next(id=3), ["Three"])
 
     def test_find_next(self):
@@ -373,17 +374,17 @@ class TestPreviousOperations(ProximityTest):
         self.end = self.tree.find(text="Three")
 
     def test_previous(self):
-        self.assertEquals(self.end.previous['id'], "3")
-        self.assertEquals(self.end.previous.previous, "Two")
+        self.assertEquals(self.end.previous_element['id'], "3")
+        self.assertEquals(self.end.previous_element.previous_element, "Two")
 
     def test_previous_of_first_item_is_none(self):
         first = self.tree.find('html')
-        self.assertEquals(first.previous, None)
+        self.assertEquals(first.previous_element, None)
 
     def test_previous_of_root_is_none(self):
         # The document root is outside the next/previous chain.
         # XXX This is broken!
-        #self.assertEquals(self.tree.previous, None)
+        #self.assertEquals(self.tree.previous_element, None)
         pass
 
     def test_find_all_previous(self):
@@ -456,8 +457,8 @@ class TestNextSibling(SiblingTest):
         self.assertEquals(self.start.next_sibling['id'], '2')
         self.assertEquals(self.start.next_sibling.next_sibling['id'], '3')
 
-        # Note the difference between next_sibling and next.
-        self.assertEquals(self.start.next['id'], '1.1')
+        # Note the difference between next_sibling and next_element.
+        self.assertEquals(self.start.next_element['id'], '1.1')
 
     def test_next_sibling_may_not_exist(self):
         self.assertEquals(self.tree.html.next_sibling, None)
@@ -501,8 +502,8 @@ class TestPreviousSibling(SiblingTest):
         self.assertEquals(self.end.previous_sibling['id'], '3')
         self.assertEquals(self.end.previous_sibling.previous_sibling['id'], '2')
 
-        # Note the difference between previous_sibling and previous.
-        self.assertEquals(self.end.previous['id'], '3.1')
+        # Note the difference between previous_sibling and previous_element.
+        self.assertEquals(self.end.previous_element['id'], '3.1')
 
     def test_previous_sibling_may_not_exist(self):
         self.assertEquals(self.tree.html.previous_sibling, None)
@@ -586,10 +587,10 @@ class TestTreeModification(SoupTest):
         soup.find(text="Argh!").replace_with("Hooray!")
         new_text = soup.find(text="Hooray!")
         b = soup.b
-        self.assertEqual(new_text.previous, b)
+        self.assertEqual(new_text.previous_element, b)
         self.assertEqual(new_text.parent, b)
-        self.assertEqual(new_text.previous.next, new_text)
-        self.assertEqual(new_text.next, None)
+        self.assertEqual(new_text.previous_element.next_element, new_text)
+        self.assertEqual(new_text.next_element, None)
 
     def test_consecutive_text_nodes(self):
         # A builder should never create two consecutive text nodes,
@@ -603,14 +604,14 @@ class TestTreeModification(SoupTest):
                 "<a><b>Argh!Hooray!</b><c></c></a>"))
 
         new_text = soup.find(text="Hooray!")
-        self.assertEqual(new_text.previous, "Argh!")
-        self.assertEqual(new_text.previous.next, new_text)
+        self.assertEqual(new_text.previous_element, "Argh!")
+        self.assertEqual(new_text.previous_element.next_element, new_text)
 
         self.assertEqual(new_text.previous_sibling, "Argh!")
         self.assertEqual(new_text.previous_sibling.next_sibling, new_text)
 
         self.assertEqual(new_text.next_sibling, None)
-        self.assertEqual(new_text.next, soup.c)
+        self.assertEqual(new_text.next_element, soup.c)
 
     def test_insert_tag(self):
         builder = self.default_builder
@@ -630,8 +631,8 @@ class TestTreeModification(SoupTest):
         self.assertEqual(magic_tag.previous_sibling, b_tag)
 
         find = b_tag.find(text="Find")
-        self.assertEqual(find.next, magic_tag)
-        self.assertEqual(magic_tag.previous, find)
+        self.assertEqual(find.next_element, magic_tag)
+        self.assertEqual(magic_tag.previous_element, find)
 
         c_tag = soup.c
         self.assertEqual(magic_tag.next_sibling, c_tag)
@@ -639,8 +640,8 @@ class TestTreeModification(SoupTest):
 
         the = magic_tag.find(text="the")
         self.assertEqual(the.parent, magic_tag)
-        self.assertEqual(the.next, c_tag)
-        self.assertEqual(c_tag.previous, the)
+        self.assertEqual(the.next_element, c_tag)
+        self.assertEqual(c_tag.previous_element, the)
 
     def test_insert_works_on_empty_element_tag(self):
         # This is a little strange, since most HTML parsers don't allow
@@ -663,7 +664,7 @@ class TestTreeModification(SoupTest):
 
         self.assertEquals(show.parent, None)
         self.assertEquals(no.parent, soup.p)
-        self.assertEquals(no.next, "no")
+        self.assertEquals(no.next_element, "no")
         self.assertEquals(no.next_sibling, " business")
 
     def test_nested_tag_replace_with(self):
@@ -682,24 +683,24 @@ class TestTreeModification(SoupTest):
 
         # The <b> tag is now an orphan.
         self.assertEqual(remove_tag.parent, None)
-        self.assertEqual(remove_tag.find(text="right").next, None)
-        self.assertEqual(remove_tag.previous, None)
+        self.assertEqual(remove_tag.find(text="right").next_element, None)
+        self.assertEqual(remove_tag.previous_element, None)
         self.assertEqual(remove_tag.next_sibling, None)
         self.assertEqual(remove_tag.previous_sibling, None)
 
         # The <f> tag is now connected to the <a> tag.
         self.assertEqual(move_tag.parent, soup.a)
-        self.assertEqual(move_tag.previous, "We")
-        self.assertEqual(move_tag.next.next, soup.e)
+        self.assertEqual(move_tag.previous_element, "We")
+        self.assertEqual(move_tag.next_element.next_element, soup.e)
         self.assertEqual(move_tag.next_sibling, None)
 
         # The gap where the <f> tag used to be has been mended, and
         # the word "to" is now connected to the <g> tag.
         to_text = soup.find(text="to")
         g_tag = soup.g
-        self.assertEqual(to_text.next, g_tag)
+        self.assertEqual(to_text.next_element, g_tag)
         self.assertEqual(to_text.next_sibling, g_tag)
-        self.assertEqual(g_tag.previous, to_text)
+        self.assertEqual(g_tag.previous_element, to_text)
         self.assertEqual(g_tag.previous_sibling, to_text)
 
     def test_replace_with_children(self):
@@ -724,15 +725,15 @@ class TestTreeModification(SoupTest):
         # The extracted tag is now an orphan.
         self.assertEqual(len(soup.body.contents), 2)
         self.assertEqual(extracted.parent, None)
-        self.assertEqual(extracted.previous, None)
-        self.assertEqual(extracted.next.next, None)
+        self.assertEqual(extracted.previous_element, None)
+        self.assertEqual(extracted.next_element.next_element, None)
 
         # The gap where the extracted tag used to be has been mended.
         content_1 = soup.find(text="Some content. ")
         content_2 = soup.find(text=" More content.")
-        self.assertEquals(content_1.next, content_2)
+        self.assertEquals(content_1.next_element, content_2)
         self.assertEquals(content_1.next_sibling, content_2)
-        self.assertEquals(content_2.previous, content_1)
+        self.assertEquals(content_2.previous_element, content_1)
         self.assertEquals(content_2.previous_sibling, content_1)
 
     def test_clear(self):
@@ -785,11 +786,17 @@ class TestElementObjects(SoupTest):
         self.assertEqual(soup.a, None)
         self.assertEqual(soup.aTag, None)
 
-    def test_has_key(self):
-        """has_key() checks for the presence of an attribute."""
+    def test_has_attr(self):
+        """has_attr() checks for the presence of an attribute.
+
+        Please note note: has_attr() is different from
+        __in__. has_attr() checks the tag's attributes and __in__
+        checks the tag's chidlren.
+        """
         soup = self.soup("<foo attr='bar'>")
-        self.assertTrue(soup.foo.has_key('attr'))
-        self.assertFalse(soup.foo.has_key('attr2'))
+        self.assertTrue(soup.foo.has_attr('attr'))
+        self.assertFalse(soup.foo.has_attr('attr2'))
+
 
     def test_attributes_come_out_in_alphabetical_order(self):
         markup = '<b a="1" z="5" m="3" f="2" y="4"></b>'

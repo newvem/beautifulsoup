@@ -16,7 +16,6 @@ For more than you ever wanted to know about Beautiful Soup, see the
 documentation:
 http://www.crummy.com/software/BeautifulSoup/documentation.html
 """
-from __future__ import generators
 
 __author__ = "Leonard Richardson (leonardr@segfault.org)"
 __version__ = "4.0.0a"
@@ -27,10 +26,9 @@ __all__ = ['BeautifulSoup']
 
 import re
 
-from util import isList, buildSet
-from builder import builder_registry
-from dammit import UnicodeDammit
-from element import DEFAULT_OUTPUT_ENCODING, NavigableString, Tag
+from .builder import builder_registry
+from .dammit import UnicodeDammit
+from .element import DEFAULT_OUTPUT_ENCODING, NavigableString, Tag
 
 
 class BeautifulSoup(Tag):
@@ -145,7 +143,7 @@ class BeautifulSoup(Tag):
         if self.currentData:
             currentData = u''.join(self.currentData)
             if (currentData.translate(self.STRIP_ASCII_SPACES) == '' and
-                not buildSet([tag.name for tag in self.tagStack]).intersection(
+                not set([tag.name for tag in self.tagStack]).intersection(
                     self.builder.preserve_whitespace_tags)):
                 if '\n' in currentData:
                     currentData = '\n'
@@ -161,10 +159,10 @@ class BeautifulSoup(Tag):
 
     def object_was_parsed(self, o):
         """Add an object to the parse tree."""
-        o.setup(self.currentTag, self.previous)
-        if self.previous:
-            self.previous.next = o
-        self.previous = o
+        o.setup(self.currentTag, self.previous_element)
+        if self.previous_element:
+            self.previous_element.next_element = o
+        self.previous_element = o
         self.currentTag.contents.append(o)
 
     def _popToTag(self, name, inclusivePop=True):
@@ -208,12 +206,12 @@ class BeautifulSoup(Tag):
             return None
 
         tag = Tag(self, self.builder, name, attrs, self.currentTag,
-                  self.previous)
+                  self.previous_element)
         if tag is None:
             return tag
-        if self.previous:
-            self.previous.next = tag
-        self.previous = tag
+        if self.previous_element:
+            self.previous_element.next_element = tag
+        self.previous_element = tag
         self.pushTag(tag)
         return tag
 

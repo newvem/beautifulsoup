@@ -3,6 +3,7 @@ __all__ = [
     'LXMLTreeBuilder',
     ]
 
+import collections
 from lxml import etree
 from bs4.element import Comment, Doctype
 from bs4.builder import (
@@ -36,7 +37,7 @@ class LXMLTreeBuilderForXML(TreeBuilder):
         if parser is None:
             # Use the default parser.
             parser = self.default_parser
-        if callable(parser):
+        if isinstance(parser, collections.Callable):
             # Instantiate the parser with default arguments
             parser = parser(target=self, strip_cdata=False)
         self.parser = parser

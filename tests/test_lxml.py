@@ -523,6 +523,13 @@ class TestLXMLXMLBuilder(SoupTest):
     def default_builder(self):
         return LXMLTreeBuilderForXML()
 
+    def test_mixed_case_tags(self):
+        # Mixed-case tags are *not* folded to lowercase, but the
+        # end tag is always the same case as the start tag.
+        self.assertSoupEquals(
+            "<a><B><Cd><EFG /></CD></b></A>",
+            "<a><B><Cd><EFG /></Cd></B></a>")
+
 
     def test_cdata_becomes_text(self):
         # LXML sends CData sections as 'data' events, so we can't
@@ -534,12 +541,6 @@ class TestLXMLXMLBuilder(SoupTest):
         cdata = soup.foo.contents[0]
         self.assertEquals(cdata.__class__.__name__, 'NavigableString')
 
-
-    def test_mixed_case_tags(self):
-        # Mixed-case tags are folded to lowercase.
-        self.assertSoupEquals(
-            "<a><B><Cd><EFG></efg></CD></b></A>",
-            "<a><b><cd><efg></efg></cd></b></a>")
 
     def test_can_handle_invalid_xml(self):
         self.assertSoupEquals("<a><b>", "<a><b /></a>")
