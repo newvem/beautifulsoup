@@ -35,6 +35,13 @@ work. Here are the renames:
  * findPreviousSibling -> find_previous_sibling
  * findPreviousSiblings -> find_previous_siblings
 
+Methods have been renamed for compatibility with Python 3.
+
+ * Tag.has_key() -> Tag.has_attr()
+
+   (This was misleading, anyway, because has_key() looked at
+   a tag's attributes and __in__ looked at a tag's contents.)
+
 Some attributes have also been renamed:
 
  * Tag.isSelfClosing -> Tag.is_empty_element

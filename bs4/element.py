@@ -463,7 +463,7 @@ class Tag(PageElement):
         attribute."""
         return self.attrs.get(key, default)
 
-    def has_key(self, key):
+    def has_attr(self, key):
         return key in self.attrs
 
     def __getitem__(self, key):
@@ -707,6 +707,10 @@ class Tag(PageElement):
     def recursiveChildGenerator(self):
         return self.recursive_children
 
+    # This was kind of misleading because has_key() (attributes) was
+    # different from __in__ (contents). has_key() is gone in Python 3,
+    # anyway.
+    has_key = has_attr
 
 # Next, a couple classes to represent queries and their results.
 class SoupStrainer(object):

@@ -10,7 +10,7 @@ methods tested here.
 """
 
 import copy
-import cPickle as pickle
+import pickle
 import re
 from bs4 import BeautifulSoup
 from bs4.builder import builder_registry
@@ -288,7 +288,7 @@ class TestParentOperations(TreeTest):
 
     def test_parent_generator(self):
         parents = [parent['id'] for parent in self.start.parents
-                   if parent is not None and parent.has_key('id')]
+                   if parent is not None and 'id' in parent.attrs]
         self.assertEquals(parents, ['bottom', 'middle', 'top'])
 
 
@@ -735,11 +735,17 @@ class TestElementObjects(SoupTest):
         self.assertEqual(soup.a, None)
         self.assertEqual(soup.aTag, None)
 
-    def test_has_key(self):
-        """has_key() checks for the presence of an attribute."""
+    def test_has_attr(self):
+        """has_attr() checks for the presence of an attribute.
+
+        Please note note: has_attr() is different from
+        __in__. has_attr() checks the tag's attributes and __in__
+        checks the tag's chidlren.
+        """
         soup = self.soup("<foo attr='bar'>")
-        self.assertTrue(soup.foo.has_key('attr'))
-        self.assertFalse(soup.foo.has_key('attr2'))
+        self.assertTrue(soup.foo.has_attr('attr'))
+        self.assertFalse(soup.foo.has_attr('attr2'))
+
 
     def test_attributes_come_out_in_alphabetical_order(self):
         markup = '<b a="1" z="5" m="3" f="2" y="4"></b>'
