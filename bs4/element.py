@@ -75,8 +75,7 @@ class PageElement(object):
 
     def insert(self, position, newChild):
         if (isinstance(newChild, basestring)
-            or isinstance(newChild, unicode)) \
-            and not isinstance(newChild, NavigableString):
+            and not isinstance(newChild, NavigableString)):
             newChild = NavigableString(newChild)
 
         position =  min(position, len(self.contents))
@@ -248,7 +247,7 @@ class PageElement(object):
         results = ResultSet(strainer)
         while True:
             try:
-                i = generator.next()
+                i = next(generator)
             except StopIteration:
                 break
             if i:
@@ -346,7 +345,9 @@ class NavigableString(unicode, PageElement):
         if attr == 'string':
             return self
         else:
-            raise AttributeError, "'%s' object has no attribute '%s'" % (self.__class__.__name__, attr)
+            raise AttributeError(
+                "'%s' object has no attribute '%s'" % (
+                    self.__class__.__name__, attr))
 
     def output_ready(self, substitute_html_entities=False):
         if substitute_html_entities:
@@ -464,7 +465,7 @@ class Tag(PageElement):
         return self.attrs.get(key, default)
 
     def has_key(self, key):
-        return self.attrs.has_key(key)
+        return key in self.attrs
 
     def __getitem__(self, key):
         """tag[key] returns the value of the 'key' attribute for the tag,
@@ -493,7 +494,7 @@ class Tag(PageElement):
 
     def __delitem__(self, key):
         "Deleting tag[key] deletes all 'key' attributes for the tag."
-        if self.attrs.has_key(key):
+        if key in self.attrs:
             del self.attrs[key]
 
     def __call__(self, *args, **kwargs):
