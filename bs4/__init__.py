@@ -27,7 +27,6 @@ __all__ = ['BeautifulSoup']
 
 import re
 
-from util import isList, buildSet
 from builder import builder_registry
 from dammit import UnicodeDammit
 from element import DEFAULT_OUTPUT_ENCODING, NavigableString, Tag
@@ -145,7 +144,7 @@ class BeautifulSoup(Tag):
         if self.currentData:
             currentData = u''.join(self.currentData)
             if (currentData.translate(self.STRIP_ASCII_SPACES) == '' and
-                not buildSet([tag.name for tag in self.tagStack]).intersection(
+                not set([tag.name for tag in self.tagStack]).intersection(
                     self.builder.preserve_whitespace_tags)):
                 if '\n' in currentData:
                     currentData = '\n'

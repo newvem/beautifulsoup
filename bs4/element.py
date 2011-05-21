@@ -6,8 +6,6 @@ except ImportError:
     name2codepoint = {}
 from bs4.dammit import EntitySubstitution
 
-from util import isList
-
 DEFAULT_OUTPUT_ENCODING = "utf-8"
 
 
@@ -771,7 +769,7 @@ class SoupStrainer(object):
         found = None
         # If given a list of items, scan it for a text element that
         # matches.
-        if isList(markup) and not isinstance(markup, Tag):
+        if hasattr(markup, '__iter__') and not isinstance(markup, Tag):
             for element in markup:
                 if isinstance(element, NavigableString) \
                        and self.search(element):
@@ -810,7 +808,7 @@ class SoupStrainer(object):
             if hasattr(matchAgainst, 'match'):
                 # It's a regexp object.
                 result = markup and matchAgainst.search(markup)
-            elif (isList(matchAgainst)
+            elif (hasattr(matchAgainst, '__iter__')
                   and (markup is not None
                        or not isinstance(matchAgainst, basestring))):
                 result = markup in matchAgainst
