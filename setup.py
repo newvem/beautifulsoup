@@ -11,6 +11,6 @@ setup(name="BeautifulSoup",
     version="4.0alpha",
     author="Leonard Richardson",
     url="http://www.crummy.com/software/BeautifulSoup/",
-    packages=['bs4', 'bs4.builder'],
+    packages=['bs4', 'bs4.builder', 'bs4.tests'],
     cmdclass = {'build_py':build_py}
 )
