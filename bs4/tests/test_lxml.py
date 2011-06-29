@@ -171,7 +171,7 @@ class TestLXMLBuilder(SoupTest):
     def test_smart_quotes_converted_on_the_way_in(self):
         # Microsoft smart quotes are converted to Unicode characters during
         # parsing.
-        quote = "<p>\x91Foo\x92</p>"
+        quote = b"<p>\x91Foo\x92</p>"
         soup = self.soup(quote)
         self.assertEquals(
             soup.p.string,
@@ -244,11 +244,11 @@ class TestLXMLBuilder(SoupTest):
         # Smoke test to make sure the parser can handle a document in
         # Shift-JIS encoding, without choking.
         shift_jis_html = (
-            '<html><head></head><body><pre>'
-            '\x82\xb1\x82\xea\x82\xcdShift-JIS\x82\xc5\x83R\x81[\x83f'
-            '\x83B\x83\x93\x83O\x82\xb3\x82\xea\x82\xbd\x93\xfa\x96{\x8c'
-            '\xea\x82\xcc\x83t\x83@\x83C\x83\x8b\x82\xc5\x82\xb7\x81B'
-            '</pre></body></html>')
+            b'<html><head></head><body><pre>'
+            b'\x82\xb1\x82\xea\x82\xcdShift-JIS\x82\xc5\x83R\x81[\x83f'
+            b'\x83B\x83\x93\x83O\x82\xb3\x82\xea\x82\xbd\x93\xfa\x96{\x8c'
+            b'\xea\x82\xcc\x83t\x83@\x83C\x83\x8b\x82\xc5\x82\xb7\x81B'
+            b'</pre></body></html>')
         unicode_html = shift_jis_html.decode("shift-jis")
         soup = self.soup(shift_jis_html)
 
@@ -448,7 +448,7 @@ class TestLXMLBuilderInvalidMarkup(SoupTest):
     def test_document_starts_with_bogus_declaration(self):
         soup = self.soup('<! Foo ><p>a</p>')
         # The declaration is ignored altogether.
-        self.assertEquals(soup.encode(), "<html><body><p>a</p></body></html>")
+        self.assertEquals(soup.encode(), b"<html><body><p>a</p></body></html>")
 
     def test_tag_name_contains_unicode(self):
         # Unicode characters in tag names are stripped.
@@ -466,16 +466,16 @@ class TestLXMLBuilderEncodingConversion(SoupTest):
         # Just so you know what it looks like.
         self.assertEqual(
             self.utf8_data,
-            "<html><head></head><body><foo>Sacr\xc3\xa9 bleu!</foo></body></html>")
+            b"<html><head></head><body><foo>Sacr\xc3\xa9 bleu!</foo></body></html>")
 
     def test_ascii_in_unicode_out(self):
         # ASCII input is converted to Unicode. The original_encoding
         # attribute is set.
-        ascii = "<foo>a</foo>"
+        ascii = b"<foo>a</foo>"
         soup_from_ascii = self.soup(ascii)
         unicode_output = soup_from_ascii.decode()
         self.assertTrue(isinstance(unicode_output, unicode))
-        self.assertEquals(unicode_output, self.document_for(ascii))
+        self.assertEquals(unicode_output, self.document_for(ascii.decode()))
         self.assertEquals(soup_from_ascii.original_encoding, "ascii")
 
     def test_unicode_in_unicode_out(self):
@@ -498,7 +498,7 @@ class TestLXMLBuilderEncodingConversion(SoupTest):
         soup_from_unicode = self.soup(self.unicode_data)
         self.assertEquals(soup_from_unicode.encode('utf-8'), self.utf8_data)
 
-    HEBREW_DOCUMENT = '<html><head><title>Hebrew (ISO 8859-8) in Visual Directionality</title></head><body><h1>Hebrew (ISO 8859-8) in Visual Directionality</h1>\xed\xe5\xec\xf9</body></html>'
+    HEBREW_DOCUMENT = b'<html><head><title>Hebrew (ISO 8859-8) in Visual Directionality</title></head><body><h1>Hebrew (ISO 8859-8) in Visual Directionality</h1>\xed\xe5\xec\xf9</body></html>'
 
     def test_real_hebrew_document(self):
         # A real-world test to make sure we can convert ISO-8859-9 (a

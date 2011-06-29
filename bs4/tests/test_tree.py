@@ -905,8 +905,8 @@ class TestSubstitutions(SoupTest):
     def test_html_entity_substitution(self):
         soup = self.soup(
             u"<b>Sacr\N{LATIN SMALL LETTER E WITH ACUTE} bleu!</b>")
-        encoded = soup.encode("utf-8", substitute_html_entities=True)
-        self.assertEquals(encoded,
+        decoded = soup.decode(substitute_html_entities=True)
+        self.assertEquals(decoded,
                           self.document_for("<b>Sacr&eacute; bleu!</b>"))
 
     def test_html_entity_substitution_off_by_default(self):
@@ -930,13 +930,13 @@ class TestSubstitutions(SoupTest):
         # Encode the document into some encoding, and the encoding is
         # substituted into the meta tag.
         utf_8 = soup.encode("utf-8")
-        self.assertTrue("charset=utf-8" in utf_8)
+        self.assertTrue(b"charset=utf-8" in utf_8)
 
         euc_jp = soup.encode("euc_jp")
-        self.assertTrue("charset=euc_jp" in euc_jp)
+        self.assertTrue(b"charset=euc_jp" in euc_jp)
 
         shift_jis = soup.encode("shift-jis")
-        self.assertTrue("charset=shift-jis" in shift_jis)
+        self.assertTrue(b"charset=shift-jis" in shift_jis)
 
         utf_16_u = soup.encode("utf-16").decode("utf-16")
         self.assertTrue("charset=utf-16" in utf_16_u)
