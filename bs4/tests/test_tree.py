@@ -555,7 +555,7 @@ class TestTreeModification(SoupTest):
         soup.body.insert(1, ol)
         self.assertEqual(
             soup.body.encode(),
-            '<body><a href="http://foo.com/"></a><ol></ol></body>')
+            b'<body><a href="http://foo.com/"></a><ol></ol></body>')
 
     def test_append_to_contents_moves_tag(self):
         doc = """<p id="1">Don't leave me <b>here</b>.</p>
