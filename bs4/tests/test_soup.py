@@ -13,7 +13,7 @@ class TestSelectiveParsing(SoupTest):
         markup = "No<b>Yes</b><a>No<b>Yes <c>Yes</c></b>"
         strainer = SoupStrainer("b")
         soup = self.soup(markup, parse_only=strainer)
-        self.assertEquals(soup.encode(), "<b>Yes</b><b>Yes <c>Yes</c></b>")
+        self.assertEquals(soup.encode(), b"<b>Yes</b><b>Yes <c>Yes</c></b>")
 
 
 class TestEntitySubstitution(unittest.TestCase):
@@ -31,7 +31,7 @@ class TestEntitySubstitution(unittest.TestCase):
     def test_smart_quote_substitution(self):
         # MS smart quotes are a common source of frustration, so we
         # give them a special test.
-        quotes = "\x91\x92foo\x93\x94"
+        quotes = b"\x91\x92foo\x93\x94"
         dammit = UnicodeDammit(quotes)
         self.assertEquals(self.sub.substitute_html(dammit.markup),
                           "&lsquo;&rsquo;foo&ldquo;&rdquo;")
@@ -83,37 +83,37 @@ class TestUnicodeDammit(unittest.TestCase):
     """Standalone tests of Unicode, Dammit."""
 
     def test_smart_quotes_to_unicode(self):
-        markup = "<foo>\x91\x92\x93\x94</foo>"
+        markup = b"<foo>\x91\x92\x93\x94</foo>"
         dammit = UnicodeDammit(markup)
         self.assertEquals(
             dammit.unicode_markup, u"<foo>\u2018\u2019\u201c\u201d</foo>")
 
     def test_smart_quotes_to_xml_entities(self):
-        markup = "<foo>\x91\x92\x93\x94</foo>"
+        markup = b"<foo>\x91\x92\x93\x94</foo>"
         dammit = UnicodeDammit(markup, smart_quotes_to="xml")
         self.assertEquals(
             dammit.unicode_markup, "<foo>&#x2018;&#x2019;&#x201C;&#x201D;</foo>")
 
     def test_smart_quotes_to_html_entities(self):
-        markup = "<foo>\x91\x92\x93\x94</foo>"
+        markup = b"<foo>\x91\x92\x93\x94</foo>"
         dammit = UnicodeDammit(markup, smart_quotes_to="html")
         self.assertEquals(
             dammit.unicode_markup, "<foo>&lsquo;&rsquo;&ldquo;&rdquo;</foo>")
 
     def test_detect_utf8(self):
-        utf8 = "\xc3\xa9"
+        utf8 = b"\xc3\xa9"
         dammit = UnicodeDammit(utf8)
         self.assertEquals(dammit.unicode_markup, u'\xe9')
         self.assertEquals(dammit.original_encoding, 'utf-8')
 
     def test_convert_hebrew(self):
-        hebrew = "\xed\xe5\xec\xf9"
+        hebrew = b"\xed\xe5\xec\xf9"
         dammit = UnicodeDammit(hebrew, ["iso-8859-8"])
         self.assertEquals(dammit.original_encoding, 'iso-8859-8')
         self.assertEquals(dammit.unicode_markup, u'\u05dd\u05d5\u05dc\u05e9')
 
     def test_dont_see_smart_quotes_where_there_are_none(self):
-        utf_8 = "\343\202\261\343\203\274\343\202\277\343\202\244 Watch"
+        utf_8 = b"\343\202\261\343\203\274\343\202\277\343\202\244 Watch"
         dammit = UnicodeDammit(utf_8)
         self.assertEquals(dammit.original_encoding, 'utf-8')
         self.assertEquals(dammit.unicode_markup.encode("utf-8"), utf_8)

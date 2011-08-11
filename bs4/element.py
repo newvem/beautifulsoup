@@ -1,8 +1,10 @@
 import collections
 import re
+import sys
 from bs4.dammit import EntitySubstitution
 
 DEFAULT_OUTPUT_ENCODING = "utf-8"
+PY3K = (sys.version_info[0] > 2)
 
 
 def _match_css_class(str):
@@ -523,7 +525,7 @@ class Tag(PageElement):
         self.extract()
         i = self
         while i is not None:
-            next = i.next
+            next = i.next_element
             i.__dict__.clear()
             i = next
 
@@ -599,7 +601,8 @@ class Tag(PageElement):
         #print "Getattr %s.%s" % (self.__class__, tag)
         if len(tag) > 3 and tag.endswith('Tag'):
             return self.find(tag[:-3])
-        elif not tag.startswith("__"):
+        # We special case contents to avoid recursion.
+        elif not tag.startswith("__") and not tag=="contents":
             return self.find(tag)
         raise AttributeError(
             "'%s' object has no attribute '%s'" % (self.__class__, tag))
@@ -635,6 +638,9 @@ class Tag(PageElement):
 
     def __str__(self):
         return self.encode()
+    
+    if PY3K:
+        __str__ = __repr__ = __unicode__
 
     def encode(self, encoding=DEFAULT_OUTPUT_ENCODING,
                indent_level=None, substitute_html_entities=False):
@@ -872,7 +878,7 @@ class SoupStrainer(object):
         found = None
         # If given a list of items, scan it for a text element that
         # matches.
-        if hasattr(markup, '__iter__') and not isinstance(markup, Tag):
+        if hasattr(markup, '__iter__') and not isinstance(markup, (Tag, basestring)):
             for element in markup:
                 if isinstance(element, NavigableString) \
                        and self.search(element):
@@ -912,8 +918,8 @@ class SoupStrainer(object):
                 # It's a regexp object.
                 result = markup and match_against.search(markup)
             elif (hasattr(match_against, '__iter__')
-                  and (markup is not None
-                       or not isinstance(match_against, basestring))):
+                    and markup is not None
+                    and not isinstance(match_against, basestring)):
                 result = markup in match_against
             elif hasattr(match_against, 'items'):
                 result = match_against in markup

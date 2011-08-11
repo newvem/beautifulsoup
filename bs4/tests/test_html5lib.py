@@ -216,7 +216,7 @@ class TestHTML5LibEncodingConversion(TestLXMLBuilderEncodingConversion):
         return HTML5TreeBuilder()
 
     def test_real_hebrew_document(self):
-        # A real-world test to make sure we can convert ISO-8859-9 (a
+        # A real-world test to make sure we can convert ISO-8859-8 (a
         # Hebrew encoding) to UTF-8.
         soup = self.soup(self.HEBREW_DOCUMENT,
                          from_encoding="iso-8859-8")

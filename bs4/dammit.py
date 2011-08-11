@@ -224,7 +224,7 @@ class UnicodeDammit:
         # that might have them.
         if (self.smart_quotes_to is not None
             and proposed.lower() in self.ENCODINGS_WITH_SMART_QUOTES):
-            smart_quotes_re = "([\x80-\x9f])"
+            smart_quotes_re = b"([\x80-\x9f])"
             smart_quotes_compiled = re.compile(smart_quotes_re)
             markup = smart_quotes_compiled.sub(self._sub_ms_char, markup)
 
@@ -378,35 +378,35 @@ class UnicodeDammit:
             ''.join(map(chr, list(range(256)))), ''.join(map(chr, emap)))
         return s.translate(c.EBCDIC_TO_ASCII_MAP)
 
-    MS_CHARS = {'\x80': ('euro', '20AC'),
-                '\x81': ' ',
-                '\x82': ('sbquo', '201A'),
-                '\x83': ('fnof', '192'),
-                '\x84': ('bdquo', '201E'),
-                '\x85': ('hellip', '2026'),
-                '\x86': ('dagger', '2020'),
-                '\x87': ('Dagger', '2021'),
-                '\x88': ('circ', '2C6'),
-                '\x89': ('permil', '2030'),
-                '\x8A': ('Scaron', '160'),
-                '\x8B': ('lsaquo', '2039'),
-                '\x8C': ('OElig', '152'),
-                '\x8D': '?',
-                '\x8E': ('#x17D', '17D'),
-                '\x8F': '?',
-                '\x90': '?',
-                '\x91': ('lsquo', '2018'),
-                '\x92': ('rsquo', '2019'),
-                '\x93': ('ldquo', '201C'),
-                '\x94': ('rdquo', '201D'),
-                '\x95': ('bull', '2022'),
-                '\x96': ('ndash', '2013'),
-                '\x97': ('mdash', '2014'),
-                '\x98': ('tilde', '2DC'),
-                '\x99': ('trade', '2122'),
-                '\x9a': ('scaron', '161'),
-                '\x9b': ('rsaquo', '203A'),
-                '\x9c': ('oelig', '153'),
-                '\x9d': '?',
-                '\x9e': ('#x17E', '17E'),
-                '\x9f': ('Yuml', ''),}
+    MS_CHARS = {b'\x80': ('euro', '20AC'),
+                b'\x81': ' ',
+                b'\x82': ('sbquo', '201A'),
+                b'\x83': ('fnof', '192'),
+                b'\x84': ('bdquo', '201E'),
+                b'\x85': ('hellip', '2026'),
+                b'\x86': ('dagger', '2020'),
+                b'\x87': ('Dagger', '2021'),
+                b'\x88': ('circ', '2C6'),
+                b'\x89': ('permil', '2030'),
+                b'\x8A': ('Scaron', '160'),
+                b'\x8B': ('lsaquo', '2039'),
+                b'\x8C': ('OElig', '152'),
+                b'\x8D': '?',
+                b'\x8E': ('#x17D', '17D'),
+                b'\x8F': '?',
+                b'\x90': '?',
+                b'\x91': ('lsquo', '2018'),
+                b'\x92': ('rsquo', '2019'),
+                b'\x93': ('ldquo', '201C'),
+                b'\x94': ('rdquo', '201D'),
+                b'\x95': ('bull', '2022'),
+                b'\x96': ('ndash', '2013'),
+                b'\x97': ('mdash', '2014'),
+                b'\x98': ('tilde', '2DC'),
+                b'\x99': ('trade', '2122'),
+                b'\x9a': ('scaron', '161'),
+                b'\x9b': ('rsaquo', '203A'),
+                b'\x9c': ('oelig', '153'),
+                b'\x9d': '?',
+                b'\x9e': ('#x17E', '17E'),
+                b'\x9f': ('Yuml', ''),}
