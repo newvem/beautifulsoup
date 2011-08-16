@@ -11,6 +11,9 @@ of UnicodeDammit.
 Jonathan Ellis was awarded the prestigous Beau Potage D'Or for his
 work in solving the nestable tags conundrum.
 
+Thomas Kluyver finished the work of getting Beautiful Soup 4 working
+under Python 3.
+
 The following people have contributed patches to Beautiful Soup:
 
  Istvan Albert, Andrew Lin, Anthony Baxter, Andrew Boyko, Tony Chang,

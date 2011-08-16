@@ -9,7 +9,7 @@ of building a parse tree, and Beautiful Soup provides provides methods
 and Pythonic idioms that make it easy to navigate, search, and modify
 the parse tree.
 
-Beautiful Soup works with Python 2.5 and up. It works better if lxml
+Beautiful Soup works with Python 2.6 and up. It works better if lxml
 or html5lib is installed.
 
 For more than you ever wanted to know about Beautiful Soup, see the
@@ -18,7 +18,7 @@ http://www.crummy.com/software/BeautifulSoup/documentation.html
 """
 
 __author__ = "Leonard Richardson (leonardr@segfault.org)"
-__version__ = "4.0.0a"
+__version__ = "4.0.0b"
 __copyright__ = "Copyright (c) 2004-2011 Leonard Richardson"
 __license__ = "MIT"
 

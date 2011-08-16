@@ -17,6 +17,16 @@ version of the API is in use, the module is now called 'bs4':
 
     >>> from bs4 import BeautifulSoup
 
+== It works with Python 3 ==
+
+Beautiful Soup 3.1.0 worked with Python 3, but the parser it used was
+so bad that it barely worked at all. Beautiful Soup 4 works with
+Python 3, and since its parser is pluggable, you don't sacrifice
+quality.
+
+Special thanks to Thomas Kluyver for getting Python 3 support to the
+finish line.
+
 == Better method names ==
 
 Methods and attributes have been renamed to comply with PEP 8. The old names
@@ -144,6 +154,11 @@ string:
 The ['lxml', 'xml'] tree builder sets .is_xml to True; the other tree
 builders set it to False. If you want to parse XHTML with an HTML
 parser, you can set it manually.
+
+= 3.2.0 =
+
+The 3.1 series wasn't very useful, so I renamed the 3.0 series to 3.2
+to make it obvious which one you should use.
 
 = 3.1.0 =
 
