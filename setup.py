@@ -8,7 +8,7 @@ except ImportError:
 
 
 setup(name="BeautifulSoup",
-    version="4.0alpha",
+    version="4.0b",
     author="Leonard Richardson",
     url="http://www.crummy.com/software/BeautifulSoup/",
     packages=['bs4', 'bs4.builder', 'bs4.tests'],
